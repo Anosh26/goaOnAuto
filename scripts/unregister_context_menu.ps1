@@ -1,0 +1,14 @@
+$formats = @(".jpg", ".jpeg", ".png")
+
+foreach ($format in $formats) {
+    $registryPath = "HKCU:\Software\Classes\SystemFileAssociations\$format\shell\ProcessImage"
+    
+    if (Test-Path $registryPath) {
+        Remove-Item -Path $registryPath -Recurse -Force
+        Write-Host "Unregistered context menu for $format"
+    } else {
+        Write-Host "No context menu registered for $format"
+    }
+}
+
+Write-Host "Context menu unregistration complete!"
