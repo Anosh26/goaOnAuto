@@ -21,7 +21,7 @@ export async function processDocumentImage(
   
   try {
     const { data: { text } } = await worker.recognize(imagePath);
-    const classification = classifyDocumentText(text, path.basename(imagePath));
+    const classification = classifyDocumentText(text, path.basename(imagePath), path.dirname(imagePath));
 
     let newPath: string | undefined = undefined;
 

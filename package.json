@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "watch-workdir": "bun src/workDirectoryWatcher.ts"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",

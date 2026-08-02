@@ -45,9 +45,28 @@ export const DOCUMENT_RULES: DocumentTypeRule[] = [
     priority: 9
   },
   {
+    id: 'voter_id',
+    name: 'Voter ID Card',
+    keywords: [
+      'election commission of india', 
+      'election commission', 
+      'elector identity card', 
+      'identity card',
+      'voter id', 
+      'voter', 
+      'epic', 
+      'epic no', 
+      'epic number', 
+      'electoral registration officer', 
+      'assembly constituency'
+    ],
+    patterns: [/\b[A-Z]{3}[0-9]{7}\b/i],
+    priority: 10
+  },
+  {
     id: 'marriage_cert',
     name: 'Marriage Certificate',
-    keywords: ['marriage certificate', 'certificate of marriage', 'solemnization of marriage', 'registrar of marriages', 'form no 16', 'groom', 'bride'],
+    keywords: ['marriage certificate', 'certificate of marriage', 'civil registration', 'civil registrar', 'office of civil registrar', 'solemnization of marriage', 'registrar of marriages', 'form no 16', 'groom', 'bride'],
     priority: 8
   },
   {
@@ -99,6 +118,18 @@ export const DOCUMENT_RULES: DocumentTypeRule[] = [
     priority: 8
   },
   {
+    id: 'pcc',
+    name: 'Police Clearance Certificate (PCC)',
+    keywords: ['police clearance certificate', 'police clearance', 'pcc', 'police station', 'passport office', 'no criminal record'],
+    priority: 9
+  },
+  {
+    id: 'obc_cert',
+    name: 'OBC Certificate',
+    keywords: ['other backward class', 'obc certificate', 'obc', 'creamy layer', 'non creamy layer'],
+    priority: 9
+  },
+  {
     id: 'marksheet',
     name: 'Marksheet / Academic Certificate',
     keywords: ['marks statement', 'marksheet', 'board of secondary education', 'statement of marks', 'passing certificate', 'grade card', 'marks obtained'],
@@ -106,8 +137,9 @@ export const DOCUMENT_RULES: DocumentTypeRule[] = [
   }
 ];
 
-export function classifyDocumentText(rawText: string, originalFilename: string = ''): ClassificationResult {
+export function classifyDocumentText(rawText: string, originalFilename: string = '', dirPathHint: string = ''): ClassificationResult {
   const normalizedText = rawText.toLowerCase();
+  const normalizedPath = dirPathHint.toLowerCase();
   const lines = rawText.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
 
   let bestMatch: DocumentTypeRule | null = null;
@@ -117,6 +149,14 @@ export function classifyDocumentText(rawText: string, originalFilename: string =
   for (const rule of DOCUMENT_RULES) {
     let score = 0;
     const currentMatched: string[] = [];
+
+    // Check directory path hint match (e.g. folder named 'pcc', 'residence', 'caste')
+    if (normalizedPath) {
+      if (normalizedPath.includes(rule.id) || rule.keywords.some(kw => normalizedPath.includes(kw.toLowerCase()))) {
+        score += 4;
+        currentMatched.push(`dir_hint:${rule.id}`);
+      }
+    }
 
     // Check keywords
     for (const kw of rule.keywords) {

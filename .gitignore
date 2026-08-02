@@ -1,8 +1,25 @@
+# Environment variables
+.env
+.env.*
+!.env.example
 
-# Playwright
+# Node & Dependencies
 node_modules/
+
+# Playwright & Testing
 /test-results/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+# Temporary test outputs & binaries
+sample_watch_dir/
+captcha.png
+*.log
+
+# OS & IDE files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

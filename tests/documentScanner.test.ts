@@ -19,6 +19,13 @@ const MOCK_OCR_SAMPLES = {
     DOB: 01/01/1990
     ABCDE1234F
   `,
+  voter_id: `
+    ELECTION COMMISSION OF INDIA
+    ELECTOR IDENTITY CARD
+    EPIC NO: WXZ1029481
+    Name: Suresh Parab
+    Father's Name: Anand Parab
+  `,
   marriage_cert: `
     FORM NO. 16
     GOVERNMENT OF GOA
