@@ -18,7 +18,7 @@ def get_best_providers():
         print("[AI Engine] Running on CPU (No CUDA GPU detected or available).")
     return providers
 
-def process_ai_background(input_path: str, output_path: str, model_name: str = "u2netp"):
+def process_ai_background(input_path: str, output_path: str, model_name: str = "u2net", crisp_edges: bool = False, mask_threshold: int = 128):
     if not os.path.exists(input_path):
         raise FileNotFoundError(f"Input file not found: {input_path}")
 
@@ -32,23 +32,30 @@ def process_ai_background(input_path: str, output_path: str, model_name: str = "
         try:
             print("[AI Engine] Attempting CUDA GPU Acceleration (NVIDIA RTX 4060)...")
             session = new_session(model_name, providers=["CUDAExecutionProvider", "CPUExecutionProvider"])
-            print("[AI Engine] CUDA GPU Acceleration active.")
+            print(f"[AI Engine] CUDA GPU Acceleration active (Model: {model_name}).")
         except Exception as e:
             print(f"[AI Engine] CUDA initialization notice ({e}). Falling back to CPU...")
 
     if session is None:
-        print("[AI Engine] Initializing CPU Execution Engine...")
+        print(f"[AI Engine] Initializing CPU Execution Engine (Model: {model_name})...")
         session = new_session(model_name, providers=["CPUExecutionProvider"])
 
     with Image.open(input_path) as input_img:
-        # Perform AI background removal with alpha channel
-        rgba_result = remove(input_img, session=session)
+        # Perform AI background removal with smooth neural matting
+        print("[AI Engine] Segmenting subject & clothes with neural network (Smooth Alpha Matting)...")
+        rgba_result = remove(input_img, session=session, post_process_mask=False)
 
-        # Composite onto solid white background (255, 255, 255)
-        white_bg = Image.new("RGB", rgba_result.size, (255, 255, 255))
         if rgba_result.mode == "RGBA":
-            white_bg.paste(rgba_result, mask=rgba_result.split()[3])
+            r, g, b, alpha = rgba_result.split()
+
+            if crisp_edges:
+                print(f"[AI Engine] Applying binarized edge cutoff (Threshold: {mask_threshold})...")
+                alpha = alpha.point(lambda p: 255 if p >= mask_threshold else 0)
+
+            white_bg = Image.new("RGB", rgba_result.size, (255, 255, 255))
+            white_bg.paste(Image.merge("RGB", (r, g, b)), mask=alpha)
         else:
+            white_bg = Image.new("RGB", rgba_result.size, (255, 255, 255))
             white_bg.paste(rgba_result)
 
         # Save output image
@@ -59,12 +66,20 @@ def main():
     parser = argparse.ArgumentParser(description="AI Human & Subject Background Removal")
     parser.add_argument("input", help="Path to input image")
     parser.add_argument("output", help="Path to output image")
-    parser.add_argument("--model", default="u2netp", help="rembg model (default: u2netp for fast processing)")
+    parser.add_argument("--model", default="u2net", help="rembg model (default: u2net for max precision)")
+    parser.add_argument("--crisp", action="store_true", help="Enable binarized crisp edge cutoff")
+    parser.add_argument("--threshold", type=int, default=128, help="Mask binarization threshold (0-255, default: 128)")
 
     args = parser.parse_args()
 
     try:
-        process_ai_background(args.input, args.output, args.model)
+        process_ai_background(
+            input_path=args.input, 
+            output_path=args.output, 
+            model_name=args.model, 
+            crisp_edges=args.crisp, 
+            mask_threshold=args.threshold
+        )
     except Exception as e:
         print(f"[AI Engine Error] {e}", file=sys.stderr)
         sys.exit(1)
