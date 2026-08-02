@@ -1,8 +1,8 @@
-# Get the absolute path to the compiled executable
-$binPath = [System.IO.Path]::GetFullPath("$PSScriptRoot\..\bin\process_image.exe")
+# Get the absolute path to GUI PowerShell script
+$guiPath = [System.IO.Path]::GetFullPath("$PSScriptRoot\process_image_gui.ps1")
 
-if (-not (Test-Path $binPath)) {
-    Write-Error "Executable not found at $binPath. Please compile the C project first."
+if (-not (Test-Path $guiPath)) {
+    Write-Error "GUI script not found at $guiPath."
     Exit 1
 }
 
@@ -22,7 +22,7 @@ foreach ($format in $formats) {
     
     # Set context menu label and command execution string
     Set-ItemProperty -Path $registryPath -Name "(Default)" -Value "Process Photo (GoaOnAuto)"
-    Set-ItemProperty -Path $commandPath -Name "(Default)" -Value "`"$binPath`" `"%1`""
+    Set-ItemProperty -Path $commandPath -Name "(Default)" -Value "powershell.exe -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$guiPath`" `"%1`""
     
     Write-Host "Registered 'Process Photo (GoaOnAuto)' context menu for $format"
 }

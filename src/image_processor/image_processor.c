@@ -191,11 +191,17 @@ void flood_fill_background(unsigned char *data, int width, int height, int thres
     
     int dx[] = {0, 0, 1, -1};
     int dy[] = {1, -1, 0, 0};
-    
+    double step_max = threshold * 0.65;
+    if (step_max < 12.0) step_max = 12.0;
+
     while (head < tail) {
         Point p = queue[head++];
         
         int idx = (p.y * width + p.x) * 3;
+        unsigned char cur_r = data[idx];
+        unsigned char cur_g = data[idx + 1];
+        unsigned char cur_b = data[idx + 2];
+
         data[idx] = 255;
         data[idx + 1] = 255;
         data[idx + 2] = 255;
@@ -207,10 +213,13 @@ void flood_fill_background(unsigned char *data, int width, int height, int thres
             if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
                 int n_idx = (ny * width + nx) * 3;
                 if (!visited[ny * width + nx]) {
-                    double dist = sqrt(pow(data[n_idx] - bg_r, 2) + 
-                                       pow(data[n_idx + 1] - bg_g, 2) + 
-                                       pow(data[n_idx + 2] - bg_b, 2));
-                    if (dist < threshold) {
+                    double dist_bg = sqrt(pow(data[n_idx] - bg_r, 2) + 
+                                          pow(data[n_idx + 1] - bg_g, 2) + 
+                                          pow(data[n_idx + 2] - bg_b, 2));
+                    double dist_step = sqrt(pow(data[n_idx] - cur_r, 2) + 
+                                            pow(data[n_idx + 1] - cur_g, 2) + 
+                                            pow(data[n_idx + 2] - cur_b, 2));
+                    if (dist_bg < threshold && dist_step < step_max) {
                         visited[ny * width + nx] = 1;
                         queue[tail++] = (Point){nx, ny};
                     }
@@ -250,11 +259,13 @@ char *generate_output_path(const char *input) {
 }
 
 int main(int argc, char **argv) {
-    int threshold = 45;
+    int threshold = 25;
     int target_width = -1;
     int target_height = -1;
     int verify_x = -1;
     int verify_y = -1;
+    int max_kb = 50;
+    int skip_bg_remove = 0;
     char *input_path = NULL;
     char *output_path = NULL;
     
@@ -266,6 +277,15 @@ int main(int argc, char **argv) {
                 fprintf(stderr, "Error: --threshold requires a value\n");
                 return 1;
             }
+        } else if (strcmp(argv[i], "--max-kb") == 0) {
+            if (i + 1 < argc) {
+                max_kb = atoi(argv[++i]);
+            } else {
+                fprintf(stderr, "Error: --max-kb requires a value\n");
+                return 1;
+            }
+        } else if (strcmp(argv[i], "--skip-bg-remove") == 0) {
+            skip_bg_remove = 1;
         } else if (strcmp(argv[i], "--width") == 0) {
             if (i + 1 < argc) {
                 target_width = atoi(argv[++i]);
@@ -306,9 +326,11 @@ int main(int argc, char **argv) {
     if (!input_path) {
         fprintf(stderr, "Usage: %s [options] <input_path> [output_path]\n", argv[0]);
         fprintf(stderr, "Options:\n");
-        fprintf(stderr, "  --threshold <int>  Tolerance for background similarity (default: 45)\n");
-        fprintf(stderr, "  --width <px>       Target width (default: 50%% of original)\n");
-        fprintf(stderr, "  --height <px>      Target height (default: 50%% of original)\n");
+        fprintf(stderr, "  --max-kb <int>       Target max file size in KB (default: 50)\n");
+        fprintf(stderr, "  --skip-bg-remove     Skip color flood fill background removal\n");
+        fprintf(stderr, "  --threshold <int>    Tolerance for background similarity (default: 25)\n");
+        fprintf(stderr, "  --width <px>         Target width (default: 50%% of original)\n");
+        fprintf(stderr, "  --height <px>        Target height (default: 50%% of original)\n");
         return 1;
     }
     
@@ -328,9 +350,13 @@ int main(int argc, char **argv) {
     
     printf("Original: %dx%d, Resizing to: %dx%d\n", width, height, dest_w, dest_h);
     
-    // Step 1: Remove background to white using Flood Fill on the original image (higher resolution background details)
-    printf("Running background removal flood fill (threshold: %d)...\n", threshold);
-    flood_fill_background(img_data, width, height, threshold);
+    if (!skip_bg_remove) {
+        // Step 1: Remove background to white using Flood Fill on the original image (higher resolution background details)
+        printf("Running background removal flood fill (threshold: %d)...\n", threshold);
+        flood_fill_background(img_data, width, height, threshold);
+    } else {
+        printf("Skipping C flood-fill background removal (handled upstream by AI engine)...\n");
+    }
     
     // Step 2: Resize processed image using bilinear interpolation
     unsigned char *resized_data = malloc(dest_w * dest_h * 3);
@@ -351,9 +377,10 @@ int main(int argc, char **argv) {
         }
     }
     
-    printf("Running iterative compression loop...\n");
+    printf("Running iterative compression loop (Target Max KB: %d)...\n", max_kb);
     int quality = 90;
     MemoryBuffer buf = {NULL, 0, 0, 0};
+    long max_bytes = (long)max_kb * 1024;
     
     while (quality >= 10) {
         if (buf.data) {
@@ -371,7 +398,7 @@ int main(int argc, char **argv) {
         }
         
         printf("Quality: %d -> Size: %.2f KB\n", quality, buf.size / 1024.0);
-        if (buf.size < 51200) { // Under 50 KB
+        if (buf.size <= max_bytes) {
             break;
         }
         

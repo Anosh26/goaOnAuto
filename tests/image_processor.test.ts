@@ -189,4 +189,25 @@ describe("Image Processor Module", () => {
     expect(output).toContain("VERIFY_PIXEL:");
     expect(output).not.toContain("R=255, G=255, B=255");
   });
+
+  it("should respect custom --max-kb target file size limit", () => {
+    const customKbJpg = path.join(TEMP_DIR, "test_custom_kb.jpg");
+    const runResult = spawnSync(EXE_PATH, ["--max-kb", "15", inputBmp, customKbJpg], { shell: true });
+    expect(runResult.status).toBe(0);
+    expect(fs.existsSync(customKbJpg)).toBe(true);
+    
+    const stats = fs.statSync(customKbJpg);
+    expect(stats.size).toBeLessThanOrEqual(15 * 1024);
+    if (fs.existsSync(customKbJpg)) fs.unlinkSync(customKbJpg);
+  });
+
+  it("should support --skip-bg-remove flag when AI pre-processing is used", () => {
+    const skipBgJpg = path.join(TEMP_DIR, "test_skip_bg.jpg");
+    const runResult = spawnSync(EXE_PATH, ["--skip-bg-remove", inputBmp, skipBgJpg], { shell: true });
+    expect(runResult.status).toBe(0);
+    expect(fs.existsSync(skipBgJpg)).toBe(true);
+    const output = runResult.stdout.toString();
+    expect(output).toContain("Skipping C flood-fill background removal");
+    if (fs.existsSync(skipBgJpg)) fs.unlinkSync(skipBgJpg);
+  });
 });
