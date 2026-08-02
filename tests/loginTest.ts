@@ -41,12 +41,14 @@ test('Login with valid credentials', async ({ page }) => {
   await page.getByRole('button', { name: 'Login' }).click();
 
 });
-// test('get started link', async ({ page }) => {
-//   await page.goto('https://playwright.dev/');
 
-//   // Click the get started link.
-//   await page.getByRole('link', { name: 'Get started' }).click();
-
-//   // Expects page to have a heading with the name of Installation.
-//   await expect(page.getByRole('heading', { name: 'Installation' })).toBeVisible();
-// });
+test('Process applicant photo automatically for upload (<50 KB)', async () => {
+  const { processPhotoForUpload } = await import('../utils/imageProcessor');
+  const samplePhoto = 'captcha.png';
+  if (fs.existsSync(samplePhoto)) {
+    const processedPath = await processPhotoForUpload(samplePhoto, { maxKB: 50, useAI: true });
+    expect(fs.existsSync(processedPath)).toBe(true);
+    const stats = fs.statSync(processedPath);
+    expect(stats.size).toBeLessThanOrEqual(50 * 1024);
+  }
+});
