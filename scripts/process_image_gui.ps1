@@ -228,7 +228,8 @@ $grpOpt.Controls.Add($lblModel)
 $cmbModel = New-Object System.Windows.Forms.ComboBox
 $cmbModel.Font = New-Object System.Drawing.Font("Segoe UI", 10)
 $cmbModel.DropDownStyle = [System.Windows.Forms.ComboBoxStyle]::DropDownList
-$cmbModel.Items.Add("u2net (Full High-Precision Model - Max Accuracy)")
+$cmbModel.Items.Add("u2net_human_seg (Full Human Silhouette, Traps & Chest Model)")
+$cmbModel.Items.Add("u2net (General Object Model)")
 $cmbModel.Items.Add("u2netp (Lite Fast Model)")
 $cmbModel.SelectedIndex = 0
 $cmbModel.Location = New-Object System.Drawing.Point(130, 112)
@@ -297,10 +298,14 @@ $btnProcess.Add_Click({
     $skipCbg = ""
 
     if ($chkAI.Checked) {
-        $lblStatus.Text = "Running High-Precision AI Segmentation (RTX 4060 GPU)..."
+        $lblStatus.Text = "Running High-Precision Human Silhouette AI Segmentation (RTX 4060 GPU)..."
         $form.Refresh()
 
-        $modelArg = if ($cmbModel.SelectedIndex -eq 1) { "u2netp" } else { "u2net" }
+        $modelArg = switch ($cmbModel.SelectedIndex) {
+            1 { "u2net" }
+            2 { "u2netp" }
+            default { "u2net_human_seg" }
+        }
         $pyArgs = "`"$aiScriptPath`" `"$inputPath`" `"$tempPath`" --model $modelArg"
         if ($chkCrisp.Checked) {
             $pyArgs += " --crisp"

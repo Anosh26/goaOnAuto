@@ -18,7 +18,7 @@ def get_best_providers():
         print("[AI Engine] Running on CPU (No CUDA GPU detected or available).")
     return providers
 
-def process_ai_background(input_path: str, output_path: str, model_name: str = "u2net", crisp_edges: bool = False, mask_threshold: int = 128):
+def process_ai_background(input_path: str, output_path: str, model_name: str = "u2net_human_seg", crisp_edges: bool = False, mask_threshold: int = 128):
     if not os.path.exists(input_path):
         raise FileNotFoundError(f"Input file not found: {input_path}")
 
@@ -32,18 +32,25 @@ def process_ai_background(input_path: str, output_path: str, model_name: str = "
         try:
             print("[AI Engine] Attempting CUDA GPU Acceleration (NVIDIA RTX 4060)...")
             session = new_session(model_name, providers=["CUDAExecutionProvider", "CPUExecutionProvider"])
-            print(f"[AI Engine] CUDA GPU Acceleration active (Model: {model_name}).")
+            print(f"[AI Engine] CUDA GPU Acceleration active (Human Seg Model: {model_name}).")
         except Exception as e:
             print(f"[AI Engine] CUDA initialization notice ({e}). Falling back to CPU...")
 
     if session is None:
-        print(f"[AI Engine] Initializing CPU Execution Engine (Model: {model_name})...")
+        print(f"[AI Engine] Initializing CPU Execution Engine (Human Seg Model: {model_name})...")
         session = new_session(model_name, providers=["CPUExecutionProvider"])
 
     with Image.open(input_path) as input_img:
-        # Perform AI background removal with smooth neural matting
-        print("[AI Engine] Segmenting subject & clothes with neural network (Smooth Alpha Matting)...")
-        rgba_result = remove(input_img, session=session, post_process_mask=False)
+        # Perform AI human body, traps, chest, & clothing segmentation
+        print("[AI Engine] Extracting full human silhouette (Face, Hair, Traps, Chest, Clothing)...")
+        rgba_result = remove(
+            input_img, 
+            session=session, 
+            alpha_matting=True,
+            alpha_matting_foreground_threshold=240,
+            alpha_matting_background_threshold=10,
+            alpha_matting_erode_size=10
+        )
 
         if rgba_result.mode == "RGBA":
             r, g, b, alpha = rgba_result.split()
@@ -60,13 +67,13 @@ def process_ai_background(input_path: str, output_path: str, model_name: str = "
 
         # Save output image
         white_bg.save(output_path, quality=95)
-        print(f"[AI Engine] Successfully processed background -> {output_path}")
+        print(f"[AI Engine] Successfully processed human silhouette -> {output_path}")
 
 def main():
     parser = argparse.ArgumentParser(description="AI Human & Subject Background Removal")
     parser.add_argument("input", help="Path to input image")
     parser.add_argument("output", help="Path to output image")
-    parser.add_argument("--model", default="u2net", help="rembg model (default: u2net for max precision)")
+    parser.add_argument("--model", default="u2net_human_seg", help="rembg model (default: u2net_human_seg for human silhouette)")
     parser.add_argument("--crisp", action="store_true", help="Enable binarized crisp edge cutoff")
     parser.add_argument("--threshold", type=int, default=128, help="Mask binarization threshold (0-255, default: 128)")
 
