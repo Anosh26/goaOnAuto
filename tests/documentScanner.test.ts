@@ -41,10 +41,30 @@ const MOCK_OCR_SAMPLES = {
     Date of Birth: 12/04/2001
     Place of Birth: Panaji Goa
   `,
-  bonafide_cert: `
-    ST. XAVIER HIGH SCHOOL
+  bonafide_primary: `
+    GOVERNMENT PRIMARY SCHOOL TALEIGAO
     BONAFIDE CERTIFICATE
-    This is to certify that Rahul Naik is a regular student of Class X in our school for the Academic Year 2024-2025.
+    This is to certify that Master Amit Rane is a bonafide student of Class III for academic year 2024-25.
+  `,
+  bonafide_college: `
+    DON BOSCO COLLEGE OF ENGINEERING
+    BONAFIDE STUDENT CERTIFICATE
+    This is to certify that Miss Neha Sharma is a regular student enrolled in Mechanical Engineering.
+  `,
+  marksheet_ssc: `
+    GOA BOARD OF SECONDARY AND HIGHER SECONDARY EDUCATION
+    STATEMENT OF MARKS - CLASS X (SSC)
+    Seat No: 109482
+    Name: Rohit Sawant
+    Result: PASS WITH DISTINCTION
+  `,
+  marksheet_university: `
+    GOA UNIVERSITY
+    OFFICE OF CONTROLLER OF EXAMINATIONS
+    SEMESTER VI GRADE CARD & TRANSCRIPT
+    PRN: 202109281
+    CGPA: 8.92
+    Grand Total: 850 / 1000
   `,
   electricity_bill: `
     GOVERNMENT OF GOA ELECTRICITY DEPARTMENT

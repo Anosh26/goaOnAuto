@@ -59,15 +59,17 @@ async function waitForFileReady(filePath: string, maxWaitMs = 5000): Promise<boo
   while (Date.now() - start < maxWaitMs) {
     try {
       if (!fs.existsSync(filePath)) return false;
-      const size = fs.statSync(filePath).size;
-      if (size > 0 && size === lastSize) {
+      const stats = fs.statSync(filePath);
+      if (!stats.isFile()) return false; // Ignore directories
+
+      if (stats.size > 0 && stats.size === lastSize) {
         return true; // File is stable
       }
-      lastSize = size;
+      lastSize = stats.size;
     } catch {}
     await new Promise(r => setTimeout(r, 300));
   }
-  return fs.existsSync(filePath);
+  return fs.existsSync(filePath) && fs.statSync(filePath).isFile();
 }
 
 /**
@@ -112,11 +114,16 @@ async function processDirtyNodes(dirtyNodes: DirectoryNode[]) {
         }
 
         if (fs.existsSync(fileRecord.filePath)) {
-          // Verify file stability (Google Drive sync complete)
-          const isReady = await waitForFileReady(fileRecord.filePath);
-          if (isReady) {
-            candidateFiles.push(fileRecord.filePath);
-          }
+          try {
+            const stats = fs.statSync(fileRecord.filePath);
+            if (!stats.isFile()) continue; // Skip directories!
+
+            // Verify file stability (Google Drive sync complete)
+            const isReady = await waitForFileReady(fileRecord.filePath);
+            if (isReady) {
+              candidateFiles.push(fileRecord.filePath);
+            }
+          } catch {}
         }
       }
 

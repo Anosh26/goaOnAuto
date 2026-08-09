@@ -78,7 +78,33 @@ export const DOCUMENT_RULES: DocumentTypeRule[] = [
   {
     id: 'bonafide_cert',
     name: 'Bonafide Certificate',
-    keywords: ['bonafide certificate', 'bonafide student', 'this is to certify that', 'regular student', 'academic year', 'roll no', 'school', 'college'],
+    keywords: [
+      'bonafide certificate', 
+      'bonafide student', 
+      'this is to certify that', 
+      'regular student', 
+      'enrolled as a student',
+      'bonafide', 
+      'academic year', 
+      'roll no', 
+      'gr no',
+      'school', 
+      'primary school',
+      'high school', 
+      'higher secondary school',
+      'hssc', 
+      'ssc',
+      'junior college',
+      'college', 
+      'university', 
+      'polytechnic',
+      'institute of technology',
+      'headmaster',
+      'headmistress',
+      'principal',
+      'dean',
+      'registrar'
+    ],
     priority: 8
   },
   {
@@ -132,8 +158,36 @@ export const DOCUMENT_RULES: DocumentTypeRule[] = [
   {
     id: 'marksheet',
     name: 'Marksheet / Academic Certificate',
-    keywords: ['marks statement', 'marksheet', 'board of secondary education', 'statement of marks', 'passing certificate', 'grade card', 'marks obtained'],
-    priority: 7
+    keywords: [
+      'marks statement', 
+      'statement of marks', 
+      'marksheet', 
+      'mark sheet', 
+      'grade card', 
+      'transcript', 
+      'passing certificate', 
+      'board of secondary education', 
+      'board of higher secondary education', 
+      'goa board', 
+      'cbse', 
+      'icse', 
+      'university', 
+      'controller of examinations', 
+      'semester', 
+      'trimester', 
+      'seat no', 
+      'roll no', 
+      'prn', 
+      'register no', 
+      'cgpa', 
+      'sgpa', 
+      'total marks', 
+      'marks obtained', 
+      'grand total', 
+      'class awarded', 
+      'distinction'
+    ],
+    priority: 8
   }
 ];
 
