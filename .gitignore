@@ -18,6 +18,10 @@ sample_watch_dir/
 captcha.png
 *.log
 
+# Python cache
+__pycache__/
+*.pyc
+
 # OS & IDE files
 .DS_Store
 Thumbs.db

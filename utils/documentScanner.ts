@@ -2,7 +2,7 @@ import { createWorker } from 'tesseract.js';
 import * as path from 'path';
 import * as fs from 'fs';
 import { execSync } from 'child_process';
-import { classifyDocumentText, ClassificationResult } from './documentClassifier';
+import { classifyDocumentText, ClassificationResult, extractPersonNameFromDirectory } from './documentClassifier';
 
 export interface ScanOptions {
   autoRename?: boolean;
@@ -49,6 +49,26 @@ export function tryPassportPhotoDetector(imagePath: string): { isPassport: boole
   return { isPassport: false, confidence: 0 };
 }
 
+/**
+ * Invokes signatureDetector.py to visually identify if the image is a signature scan
+ */
+export function trySignatureDetector(imagePath: string): { isSignature: boolean; confidence: number; inkType?: string; reason?: string } {
+  const pyScript = path.resolve(__dirname, 'signatureDetector.py');
+  try {
+    const output = execSync(`python "${pyScript}" "${imagePath}"`, { stdio: 'pipe' }).toString();
+    const parsed = JSON.parse(output);
+    if (parsed && parsed.is_signature) {
+      return {
+        isSignature: true,
+        confidence: parsed.confidence || 0.85,
+        inkType: parsed.ink_type,
+        reason: parsed.reason
+      };
+    }
+  } catch {}
+  return { isSignature: false, confidence: 0 };
+}
+
 export async function processDocumentImage(
   imagePath: string, 
   options: ScanOptions = {}
@@ -82,12 +102,13 @@ export async function processDocumentImage(
 
   let classification = classifyDocumentText(extractedText, path.basename(imagePath), path.dirname(imagePath));
 
-  // 3. Visual Face/Photo Detection Fallback for Passport Photos (when text is minimal or unknown)
+  // 3. Visual Detection Fallbacks (when text is minimal or document is unknown)
   if (extractedText.trim().length < 35 || classification.docType === 'document') {
     const photoRes = tryPassportPhotoDetector(imagePath);
     if (photoRes.isPassport) {
       const ext = path.extname(imagePath) || '.jpg';
-      const name = classification.extractedName || 'applicant';
+      const dirPersonName = extractPersonNameFromDirectory(options.targetDir || path.dirname(imagePath));
+      const name = classification.extractedName || dirPersonName || 'applicant';
       classification = {
         docType: 'passport_photo',
         docTypeName: 'Passport Size Photo',
@@ -97,6 +118,23 @@ export async function processDocumentImage(
         suggestedFilename: `passport_photo_${name}${ext}`
       };
       console.log(`   📸 Visual Detection: Passport Size Photo Confirmed (${Math.round(photoRes.confidence * 100)}%)`);
+    } else {
+      // Check for Signature Scan (Blue / Dark ink rectangular image)
+      const signRes = trySignatureDetector(imagePath);
+      if (signRes.isSignature) {
+        const ext = path.extname(imagePath) || '.jpg';
+        const dirPersonName = extractPersonNameFromDirectory(options.targetDir || path.dirname(imagePath));
+        const name = classification.extractedName || dirPersonName || 'applicant';
+        classification = {
+          docType: 'signature',
+          docTypeName: 'Signature',
+          extractedName: name,
+          matchedKeywords: ['visual_ink_geometry', signRes.inkType || 'blue_ink'],
+          confidence: signRes.confidence,
+          suggestedFilename: `signature_${name}${ext}`
+        };
+        console.log(`   ✍️ Visual Detection: Signature Confirmed (${Math.round(signRes.confidence * 100)}% - ${signRes.inkType}) -> Person: ${name}`);
+      }
     }
   }
 

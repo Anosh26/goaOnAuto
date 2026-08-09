@@ -109,7 +109,7 @@ async function processDirtyNodes(dirtyNodes: DirectoryNode[]) {
 
         // Skip already processed files or generated outputs
         if (filename.includes('_white_bg') || filename.includes('_processed')) continue;
-        if (filename.match(/(aadhaar|pan|pcc|residence_cert|caste_cert|obc_cert|marriage_cert|birth_cert|bonafide_cert|electricity_bill|house_tax|ration_card|passport|driving_license|voter_id|marksheet|samaj_cert|passport_photo)_/i)) {
+        if (filename.match(/(aadhaar|pan|pcc|residence_cert|caste_cert|obc_cert|marriage_cert|birth_cert|bonafide_cert|electricity_bill|house_tax|ration_card|passport|driving_license|voter_id|marksheet|samaj_cert|passport_photo|signature)_/i) || filename.match(/_(signature|white_bg|processed)\./i)) {
           continue;
         }
 
@@ -141,7 +141,7 @@ async function processDirtyNodes(dirtyNodes: DirectoryNode[]) {
         const stagedPath = path.join(STAGING_DIR, `${Date.now()}_${path.basename(srcPath)}`);
         fs.copyFileSync(srcPath, stagedPath);
 
-        const res = await processDocumentImage(stagedPath, { autoRename: false });
+        const res = await processDocumentImage(stagedPath, { autoRename: false, targetDir: node.fullPath });
         stagedClassifications.push({ srcPath, stagedPath, classification: res.classification });
       }
 

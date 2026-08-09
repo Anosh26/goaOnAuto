@@ -201,7 +201,20 @@ export const DOCUMENT_RULES: DocumentTypeRule[] = [
       'affix photograph',
       'photograph'
     ],
-    priority: 7
+    priority: 10
+  },
+  {
+    id: 'signature',
+    name: 'Signature',
+    keywords: [
+      'specimen signature',
+      'signature of applicant',
+      'signature',
+      'sign of applicant',
+      'applicant signature',
+      'sign here'
+    ],
+    priority: 9
   }
 ];
 
@@ -313,5 +326,40 @@ function extractCandidateName(lines: string[], docType: string): string | undefi
     }
   }
 
+  return undefined;
+}
+
+const GENERIC_FOLDER_NAMES = new Set([
+  'work', 'residence', 'pcc', 'caste', 'caste_certificate', 'obc', 'marriage',
+  'income', 'scans', 'downloads', 'documents', 'my drive', 'google drive',
+  'desktop', 'goaonauto', 'work_directory', 'photos', 'images', 'temp', 'stage',
+  'tests', 'mock_photo_test', 'mock_work_dir', 'mock_sig_test', 'projects', 'notes',
+  'users', 'program files', 'appdata', 'local', 'roaming'
+]);
+
+/**
+ * Extracts candidate person name from directory hierarchy path (e.g. ".../Vijaykumar Tripathi" -> "vijaykumar_tripathi")
+ */
+export function extractPersonNameFromDirectory(dirPath: string): string | undefined {
+  if (!dirPath) return undefined;
+  const segments = dirPath.split(/[\\/]/).map(s => s.trim()).filter(Boolean);
+
+  // Search only the last 3 leaf segments
+  const searchLimit = Math.max(0, segments.length - 3);
+
+  for (let i = segments.length - 1; i >= searchLimit; i--) {
+    const seg = segments[i];
+    // Skip numbers / dates (e.g. '2026', '8', '08')
+    if (/^\d+$/.test(seg)) continue;
+    // Skip Google Drive account strings like "My Drive (email@gmail.com)"
+    if (seg.includes('@') || /my drive/i.test(seg)) continue;
+    // Skip generic folder names
+    if (GENERIC_FOLDER_NAMES.has(seg.toLowerCase())) continue;
+
+    // Segment should contain alphabetic name characters
+    if (/[a-zA-Z]{2,}/.test(seg)) {
+      return seg.replace(/[^a-zA-Z0-9]/g, '_').replace(/_+/g, '_').replace(/^_+|_+$/g, '').toLowerCase();
+    }
+  }
   return undefined;
 }
