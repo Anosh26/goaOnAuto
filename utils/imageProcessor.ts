@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import * as os from 'os';
 import { spawnSync } from 'child_process';
 
 export interface ProcessImageOptions {
@@ -39,7 +40,8 @@ export async function processPhotoForUpload(
   const baseName = path.basename(absInputPath, ext);
   const dirName = path.dirname(absInputPath);
 
-  const tempAiOutput = path.join(dirName, `ai_temp_${Date.now()}_${baseName}.png`);
+  // Store intermediate AI mask in OS temp directory to avoid Google Drive locks/syncing
+  const tempAiOutput = path.join(os.tmpdir(), `ai_temp_${Date.now()}_${baseName}.png`);
   const finalOutput = options.outputPath ? path.resolve(options.outputPath) : path.join(dirName, `${baseName}_processed.jpg`);
 
   let currentInput = absInputPath;
@@ -48,7 +50,7 @@ export async function processPhotoForUpload(
   // Step 1: AI Background Removal
   if (useAI) {
     console.log(`[Photo Processor] Running AI Background Removal (${model})...`);
-    const pyResult = spawnSync('python', [aiScriptPath, absInputPath, tempAiOutput, '--model', model], {
+    const pyResult = spawnSync('python', [`"${aiScriptPath}"`, `"${absInputPath}"`, `"${tempAiOutput}"`, '--model', model], {
       shell: true,
       encoding: 'utf-8',
     });
@@ -58,7 +60,7 @@ export async function processPhotoForUpload(
       skipCbg = true;
       console.log(`[Photo Processor] AI segmentation complete -> ${tempAiOutput}`);
     } else {
-      console.warn(`[Photo Processor] AI script notice (${pyResult.stderr}). Falling back to C flood-fill...`);
+      console.warn(`[Photo Processor] AI script notice (${pyResult.stderr || pyResult.stdout}). Falling back to C flood-fill...`);
     }
   }
 
@@ -77,7 +79,7 @@ export async function processPhotoForUpload(
 
   cArgs.push(`"${currentInput}"`, `"${finalOutput}"`);
 
-  const cResult = spawnSync(binPath, cArgs, { shell: true, encoding: 'utf-8' });
+  const cResult = spawnSync(`"${binPath}"`, cArgs, { shell: true, encoding: 'utf-8' });
 
   // Clean up temp AI output if generated
   if (fs.existsSync(tempAiOutput)) {

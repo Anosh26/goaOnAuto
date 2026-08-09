@@ -21,11 +21,27 @@ def get_model_path() -> str:
         urllib.request.urlretrieve(model_url, model_path)
     return model_path
 
+def to_native_types(item):
+    """Recursively convert NumPy data types to native Python types for JSON serialization."""
+    if isinstance(item, dict):
+        return {k: to_native_types(v) for k, v in item.items()}
+    elif isinstance(item, list):
+        return [to_native_types(v) for v in item]
+    elif isinstance(item, (np.floating, np.float32, np.float64)):
+        return float(item)
+    elif isinstance(item, (np.integer, np.int32, np.int64)):
+        return int(item)
+    elif isinstance(item, (np.bool_, bool)):
+        return bool(item)
+    elif isinstance(item, np.ndarray):
+        return item.tolist()
+    return item
+
 def evaluate_skin_silhouette(img, width: int, height: int, aspect_ratio: float) -> dict:
     """
     Heuristic fallback: Checks for single centered face/head skin-tone silhouette in upper half.
     """
-    if not (0.60 <= aspect_ratio <= 1.30):
+    if not (0.55 <= aspect_ratio <= 1.35):
         return {"is_passport": False, "confidence": 0.0}
 
     ycrcb = cv2.cvtColor(img, cv2.COLOR_BGR2YCrCb)
@@ -38,27 +54,27 @@ def evaluate_skin_silhouette(img, width: int, height: int, aspect_ratio: float) 
 
     # Find dominant skin-like region
     largest = max(contours, key=cv2.contourArea)
-    area = cv2.contourArea(largest)
+    area = float(cv2.contourArea(largest))
     area_ratio = area / float(width * height)
 
-    if not (0.05 <= area_ratio <= 0.65):
+    if not (0.04 <= area_ratio <= 0.70):
         return {"is_passport": False, "confidence": 0.0}
 
     x, y, w, h = cv2.boundingRect(largest)
-    center_x = x + w / 2.0
-    center_y = y + h / 2.0
+    center_x = float(x + w / 2.0)
+    center_y = float(y + h / 2.0)
 
     horiz_offset = abs(center_x - (width / 2.0)) / float(width)
     vert_pos = center_y / float(height)
 
     # Face/head region should be roughly centered and in the upper 70% of frame
-    if horiz_offset <= 0.25 and 0.15 <= vert_pos <= 0.70:
+    if horiz_offset <= 0.28 and 0.12 <= vert_pos <= 0.72:
         return {
             "is_passport": True,
             "confidence": 0.85,
             "face_box": [int(x), int(y), int(w), int(h)],
-            "aspect_ratio": round(aspect_ratio, 2),
-            "face_area_ratio": round(area_ratio, 2),
+            "aspect_ratio": round(float(aspect_ratio), 2),
+            "face_area_ratio": round(float(area_ratio), 2),
             "reason": "Centered portrait silhouette matching passport photo geometry (Color/Geometry Heuristic)"
         }
 
@@ -90,23 +106,23 @@ def detect_passport_photo(image_path: str, min_confidence: float = 0.45) -> dict
                 "reason": "Image dimensions too small"
             }
 
-        aspect_ratio = width / float(height)
-        is_passport_aspect = 0.60 <= aspect_ratio <= 1.30
+        aspect_ratio = float(width) / float(height)
+        is_passport_aspect = 0.55 <= aspect_ratio <= 1.35
 
         # 1. Primary: Deep Learning YuNet Face Detector
         try:
             model_path = get_model_path()
-            detector = cv2.FaceDetectorYN.create(model_path, "", (width, height), min_confidence)
+            detector = cv2.FaceDetectorYN.create(model_path, "", (width, height), float(min_confidence))
             detector.setInputSize((width, height))
             _, faces = detector.detect(img)
         except Exception:
             faces = None
 
         if faces is not None and len(faces) > 0:
-            valid_faces = [f for f in faces if f[-1] >= min_confidence]
+            valid_faces = [f for f in faces if float(f[-1]) >= min_confidence]
             if len(valid_faces) == 1:
                 face = valid_faces[0]
-                fx, fy, fw, fh = face[:4]
+                fx, fy, fw, fh = float(face[0]), float(face[1]), float(face[2]), float(face[3])
                 face_confidence = float(face[-1])
 
                 face_area_ratio = (fw * fh) / float(width * height)
@@ -114,10 +130,10 @@ def detect_passport_photo(image_path: str, min_confidence: float = 0.45) -> dict
                 face_center_y = fy + fh / 2.0
 
                 horiz_offset = abs(face_center_x - (width / 2.0)) / float(width)
-                is_centered_horiz = horiz_offset <= 0.25
+                is_centered_horiz = horiz_offset <= 0.28
                 vert_pos = face_center_y / float(height)
-                is_proper_vert_pos = 0.15 <= vert_pos <= 0.70
-                is_valid_face_size = 0.18 <= (fh / float(height)) <= 0.85
+                is_proper_vert_pos = 0.12 <= vert_pos <= 0.72
+                is_valid_face_size = 0.15 <= (fh / float(height)) <= 0.88
 
                 is_passport = (
                     is_passport_aspect and 
@@ -127,7 +143,7 @@ def detect_passport_photo(image_path: str, min_confidence: float = 0.45) -> dict
                 )
 
                 if is_passport:
-                    return {
+                    res = {
                         "is_passport_photo": True,
                         "confidence": round(face_confidence * 0.95, 2),
                         "num_faces": 1,
@@ -137,27 +153,30 @@ def detect_passport_photo(image_path: str, min_confidence: float = 0.45) -> dict
                         "face_area_ratio": round(face_area_ratio, 2),
                         "reason": "Single centered portrait face detected via YuNet DNN"
                     }
+                    return to_native_types(res)
 
         # 2. Secondary: Skin Tone & Portrait Silhouette Heuristic
         silhouette_res = evaluate_skin_silhouette(img, width, height, aspect_ratio)
         if silhouette_res.get("is_passport"):
-            return {
+            res = {
                 "is_passport_photo": True,
-                "confidence": silhouette_res.get("confidence", 0.85),
+                "confidence": float(silhouette_res.get("confidence", 0.85)),
                 "num_faces": 1,
                 "face_box": silhouette_res.get("face_box"),
-                "aspect_ratio": silhouette_res.get("aspect_ratio"),
-                "face_area_ratio": silhouette_res.get("face_area_ratio"),
-                "reason": silhouette_res.get("reason")
+                "aspect_ratio": float(silhouette_res.get("aspect_ratio")),
+                "face_area_ratio": float(silhouette_res.get("face_area_ratio")),
+                "reason": str(silhouette_res.get("reason"))
             }
+            return to_native_types(res)
 
-        return {
+        res = {
             "is_passport_photo": False,
             "confidence": 0.0,
-            "num_faces": len(faces) if faces is not None else 0,
+            "num_faces": int(len(faces)) if faces is not None else 0,
             "aspect_ratio": round(aspect_ratio, 2),
             "reason": "No valid portrait face or silhouette matching passport photo geometry"
         }
+        return to_native_types(res)
 
     except Exception as e:
         return {
@@ -173,4 +192,4 @@ if __name__ == "__main__":
 
     image_file = sys.argv[1]
     res = detect_passport_photo(image_file)
-    print(json.dumps(res, indent=2))
+    print(json.dumps(res, indent=2, default=lambda o: float(o) if isinstance(o, (np.floating, np.float32, np.float64)) else (int(o) if isinstance(o, (np.integer, np.int32, np.int64)) else str(o))))
