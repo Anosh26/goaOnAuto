@@ -30,6 +30,25 @@ function tryPythonGpuCpuOcr(imagePath: string): { text: string; isGpu: boolean; 
   return null;
 }
 
+/**
+ * Invokes photoDetector.py to visually identify if the image is a passport/ID photo
+ */
+export function tryPassportPhotoDetector(imagePath: string): { isPassport: boolean; confidence: number; reason?: string } {
+  const pyScript = path.resolve(__dirname, 'photoDetector.py');
+  try {
+    const output = execSync(`python "${pyScript}" "${imagePath}"`, { stdio: 'pipe' }).toString();
+    const parsed = JSON.parse(output);
+    if (parsed && parsed.is_passport_photo) {
+      return {
+        isPassport: true,
+        confidence: parsed.confidence || 0.9,
+        reason: parsed.reason
+      };
+    }
+  } catch {}
+  return { isPassport: false, confidence: 0 };
+}
+
 export async function processDocumentImage(
   imagePath: string, 
   options: ScanOptions = {}
@@ -61,7 +80,25 @@ export async function processDocumentImage(
     }
   }
 
-  const classification = classifyDocumentText(extractedText, path.basename(imagePath), path.dirname(imagePath));
+  let classification = classifyDocumentText(extractedText, path.basename(imagePath), path.dirname(imagePath));
+
+  // 3. Visual Face/Photo Detection Fallback for Passport Photos (when text is minimal or unknown)
+  if (extractedText.trim().length < 35 || classification.docType === 'document') {
+    const photoRes = tryPassportPhotoDetector(imagePath);
+    if (photoRes.isPassport) {
+      const ext = path.extname(imagePath) || '.jpg';
+      const name = classification.extractedName || 'applicant';
+      classification = {
+        docType: 'passport_photo',
+        docTypeName: 'Passport Size Photo',
+        extractedName: name,
+        matchedKeywords: ['visual_face_geometry'],
+        confidence: photoRes.confidence,
+        suggestedFilename: `passport_photo_${name}${ext}`
+      };
+      console.log(`   📸 Visual Detection: Passport Size Photo Confirmed (${Math.round(photoRes.confidence * 100)}%)`);
+    }
+  }
 
   let newPath: string | undefined = undefined;
 

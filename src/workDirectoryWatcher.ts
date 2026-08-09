@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import { DirectoryChangeBuffer, DirectoryNode } from '../utils/directoryChangeBuffer';
 import { processDocumentImage } from '../utils/documentScanner';
-import { mergeCardFrontBackVertically, convertImagesToMultipagePdf } from '../utils/imageOpsWrapper';
+import { processPhotoForUpload } from '../utils/imageProcessor';
 
 // Load .env manually
 function loadEnv() {
@@ -108,8 +108,8 @@ async function processDirtyNodes(dirtyNodes: DirectoryNode[]) {
         }
 
         // Skip already processed files or generated outputs
-        if (filename.includes('_merged') || filename.endsWith('.pdf')) continue;
-        if (filename.match(/(aadhaar|pan|pcc|residence_cert|caste_cert|obc_cert|marriage_cert|birth_cert|bonafide_cert|electricity_bill|house_tax|ration_card|passport|driving_license|voter_id)_/i)) {
+        if (filename.includes('_white_bg') || filename.includes('_processed')) continue;
+        if (filename.match(/(aadhaar|pan|pcc|residence_cert|caste_cert|obc_cert|marriage_cert|birth_cert|bonafide_cert|electricity_bill|house_tax|ration_card|passport|driving_license|voter_id|marksheet|samaj_cert|passport_photo)_/i)) {
           continue;
         }
 
@@ -145,87 +145,49 @@ async function processDirtyNodes(dirtyNodes: DirectoryNode[]) {
         stagedClassifications.push({ srcPath, stagedPath, classification: res.classification });
       }
 
-      const docTypes = stagedClassifications.map(c => c.classification.docType);
-      const isVoterOrCard = docTypes.some(t => ['voter_id', 'aadhaar', 'pan', 'driving_license'].includes(t));
-      const isMarriageCert = docTypes.some(t => t === 'marriage_cert');
+      // Process each document individually (no automatic merging)
+      for (const item of stagedClassifications) {
+        const classRes = item.classification;
+        const ext = path.extname(item.srcPath);
+        const nameStr = classRes.extractedName ? `_${classRes.extractedName}` : '_scanned';
+        const baseStem = `${classRes.docType}${nameStr}`;
+        let newFilename = `${baseStem}${ext}`;
+        let finalPath = path.join(node.fullPath, newFilename);
 
-      // CASE 1: Card ID (Voter ID, Aadhaar, PAN, DL) with Front & Back side images (2 sequential files)
-      if (isVoterOrCard && candidateFiles.length >= 2) {
-        const frontItem = stagedClassifications[0];
-        const backItem = stagedClassifications[1];
-
-        if (frontItem && backItem) {
-          console.log(`   🪪 ID Card Pair Detected (Front & Back). Merging vertically in Staging...`);
-          
-          const primaryClass = frontItem.classification;
-          const ext = path.extname(frontItem.srcPath);
-          const mergedFilename = `${primaryClass.docType}_${primaryClass.extractedName || 'card'}_merged${ext}`;
-          
-          const stagedMergedPath = path.join(STAGING_DIR, mergedFilename);
-          const finalOutputPath = path.join(node.fullPath, mergedFilename);
-
-          mergeCardFrontBackVertically(frontItem.stagedPath, backItem.stagedPath, stagedMergedPath);
-          
-          // Copy merged file cleanly back to Google Drive directory
-          fs.copyFileSync(stagedMergedPath, finalOutputPath);
-          console.log(`   ✨ Merged Card Saved: ${mergedFilename}`);
-
-          // Cleanup staging files & original raw scans
-          safeUnlink(frontItem.stagedPath);
-          safeUnlink(backItem.stagedPath);
-          safeUnlink(stagedMergedPath);
-          safeUnlink(frontItem.srcPath);
-          safeUnlink(backItem.srcPath);
+        // Ensure unique filename if destination exists or multiple files share name
+        let counter = 1;
+        while (fs.existsSync(finalPath) && finalPath !== item.srcPath) {
+          newFilename = `${baseStem}_${counter}${ext}`;
+          finalPath = path.join(node.fullPath, newFilename);
+          counter++;
         }
-      }
-      // CASE 2: Marriage Certificate (or Civil Registration) -> Convert to Multipage PDF
-      else if (isMarriageCert) {
-        console.log(`   📜 Marriage Certificate / Civil Registration Document Detected. Creating Multipage PDF...`);
 
-        const primaryItem = stagedClassifications.find(c => c.classification.docType === 'marriage_cert') || stagedClassifications[0];
-        const docType = primaryItem?.classification.docType || 'marriage_cert';
-        const rawName = primaryItem?.classification.extractedName || 'certificate';
-        const cleanName = rawName.replace(/\.pdf.*$/i, '').replace(/[^a-z0-9]/gi, '_').replace(/_+/g, '_').replace(/^_+|_+$/g, '');
-        const pdfFilename = `${docType}_${cleanName || 'certificate'}.pdf`;
-        
-        const stagedPdfPath = path.join(STAGING_DIR, pdfFilename);
-        const finalPdfPath = path.join(node.fullPath, pdfFilename);
+        fs.copyFileSync(item.stagedPath, finalPath);
+        console.log(`   ✅ Document Identified: ${classRes.docTypeName} (${Math.round(classRes.confidence * 100)}% confidence)`);
+        console.log(`   ✨ Renamed Safely : ${newFilename}`);
 
-        const stagedImagePaths = stagedClassifications.map(c => c.stagedPath);
-        convertImagesToMultipagePdf(stagedImagePaths, stagedPdfPath);
-
-        // Copy final PDF to Google Drive directory
-        fs.copyFileSync(stagedPdfPath, finalPdfPath);
-        console.log(`   ✨ Multipage PDF Saved: ${pdfFilename}`);
-
-        // Cleanup staging & original files
-        stagedClassifications.forEach(item => {
-          safeUnlink(item.stagedPath);
-          if (path.extname(item.srcPath).toLowerCase() !== '.pdf') {
-            safeUnlink(item.srcPath);
+        // If it is a passport photo, generate a white background copy with 50% resize (< 50KB) using GPU if found or CPU
+        if (classRes.docType === 'passport_photo') {
+          try {
+            const whiteBgFilename = `${baseStem}_white_bg${ext}`;
+            const whiteBgPath = path.join(node.fullPath, whiteBgFilename);
+            console.log(`   🎨 Generating AI White Background Copy (50% scale, <50KB) via GPU/CPU auto-select...`);
+            await processPhotoForUpload(finalPath, {
+              outputPath: whiteBgPath,
+              maxKB: 50,
+              useAI: true
+            });
+            console.log(`   ✨ White Background Photo Generated: ${whiteBgFilename}`);
+          } catch (err: any) {
+            console.warn(`   ⚠️ White background generation notice:`, err.message || err);
           }
-        });
-        safeUnlink(stagedPdfPath);
-      }
-      // CASE 3: Single documents -> Rename safely in-place via Staging
-      else {
-        for (const item of stagedClassifications) {
-          const classRes = item.classification;
-          const ext = path.extname(item.srcPath);
-          const nameStr = classRes.extractedName ? `_${classRes.extractedName}` : '_scanned';
-          const newFilename = `${classRes.docType}${nameStr}${ext}`;
-          const finalPath = path.join(node.fullPath, newFilename);
-
-          fs.copyFileSync(item.stagedPath, finalPath);
-          console.log(`   ✅ Document Identified: ${classRes.docTypeName} (${Math.round(classRes.confidence * 100)}% confidence)`);
-          console.log(`   ✨ Renamed Safely : ${newFilename}`);
-
-          // Remove original & staged file
-          if (finalPath !== item.srcPath) {
-            safeUnlink(item.srcPath);
-          }
-          safeUnlink(item.stagedPath);
         }
+
+        // Remove original & staged file
+        if (finalPath !== item.srcPath) {
+          safeUnlink(item.srcPath);
+        }
+        safeUnlink(item.stagedPath);
       }
     }
   } catch (err: any) {

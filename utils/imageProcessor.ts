@@ -8,6 +8,7 @@ export interface ProcessImageOptions {
   model?: string;
   width?: number;
   height?: number;
+  outputPath?: string;
 }
 
 /**
@@ -38,8 +39,8 @@ export async function processPhotoForUpload(
   const baseName = path.basename(absInputPath, ext);
   const dirName = path.dirname(absInputPath);
 
-  const tempAiOutput = path.join(dirName, `ai_temp_${baseName}.png`);
-  const finalOutput = path.join(dirName, `${baseName}_processed.jpg`);
+  const tempAiOutput = path.join(dirName, `ai_temp_${Date.now()}_${baseName}.png`);
+  const finalOutput = options.outputPath ? path.resolve(options.outputPath) : path.join(dirName, `${baseName}_processed.jpg`);
 
   let currentInput = absInputPath;
   let skipCbg = false;

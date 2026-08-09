@@ -40,7 +40,7 @@ export const DOCUMENT_RULES: DocumentTypeRule[] = [
   {
     id: 'passport',
     name: 'Passport',
-    keywords: ['republic of india', 'passport no', 'passport', 'type p'],
+    keywords: ['republic of india', 'passport no', 'type p', 'indian passport', 'given name', 'place of issue'],
     patterns: [/\b[A-Z][0-9]{7}\b/],
     priority: 9
   },
@@ -188,6 +188,20 @@ export const DOCUMENT_RULES: DocumentTypeRule[] = [
       'distinction'
     ],
     priority: 8
+  },
+  {
+    id: 'passport_photo',
+    name: 'Passport Size Photo',
+    keywords: [
+      'passport photo',
+      'passport size photo',
+      'applicant photo',
+      'recent photograph',
+      'photo of applicant',
+      'affix photograph',
+      'photograph'
+    ],
+    priority: 7
   }
 ];
 
