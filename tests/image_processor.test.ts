@@ -107,14 +107,16 @@ describe("Image Processor Module", () => {
       fs.mkdirSync(TEMP_DIR, { recursive: true });
     }
     
-    // Compile binary
-    console.log("Compiling image_processor.c...");
-    const srcPath = path.join(__dirname, "../src/image_processor/image_processor.c");
-    const compileResult = spawnSync("gcc", ["-O3", "-o", EXE_PATH, srcPath, "-lm"], { shell: true });
-    
-    if (compileResult.status !== 0) {
-      console.error(compileResult.stderr.toString());
-      throw new Error("Compilation of image_processor.c failed!");
+    // Compile binary if missing
+    if (!fs.existsSync(EXE_PATH)) {
+      console.log("Compiling image_processor.c...");
+      const srcPath = path.join(__dirname, "../native/image_processor/image_processor.c");
+      const compileResult = spawnSync("gcc", ["-O3", "-o", EXE_PATH, srcPath, "-lm"], { shell: true });
+      
+      if (compileResult.status !== 0) {
+        console.error(compileResult.stderr?.toString());
+        throw new Error("Compilation of image_processor.c failed!");
+      }
     }
     
     // Generate mock input BMP (400x400)

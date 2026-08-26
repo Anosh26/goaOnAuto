@@ -1,4 +1,4 @@
-import { classifyDocumentText } from '../utils/documentClassifier';
+import { classifyDocumentText } from '../src/classifier';
 
 // Mock OCR outputs for testing document classification logic
 

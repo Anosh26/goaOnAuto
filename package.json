@@ -4,7 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "watch-workdir": "bun src/workDirectoryWatcher.ts"
+    "watch-workdir": "bun src/workDirectoryWatcher.ts",
+    "tray": "pythonw tools/tray/tray_service.py",
+    "test": "bun test",
+    "benchmark": "bun tests/gpuBatchBenchmark.ts",
+    "evaluate-dataset": "bun tests/datasetEvaluator.ts",
+    "harvest-dataset": "bun tools/harvest_dataset.ts"
   },
   "keywords": [],
   "author": "",

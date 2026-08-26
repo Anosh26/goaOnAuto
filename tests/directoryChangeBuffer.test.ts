@@ -1,4 +1,4 @@
-import { DirectoryChangeBuffer } from '../utils/directoryChangeBuffer';
+import { DirectoryChangeBuffer } from '../src/watcher/directoryBuffer';
 import * as path from 'path';
 
 console.log("=== Testing Directory Change Buffer (Dirty Bit Propagation & DFS) ===");

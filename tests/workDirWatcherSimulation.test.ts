@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { DirectoryChangeBuffer } from '../utils/directoryChangeBuffer';
-import { processDocumentImage } from '../utils/documentScanner';
+import { DirectoryChangeBuffer } from '../src/watcher/directoryBuffer';
+import { processDocumentImage } from '../src/scanner/documentScanner';
 
 const testWorkDir = path.resolve('./tests/mock_work_dir');
 

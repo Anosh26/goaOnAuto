@@ -2,8 +2,8 @@ import { describe, test, expect, beforeAll, afterAll } from 'bun:test';
 import * as fs from 'fs';
 import * as path from 'path';
 import { execSync } from 'child_process';
-import { trySignatureDetector, processDocumentImage } from '../utils/documentScanner';
-import { extractPersonNameFromDirectory, classifyDocumentText } from '../utils/documentClassifier';
+import { trySignatureDetector, processDocumentImage } from '../src/scanner/documentScanner';
+import { extractPersonNameFromDirectory, classifyDocumentText } from '../src/classifier';
 
 const testDir = path.resolve('./tests/mock_sig_test');
 const personDir = path.join(testDir, 'Vijaykumar Tripathi');

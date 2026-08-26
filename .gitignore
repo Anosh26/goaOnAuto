@@ -5,24 +5,39 @@
 
 # Node & Dependencies
 node_modules/
+bun.lock
 
-# Playwright & Testing
+# Python Virtual Environment & Cache
+.venv/
+__pycache__/
+*.pyc
+
+# Playwright & Testing Artifacts
 /test-results/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
 
-# Temporary test outputs & binaries
-sample_watch_dir/
-captcha.png
+# Temporary outputs & logs
+logs/
 *.log
+captcha.png
+sample_watch_dir/
 
-# Python cache
-__pycache__/
-*.pyc
+# Dataset Raw Data (PII protection)
+dataset/raw/
+*.private.*
 
-# OS & IDE files
+# LaTeX Build Artifacts
+*.aux
+*.log
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+*.out
+
+# OS & IDE
 .DS_Store
 Thumbs.db
 .vscode/

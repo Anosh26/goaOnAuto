@@ -2,9 +2,9 @@ import { describe, test, expect, beforeAll, afterAll } from 'bun:test';
 import * as fs from 'fs';
 import * as path from 'path';
 import { execSync } from 'child_process';
-import { tryPassportPhotoDetector, processDocumentImage } from '../utils/documentScanner';
-import { classifyDocumentText } from '../utils/documentClassifier';
-import { processPhotoForUpload } from '../utils/imageProcessor';
+import { tryPassportPhotoDetector, processDocumentImage } from '../src/scanner/documentScanner';
+import { classifyDocumentText } from '../src/classifier';
+import { processPhotoForUpload } from '../src/image/photoProcessor';
 
 const testDir = path.resolve('./tests/mock_photo_test');
 const mockPassportImg = path.join(testDir, 'sample_passport_photo.jpg');

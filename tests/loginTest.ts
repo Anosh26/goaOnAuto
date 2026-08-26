@@ -43,7 +43,7 @@ test('Login with valid credentials', async ({ page }) => {
 });
 
 test('Process applicant photo automatically for upload (<50 KB)', async () => {
-  const { processPhotoForUpload } = await import('../utils/imageProcessor');
+  const { processPhotoForUpload } = await import('../src/image/photoProcessor');
   const samplePhoto = 'captcha.png';
   if (fs.existsSync(samplePhoto)) {
     const processedPath = await processPhotoForUpload(samplePhoto, { maxKB: 50, useAI: true });

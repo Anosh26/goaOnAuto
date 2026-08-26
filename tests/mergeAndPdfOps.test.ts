@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { mergeCardFrontBackVertically, convertImagesToMultipagePdf } from '../utils/imageOpsWrapper';
-import { classifyDocumentText } from '../utils/documentClassifier';
+import { mergeCardFrontBackVertically, convertImagesToMultipagePdf } from '../src/image/pythonOpsWrapper';
+import { classifyDocumentText } from '../src/classifier';
 
 const testDir = path.resolve('./tests/mock_merge_test');
 fs.mkdirSync(testDir, { recursive: true });
