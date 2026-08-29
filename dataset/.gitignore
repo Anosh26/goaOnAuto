@@ -3,4 +3,6 @@ raw/
 *.private.*
 corrections.jsonl
 learned_weights.json
+harvest_history.json
+
 
