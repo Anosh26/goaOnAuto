@@ -99,29 +99,39 @@ def run_confirmation_gui(file_path: str, detected_type: str, detected_name: str,
             preview_img_path = rendered_png
             is_temp_preview = True
 
-    # 1920x1080 Full HD Window Configuration
-    win_width = 1920
-    win_height = 1080
-    rl.set_config_flags(rl.FLAG_WINDOW_RESIZABLE | rl.FLAG_MSAA_4X_HINT | rl.FLAG_WINDOW_TOPMOST | rl.FLAG_WINDOW_HIGHDPI)
-    rl.init_window(win_width, win_height, "GoaOnAuto - Human Confirmation & Dataset Verification System")
+    # Window Configuration (Responsive to screen, centered, fits within taskbar bounds)
+    rl.set_config_flags(rl.FLAG_WINDOW_RESIZABLE | rl.FLAG_MSAA_4X_HINT | rl.FLAG_WINDOW_ALWAYS_RUN)
+    
+    # Initialize with comfortable dimensions that fit any 1080p display
+    init_w = 1680
+    init_h = 940
+    rl.init_window(init_w, init_h, "GoaOnAuto - Human Confirmation & Dataset Verification System")
     rl.set_target_fps(60)
 
-    # Bring to foreground on Windows
+    # Dynamic monitor fitting & centering
+    try:
+        mon = rl.get_current_monitor()
+        mon_w = rl.get_monitor_width(mon)
+        mon_h = rl.get_monitor_height(mon)
+        if mon_w > 800 and mon_h > 600:
+            target_w = min(1720, mon_w - 60)
+            target_h = min(960, mon_h - 90)
+            rl.set_window_size(target_w, target_h)
+            rl.set_window_position((mon_w - target_w) // 2, max(20, (mon_h - target_h) // 2 - 20))
+    except Exception:
+        pass
+
+    # Windows ShowWindow Restore & Foreground Activation
     try:
         import ctypes
         user32 = ctypes.windll.user32
         target_hwnd = user32.FindWindowW(None, "GoaOnAuto - Human Confirmation & Dataset Verification System")
         if target_hwnd:
-            SWP_NOMOVE = 0x0002
-            SWP_NOSIZE = 0x0001
-            SWP_SHOWWINDOW = 0x0040
-            HWND_TOPMOST = -1
-            HWND_NOTOPMOST = -2
-            user32.SetWindowPos(target_hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW)
-            user32.SetWindowPos(target_hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW)
+            SW_RESTORE = 9
+            user32.ShowWindow(target_hwnd, SW_RESTORE)
             user32.SetForegroundWindow(target_hwnd)
+            user32.SetActiveWindow(target_hwnd)
             user32.BringWindowToTop(target_hwnd)
-            user32.FlashWindow(target_hwnd, True)
     except Exception:
         pass
 
@@ -178,6 +188,18 @@ def run_confirmation_gui(file_path: str, detected_type: str, detected_name: str,
         h = rl.get_screen_height()
         mouse_pos = rl.get_mouse_position()
         frame_count += 1
+
+        if frame_count == 1:
+            try:
+                import ctypes
+                user32 = ctypes.windll.user32
+                target_hwnd = user32.FindWindowW(None, "GoaOnAuto - Human Confirmation & Dataset Verification System")
+                if target_hwnd:
+                    user32.ShowWindow(target_hwnd, 9)  # SW_RESTORE
+                    user32.SetForegroundWindow(target_hwnd)
+                    user32.SetActiveWindow(target_hwnd)
+            except Exception:
+                pass
 
         # Text input handling when keyword box is focused
         if is_keyword_focused:

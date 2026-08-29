@@ -58,7 +58,10 @@ export async function requestHumanConfirmation(params: ConfirmationParams): Prom
 
   return new Promise((resolve) => {
     let resultJSON: ConfirmationResult | null = null;
-    const proc = spawn(config.pythonBin, args, { cwd: config.projectRoot });
+    const proc = spawn(config.pythonBin, args, { 
+      cwd: config.projectRoot,
+      windowsHide: false 
+    });
 
     proc.stdout.on('data', (data: Buffer) => {
       const output = data.toString('utf-8');
