@@ -20,12 +20,44 @@ from python.vision.photo_detector import detect_passport_photo
 from python.vision.signature_detector import detect_signature
 from python.ocr.gpu_ocr_engine import detect_device_mode, run_ocr
 
+import psutil
+try:
+    import torch
+    if torch.cuda.is_available():
+        # Enforce GPU Limit: Cap VRAM usage at 90% max to preserve headroom for OS & Display
+        torch.cuda.set_per_process_memory_fraction(0.90, 0)
+except Exception:
+    pass
+
 class GpuWorkerService:
     def __init__(self):
         self.is_gpu, self.device_desc = detect_device_mode()
         self.engine_name = "EasyOCR (GPU CUDA)" if self.is_gpu else "EasyOCR (CPU)"
 
+    def get_system_metrics(self) -> dict:
+        mem = psutil.virtual_memory()
+        cpu_pct = psutil.cpu_percent(interval=None)
+        free_ram_gb = round(mem.available / (1024 ** 3), 2)
+        total_ram_gb = round(mem.total / (1024 ** 3), 2)
+        
+        gpu_vram_mb = 0
+        try:
+            if torch.cuda.is_available():
+                gpu_vram_mb = round(torch.cuda.memory_allocated(0) / (1024 ** 2), 1)
+        except Exception:
+            pass
+
+        return {
+            "free_ram_gb": free_ram_gb,
+            "total_ram_gb": total_ram_gb,
+            "cpu_usage_percent": cpu_pct,
+            "cpu_free_percent": round(100.0 - cpu_pct, 1),
+            "gpu_vram_used_mb": gpu_vram_mb,
+            "gpu_vram_limit_percent": 90.0
+        }
+
     def process_single_ocr(self, image_path: str) -> dict:
+
         return run_ocr(image_path)
 
     def process_single_full(self, image_path: str) -> dict:

@@ -1,3 +1,6 @@
 # Ignore raw personal documents containing PII
 raw/
 *.private.*
+corrections.jsonl
+learned_weights.json
+

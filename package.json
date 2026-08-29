@@ -9,7 +9,9 @@
     "test": "bun test",
     "benchmark": "bun tests/gpuBatchBenchmark.ts",
     "evaluate-dataset": "bun tests/datasetEvaluator.ts",
-    "harvest-dataset": "bun tools/harvest_dataset.ts"
+    "harvest-dataset": "bun tools/harvest_dataset.ts",
+    "harvest-interactive": "bun tools/interactive_harvester.ts",
+    "retrain": "bun tools/retrain_classifier.ts"
   },
   "keywords": [],
   "author": "",

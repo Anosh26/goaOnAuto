@@ -11,6 +11,9 @@ import { waitForFileReady, safeUnlink } from './watcher/fileSyncReady';
 import { processDocumentImagesBatch } from './scanner/documentScanner';
 import { processPhotoForUpload } from './image/photoProcessor';
 
+import { SystemGovernor } from './watcher/systemGovernor';
+import { requestHumanConfirmation } from './gui/confirmationBridge';
+
 if (!fs.existsSync(config.workDir)) {
   console.log(`📁 Creating Work Directory: ${config.workDir}`);
   fs.mkdirSync(config.workDir, { recursive: true });
@@ -22,8 +25,9 @@ if (!fs.existsSync(config.stagingDir)) {
 
 console.log(`===================================================`);
 console.log(`🚀 GoaOnAuto Work Directory Automated Document Watcher`);
-console.log(`⚡ RTX 4060 GPU Persistent Batch Engine Active`);
-console.log(`🛡️  Google Drive Lock-Safe & Anti-Flagging Engine Enabled`);
+console.log(`⚡ RTX 4060 GPU Persistent Batch Engine Active (90% Cap)`);
+console.log(`🛡️  System Governor: Free RAM ≥ 3GB | Free CPU ≥ 20%`);
+console.log(`🎨 Raylib GPU Human Confirmation GUI System Enabled`);
 console.log(`📂 Monitoring Root Work Dir: ${config.workDir}`);
 console.log(`===================================================\n`);
 
@@ -35,6 +39,9 @@ async function processDirtyNodes(dirtyNodes: DirectoryNode[]) {
   isProcessing = true;
 
   try {
+    // Enforce system resource governor (keep >= 3GB RAM free, >= 20% CPU free)
+    await SystemGovernor.getInstance().ensureResourceAvailability();
+
     for (const node of dirtyNodes) {
       const candidateFiles: string[] = [];
 
@@ -89,7 +96,37 @@ async function processDirtyNodes(dirtyNodes: DirectoryNode[]) {
         const scanRes = batchResults[i];
         if (!scanRes) continue;
 
-        const classRes = scanRes.classification;
+        let classRes = scanRes.classification;
+
+        // Interactive Raylib Human Confirmation System
+        if (config.enableHumanConfirmation) {
+          console.log(`   🎨 Opening Raylib Human Confirmation GUI for: ${path.basename(srcPath)}...`);
+          const confirmRes = await requestHumanConfirmation({
+            filePath: stagedPath,
+            docType: classRes.docType,
+            docTypeName: classRes.docTypeName,
+            extractedName: classRes.extractedName,
+            confidence: classRes.confidence
+          });
+
+          if (confirmRes.action === 'skipped') {
+            console.log(`   ⏭️ User Skipped Document: ${path.basename(srcPath)} (File left un-renamed)`);
+            safeUnlink(stagedPath);
+            continue;
+          }
+
+          if (confirmRes.action === 'changed') {
+            classRes = {
+              ...classRes,
+              docType: confirmRes.docType,
+              docTypeName: confirmRes.docTypeName,
+              extractedName: confirmRes.extractedName || classRes.extractedName,
+              suggestedFilename: `${confirmRes.docType}_${confirmRes.extractedName || 'confirmed'}${path.extname(srcPath)}`
+            };
+            console.log(`   ✏️ Category Overridden by Human: ${classRes.docTypeName} (${classRes.docType})`);
+          }
+        }
+
         const ext = path.extname(srcPath);
         const nameStr = classRes.extractedName ? `_${classRes.extractedName}` : '_scanned';
         const baseStem = `${classRes.docType}${nameStr}`;

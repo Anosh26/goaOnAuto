@@ -24,11 +24,15 @@ function getAllFilesRecursively(dir: string): string[] {
     for (const entry of entries) {
       const fullPath = path.join(dir, entry.name);
       if (entry.isDirectory()) {
-        if (entry.name.startsWith('.') || entry.name === 'node_modules' || entry.name === 'dataset' || entry.name.includes('Trash')) {
+        if (entry.name.startsWith('.') || entry.name === 'node_modules' || entry.name === 'dataset' || entry.name.includes('Trash') || entry.name.toLowerCase().includes('temp') || entry.name.toLowerCase().includes('tmp')) {
           continue;
         }
         results = results.concat(getAllFilesRecursively(fullPath));
       } else if (entry.isFile()) {
+        const lowerName = entry.name.toLowerCase();
+        if (lowerName.startsWith('~$') || lowerName.startsWith('.') || lowerName.includes('.tmp') || lowerName.includes('.gui_preview') || lowerName.includes('.~lock') || lowerName.endsWith('.gdrive')) {
+          continue;
+        }
         const ext = path.extname(entry.name).toLowerCase();
         if (SUPPORTED_EXTS.has(ext)) {
           results.push(fullPath);

@@ -16,6 +16,11 @@ export interface AppConfig {
   pythonBin: string;
   imageProcessorExe: string;
   yunetModelPath: string;
+  // Resource Limits & Throttling
+  minFreeRamBytes: number; // Keep at least 3 GB free system RAM for other laptop processes
+  maxCpuPercent: number;    // Keep at least 20% free CPU (max 80% total utilization)
+  maxGpuMemoryFraction: number; // Cap GPU usage at 90% max
+  enableHumanConfirmation: boolean; // Raylib GUI confirmation popup toggle
 }
 
 function loadEnvFile(envPath: string): void {
@@ -40,15 +45,18 @@ const PROJECT_ROOT = path.resolve(__dirname, '../../');
 loadEnvFile(path.join(PROJECT_ROOT, '.env'));
 
 function resolvePythonBinary(): string {
-  // 1. Virtual environment python if present
-  const venvPython = path.join(PROJECT_ROOT, '.venv', 'Scripts', 'python.exe');
-  if (fs.existsSync(venvPython)) return venvPython;
+  // 1. Explicit env var override (highest priority — use when venv lacks packages like raylib)
+  if (process.env.PYTHON_BIN && fs.existsSync(process.env.PYTHON_BIN)) return process.env.PYTHON_BIN;
+
+  // 2. Virtual environment python if present (Scripts/ for standard Windows, bin/ for MSYS2/uv)
+  const venvPythonScripts = path.join(PROJECT_ROOT, '.venv', 'Scripts', 'python.exe');
+  if (fs.existsSync(venvPythonScripts)) return venvPythonScripts;
+
+  const venvPythonBin = path.join(PROJECT_ROOT, '.venv', 'bin', 'python.exe');
+  if (fs.existsSync(venvPythonBin)) return venvPythonBin;
 
   const venvPosix = path.join(PROJECT_ROOT, '.venv', 'bin', 'python');
   if (fs.existsSync(venvPosix)) return venvPosix;
-
-  // 2. Custom env var
-  if (process.env.PYTHON_BIN) return process.env.PYTHON_BIN;
 
   // 3. Default system python
   return process.platform === 'win32' ? 'python' : 'python3';
@@ -73,5 +81,10 @@ export const config: AppConfig = {
   pythonDir: PYTHON_DIR,
   pythonBin: resolvePythonBinary(),
   imageProcessorExe: path.join(BIN_DIR, 'process_image.exe'),
-  yunetModelPath: path.join(MODELS_DIR, 'face_detection_yunet_2023mar.onnx')
+  yunetModelPath: path.join(MODELS_DIR, 'face_detection_yunet_2023mar.onnx'),
+  minFreeRamBytes: parseFloat(process.env.MIN_FREE_RAM_GB || '3.0') * 1024 * 1024 * 1024,
+  maxCpuPercent: parseFloat(process.env.MAX_CPU_PERCENT || '80.0'),
+  maxGpuMemoryFraction: parseFloat(process.env.MAX_GPU_MEMORY_FRACTION || '0.90'),
+  enableHumanConfirmation: process.env.ENABLE_HUMAN_CONFIRMATION !== 'false'
 };
+
