@@ -46,6 +46,7 @@ export async function processPhotoForUpload(
     console.log(`[Photo Processor] Running AI Background Removal (${model})...`);
     const aiScriptPath = path.join(config.pythonDir, 'vision', 'ai_remove_bg.py');
     const pyResult = spawnSync(config.pythonBin, [
+      '-E',
       aiScriptPath,
       absInputPath,
       tempAiOutput,
@@ -53,6 +54,11 @@ export async function processPhotoForUpload(
     ], {
       cwd: config.projectRoot,
       encoding: 'utf-8',
+      env: {
+        ...process.env,
+        PYTHONPATH: undefined,
+        PYTHONHOME: undefined,
+      }
     });
 
     if (pyResult.status === 0 && fs.existsSync(tempAiOutput)) {

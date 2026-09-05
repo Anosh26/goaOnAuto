@@ -18,8 +18,8 @@ if project_root not in sys.path:
 
 from python.vision.photo_detector import detect_passport_photo
 from python.vision.signature_detector import detect_signature
+from python.vision.aadhaar_qr import detect_and_decode_qr
 from python.ocr.gpu_ocr_engine import detect_device_mode, run_ocr
-
 import psutil
 try:
     import torch
@@ -169,6 +169,14 @@ def run_daemon():
                 "success": True,
                 "is_gpu": worker.is_gpu,
                 "device": worker.device_desc,
+                "result": res
+            }
+        elif action == "aadhaar_qr":
+            path = req.get("path", "")
+            res = detect_and_decode_qr(path)
+            resp = {
+                "id": req_id,
+                "success": True,
                 "result": res
             }
         else:

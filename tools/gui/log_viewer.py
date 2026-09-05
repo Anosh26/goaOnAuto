@@ -1,13 +1,13 @@
-/**
- * Dark Theme Live Log Viewer GUI.
- * Single Responsibility: Renders a real-time tail of logs/watcher.log with auto-scroll and pause controls.
- */
+"""
+Dark Theme Live Log Viewer GUI.
+Single Responsibility: Renders a real-time tail of logs/watcher.log with auto-scroll and pause controls.
+"""
 import os
 import sys
 import time
 import threading
 import tkinter as tk
-from tkinter import ttk, scrolledtext
+from tkinter import ttk, scrolledtext, font
 
 PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 LOG_DIR = os.path.join(PROJECT_DIR, "logs")
@@ -85,18 +85,19 @@ class LiveLogViewer:
             bg="#0b0f19",
             fg="#e2e8f0",
             insertbackground="#38bdf8",
-            font=("Consolas", 10),
+            font=("JetBrains Mono Nerd Font", 10) if "JetBrains" in str(tk.font.families()) else ("JetBrains Mono", 10) if "JetBrains Mono" in str(tk.font.families()) else ("Cascadia Code", 10) if "Cascadia Code" in str(tk.font.families()) else ("Consolas", 10),
             padx=12,
             pady=10,
             relief=tk.FLAT
         )
         self.text_area.pack(fill=tk.BOTH, expand=True, padx=8, pady=(0, 8))
 
+        mono_font = ("JetBrains Mono Nerd Font", 10, "bold") if "JetBrains" in str(tk.font.families()) else ("Consolas", 10, "bold")
         self.text_area.tag_config("gpu", foreground="#38bdf8")
         self.text_area.tag_config("success", foreground="#4ade80")
         self.text_area.tag_config("warn", foreground="#facc15")
         self.text_area.tag_config("error", foreground="#f87171")
-        self.text_area.tag_config("header", foreground="#c084fc", font=("Consolas", 10, "bold"))
+        self.text_area.tag_config("header", foreground="#c084fc", font=mono_font)
         self.text_area.tag_config("normal", foreground="#e2e8f0")
 
     def clear_logs(self):

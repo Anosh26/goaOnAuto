@@ -6,6 +6,16 @@ import * as path from 'path';
 import { spawn, ChildProcess } from 'child_process';
 import { config } from '../config';
 
+export interface AadhaarQrResult {
+  success: boolean;
+  format?: string;
+  name?: string;
+  dob?: string;
+  gender?: string;
+  address?: string;
+  [key: string]: any;
+}
+
 export interface DaemonItemResult {
   path: string;
   text: string;
@@ -62,9 +72,14 @@ export class GpuDaemonClient {
 
     this.readyPromise = new Promise((resolve) => {
       const daemonScript = path.join(config.pythonDir, 'daemons', 'gpu_worker_daemon.py');
-      this.process = spawn(config.pythonBin, [daemonScript], {
+      this.process = spawn(config.pythonBin, ['-E', daemonScript], {
         cwd: config.projectRoot,
         stdio: ['pipe', 'pipe', 'inherit'],
+        env: {
+          ...process.env,
+          PYTHONPATH: undefined,
+          PYTHONHOME: undefined,
+        },
       });
 
       this.process.stdout?.on('data', (chunk: Buffer) => {
@@ -196,5 +211,47 @@ export class GpuDaemonClient {
       device,
       results: allResults
     };
+  }
+
+  public async aadhaarQrScan(imagePath: string): Promise<AadhaarQrResult | null> {
+    await this.ensureProcess();
+    if (!this.process || !this.process.stdin || this.process.killed) {
+      return null;
+    }
+
+    const reqId = ++this.reqCounter;
+    const reqPayload = JSON.stringify({
+      id: reqId,
+      action: 'aadhaar_qr',
+      path: imagePath,
+    }) + '\n';
+
+    return new Promise((resolve) => {
+      const timeout = setTimeout(() => {
+        if (this.pendingRequests.has(reqId)) {
+          this.pendingRequests.delete(reqId);
+          resolve(null);
+        }
+      }, 30000); // QR is fast, but set 30s timeout
+
+      this.pendingRequests.set(reqId, {
+        resolve: (val) => {
+          clearTimeout(timeout);
+          resolve(val?.result ?? null);
+        },
+        reject: () => {
+          clearTimeout(timeout);
+          resolve(null);
+        },
+      });
+
+      try {
+        this.process?.stdin?.write(reqPayload);
+      } catch (err) {
+        clearTimeout(timeout);
+        this.pendingRequests.delete(reqId);
+        resolve(null);
+      }
+    });
   }
 }

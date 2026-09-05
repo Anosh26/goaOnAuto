@@ -42,3 +42,6 @@ dataset/raw/
 Thumbs.db
 .vscode/
 .idea/
+
+# AI Context
+ai_context.md

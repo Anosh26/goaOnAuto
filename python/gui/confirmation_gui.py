@@ -135,15 +135,27 @@ def run_confirmation_gui(file_path: str, detected_type: str, detected_name: str,
     except Exception:
         pass
 
-    # Load Crisp Readable Font (Segoe UI / Arial with Bilinear Filter)
+    # Load Crisp Readable Font (JetBrains Mono Nerd Font / JetBrains Mono / Cascadia / Consolas / Segoe UI)
     font = None
-    font_paths = ["C:/Windows/Fonts/segoeui.ttf", "C:/Windows/Fonts/arial.ttf", "C:/Windows/Fonts/consola.ttf"]
+    home_dir = os.path.expanduser("~")
+    font_paths = [
+        os.path.join(home_dir, "AppData", "Local", "Microsoft", "Windows", "Fonts", "JetBrainsMonoNerdFont-Regular.ttf"),
+        os.path.join(home_dir, "AppData", "Local", "Microsoft", "Windows", "Fonts", "JetBrainsMonoNerdFontMono-Regular.ttf"),
+        os.path.join(home_dir, "AppData", "Local", "Microsoft", "Windows", "Fonts", "JetBrainsMono-Regular.ttf"),
+        "C:/Windows/Fonts/JetBrainsMonoNerdFont-Regular.ttf",
+        "C:/Windows/Fonts/JetBrainsMono-Regular.ttf",
+        "C:/Windows/Fonts/cascadiacode.ttf",
+        "C:/Windows/Fonts/consola.ttf",
+        "C:/Windows/Fonts/segoeui.ttf",
+        "C:/Windows/Fonts/arial.ttf"
+    ]
     for fp in font_paths:
         if os.path.exists(fp):
             try:
                 font = rl.load_font_ex(fp.encode('utf-8'), 36, None, 0)
                 if font and font.base_size > 0:
                     rl.set_texture_filter(font.texture, rl.TEXTURE_FILTER_BILINEAR)
+                    print(f"[GUI] Loaded font: {fp}")
                     break
             except Exception:
                 font = None

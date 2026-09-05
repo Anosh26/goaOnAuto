@@ -22,15 +22,30 @@ if not os.path.exists(YUNET_MODEL_PATH):
     if os.path.exists(fallback_model):
         YUNET_MODEL_PATH = fallback_model
 
+def _can_load_cuda_provider() -> bool:
+    """Verifies that the required CUDA shared libraries are present before invoking CUDAExecutionProvider."""
+    if sys.platform != "win32":
+        return True
+    try:
+        import ctypes
+        for dll_name in ("cublasLt64_12.dll", "cublasLt64_13.dll", "cublasLt64_11.dll"):
+            h = ctypes.windll.kernel32.LoadLibraryW(dll_name)
+            if h:
+                ctypes.windll.kernel32.FreeLibrary(h)
+                return True
+        return False
+    except Exception:
+        return False
+
 def get_cuda_providers():
     """Returns available ONNX Runtime execution providers prioritizing CUDA."""
     try:
         import onnxruntime as ort
         available = ort.get_available_providers()
         providers = []
-        if "CUDAExecutionProvider" in available:
+        if "CUDAExecutionProvider" in available and _can_load_cuda_provider():
             providers.append("CUDAExecutionProvider")
-        if "TensorrtExecutionProvider" in available:
+        if "TensorrtExecutionProvider" in available and _can_load_cuda_provider():
             providers.append("TensorrtExecutionProvider")
         providers.append("CPUExecutionProvider")
         return providers

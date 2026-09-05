@@ -4,14 +4,16 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "watch-workdir": "bun src/workDirectoryWatcher.ts",
-    "tray": "pythonw tools/tray/tray_service.py",
+    "dev:watcher": "bun src/workDirectoryWatcher.ts",
+    "dev:daemon": "python python/daemons/gpu_worker_daemon.py",
     "test": "bun test",
+    "test:qr": "python python/vision/aadhaar_qr.py",
     "benchmark": "bun tests/gpuBatchBenchmark.ts",
-    "evaluate-dataset": "bun tests/datasetEvaluator.ts",
-    "harvest-dataset": "bun tools/harvest_dataset.ts",
-    "harvest-interactive": "bun tools/interactive_harvester.ts",
-    "retrain": "bun tools/retrain_classifier.ts"
+    "build:tray": "pythonw tools/tray/tray_service.py",
+    "data:evaluate": "bun tests/datasetEvaluator.ts",
+    "data:harvest": "bun tools/harvest_dataset.ts",
+    "data:harvest-interactive": "bun tools/interactive_harvester.ts",
+    "data:retrain": "bun tools/retrain_classifier.ts"
   },
   "keywords": [],
   "author": "",

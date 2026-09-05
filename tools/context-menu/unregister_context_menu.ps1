@@ -1,4 +1,4 @@
-$formats = @(".jpg", ".jpeg", ".png")
+$formats = @(".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tiff")
 
 foreach ($format in $formats) {
     $registryPath = "HKCU:\Software\Classes\SystemFileAssociations\$format\shell\ProcessImage"
