@@ -37,18 +37,37 @@ def _extract_legacy_xml(xml_string: str) -> dict:
         "pc": data.get("pc", "")
     }
 
-def _extract_secure_qr(qr_bytes: bytes) -> dict:
+def _extract_secure_qr(raw_bytes: bytes) -> dict:
     """Parses Secure e-Aadhaar V2/V3 compressed QR code"""
     try:
-        # Secure QR has 256 bytes of signature, followed by the compressed payload
-        if len(qr_bytes) <= 256:
-            return None
-            
-        payload = qr_bytes[256:]
+        qr_bytes = raw_bytes
+        # Check if it's encoded as a Base10 BigInt string (typical for Aadhaar Secure QR)
+        try:
+            text = raw_bytes.decode('utf-8')
+            if text.isdigit() and len(text) > 1000:
+                big_int = int(text)
+                qr_bytes = big_int.to_bytes((big_int.bit_length() + 7) // 8, byteorder='big')
+        except Exception:
+            pass
+
+        # Secure QR has ~255 or 256 bytes of signature, followed by the compressed payload
+        # Find the gzip magic bytes (1f 8b 08)
+        # Some Aadhaar QRs have 256 bytes signature prefix, others are just raw gzip.
+        idx = qr_bytes.find(b'\x1f\x8b\x08')
+        if idx != -1:
+            payload = qr_bytes[idx:]
+        else:
+            # Fallback to offset 256 if magic bytes not strictly found
+            payload = qr_bytes[256:] if len(qr_bytes) > 256 else qr_bytes
         
-        # Sometimes there's a delimiter, but standard is zlib/gzip decompression
-        # Handle zlib decompression
-        decompressed = zlib.decompress(payload, wbits=zlib.MAX_WBITS | 32)
+        # Decompress (Try GZIP, then Auto, then Raw)
+        try:
+            decompressed = zlib.decompress(payload, wbits=zlib.MAX_WBITS | 16)
+        except Exception:
+            try:
+                decompressed = zlib.decompress(payload, wbits=zlib.MAX_WBITS | 32)
+            except Exception:
+                decompressed = zlib.decompress(payload, wbits=-zlib.MAX_WBITS)
         
         # The fields are delimited by byte 255 (\xff)
         parts = decompressed.split(b'\xff')
@@ -108,7 +127,8 @@ def detect_and_decode_qr(image_path: str):
             
         if decoded:
             raw_data = decoded[0].data
-    except ImportError:
+    except Exception as e:
+        print(f"pyzbar load warning: {e}")
         pass
         
     if not raw_data:

@@ -18,6 +18,7 @@ export interface ScanOptions {
 export interface BatchScanResult {
   imagePath: string;
   classification: ClassificationResult;
+  rawText: string;
   newPath?: string;
 }
 
@@ -95,7 +96,7 @@ export async function processDocumentImagesBatch(
         newPath = targetPath;
       }
 
-      results.push({ imagePath: imgPath, classification, newPath });
+      results.push({ imagePath: imgPath, classification, rawText: item.text, newPath });
     }
 
     return results;
@@ -104,7 +105,7 @@ export async function processDocumentImagesBatch(
   // Fallback: Individual processing if daemon is unavailable
   for (const imgPath of imagePaths) {
     const singleRes = await processDocumentImage(imgPath, options);
-    results.push({ imagePath: imgPath, classification: singleRes.classification, newPath: singleRes.newPath });
+    results.push({ imagePath: imgPath, classification: singleRes.classification, rawText: singleRes.rawText || '', newPath: singleRes.newPath });
   }
 
   return results;
@@ -116,7 +117,7 @@ export async function processDocumentImagesBatch(
 export async function processDocumentImage(
   imagePath: string,
   options: ScanOptions = {}
-): Promise<{ classification: ClassificationResult; newPath?: string }> {
+): Promise<{ classification: ClassificationResult; rawText?: string; newPath?: string }> {
   if (!fs.existsSync(imagePath)) {
     throw new Error(`File not found: ${imagePath}`);
   }
@@ -125,6 +126,7 @@ export async function processDocumentImage(
   if (batchResults.length > 0) {
     return {
       classification: batchResults[0]!.classification,
+      rawText: batchResults[0]!.rawText,
       newPath: batchResults[0]!.newPath,
     };
   }
@@ -142,7 +144,7 @@ export async function processDocumentImage(
   }
 
   const classification = classifyDocumentText(extractedText, path.basename(imagePath), path.dirname(imagePath));
-  return { classification };
+  return { classification, rawText: extractedText };
 }
 
 export { tryPassportPhotoDetector, trySignatureDetector };

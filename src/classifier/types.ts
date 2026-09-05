@@ -19,3 +19,26 @@ export interface ClassificationResult {
   confidence: number;
   suggestedFilename: string;
 }
+
+export interface DossierField<T> {
+  value: T;
+  confidence: number;
+  sourceDoc: string;
+  evidenceText?: string;
+}
+
+export interface ApplicantDossier {
+  name?: DossierField<string>;
+  dob?: DossierField<string>;
+  age?: DossierField<number>;
+  address?: DossierField<{
+    full: string;
+    houseNo?: string;
+    villageOrCity?: string;
+    taluka?: string;
+    pincode?: string;
+    state?: string;
+  }>;
+  yearsInGoa?: DossierField<number>;
+  gender?: DossierField<string>;
+}

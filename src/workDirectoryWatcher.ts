@@ -10,6 +10,8 @@ import { WatcherService } from './watcher/watcherService';
 import { waitForFileReady, safeUnlink } from './watcher/fileSyncReady';
 import { processDocumentImagesBatch } from './scanner/documentScanner';
 import { processPhotoForUpload } from './image/photoProcessor';
+import { synthesizeDossier, ExtractedDocument } from './classifier';
+import { GpuDaemonClient, AadhaarQrResult } from './scanner/gpuDaemonClient';
 
 import { SystemGovernor } from './watcher/systemGovernor';
 import { requestHumanConfirmation } from './gui/confirmationBridge';
@@ -166,6 +168,36 @@ async function processDirtyNodes(dirtyNodes: DirectoryNode[]) {
         }
         safeUnlink(stagedPath);
       }
+
+      // After batch scanning all files in this directory, synthesize the Dossier
+      const extractedDocs: ExtractedDocument[] = batchResults.filter(Boolean).map(res => ({
+        docType: res.classification.docType,
+        docTypeName: res.classification.docTypeName,
+        rawText: res.rawText || '',
+        filePath: res.newPath || res.imagePath,
+        extractedName: res.classification.extractedName
+      }));
+
+      // Try to find an Aadhaar document and run QR scan on it
+      let qrResult: AadhaarQrResult | null = null;
+      const aadhaarDoc = extractedDocs.find(d => d.docType === 'aadhaar');
+      if (aadhaarDoc) {
+        console.log(`   🔍 Scanning Aadhaar QR code for ${path.basename(aadhaarDoc.filePath)}...`);
+        const daemon = GpuDaemonClient.getInstance();
+        qrResult = await daemon.aadhaarQrScan(aadhaarDoc.filePath);
+        if (qrResult && qrResult.success) {
+          console.log(`   ✅ Aadhaar QR Decode Success: Found ${qrResult.name}`);
+        } else {
+          console.log(`   ⚠️ Aadhaar QR not found or could not be decoded.`);
+        }
+      }
+
+      const dossier = synthesizeDossier(extractedDocs, qrResult);
+      
+      const dossierPath = path.join(node.fullPath, 'applicant_dossier.json');
+      fs.writeFileSync(dossierPath, JSON.stringify(dossier, null, 2));
+      console.log(`   📄 Saved Applicant Dossier: applicant_dossier.json`);
+
     }
   } catch (err: any) {
     console.error(`   ❌ Error during Drive-safe batch processing:`, err.message || err);

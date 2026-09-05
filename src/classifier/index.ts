@@ -7,3 +7,4 @@ export * from './types';
 export * from './rules';
 export * from './nameExtractor';
 export * from './documentClassifier';
+export * from './dossierExtractor';
