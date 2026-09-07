@@ -11,6 +11,23 @@ const GENERIC_FOLDER_NAMES = new Set([
   'users', 'program files', 'appdata', 'local', 'roaming'
 ]);
 
+function sanitizeExtractedSegment(raw: string): string | undefined {
+  if (!raw) return undefined;
+  // Remove common document title prefixes like "Mast. / Miss", "Shri / Smt / Kum", "Mr / Mrs / Miss"
+  const stripped = raw
+    .replace(/^(mast|master|miss|mr|mrs|ms|shri|smt|kumari)\.?\s*[\/\\]?\s*(miss|mast|master|smt|kumari)?\.?\s*/i, '')
+    .trim();
+
+  const safe = stripped
+    .replace(/[<>:"/\\|?*\x00-\x1F]/g, ' ')
+    .split(/\s+/)
+    .filter(word => word.length > 0 && !/^(mast|master|miss|mr|mrs|ms|shri|smt|kumari|\/|\\)$/i.test(word))
+    .slice(0, 3)
+    .join('_');
+
+  return safe.length >= 2 ? safe : undefined;
+}
+
 /**
  * Extracts candidate person name from OCR text lines
  */
@@ -25,12 +42,14 @@ export function extractCandidateName(lines: string[], docType: string): string |
       if (marker.test(line)) {
         const parts = line.split(marker);
         const matchPart = parts[1];
-        if (matchPart && matchPart.trim().length > 2) {
-          return matchPart.trim().split(/\s+/).slice(0, 3).join('_');
+        const cleaned = matchPart ? sanitizeExtractedSegment(matchPart) : undefined;
+        if (cleaned) {
+          return cleaned;
         }
         const nextLine = lines[i + 1];
-        if (nextLine && nextLine.trim().length > 2) {
-          return nextLine.trim().split(/\s+/).slice(0, 3).join('_');
+        const nextCleaned = nextLine ? sanitizeExtractedSegment(nextLine) : undefined;
+        if (nextCleaned) {
+          return nextCleaned;
         }
       }
     }
@@ -41,8 +60,9 @@ export function extractCandidateName(lines: string[], docType: string): string |
     const dobIndex = lines.findIndex(l => /dob|date of birth|year of birth/i.test(l));
     if (dobIndex > 0) {
       const prevLine = lines[dobIndex - 1];
-      if (prevLine && prevLine.trim().length > 3) {
-        return prevLine.trim().split(/\s+/).slice(0, 3).join('_');
+      if (prevLine) {
+        const cleaned = sanitizeExtractedSegment(prevLine);
+        if (cleaned) return cleaned;
       }
     }
   }

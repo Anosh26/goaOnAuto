@@ -10,6 +10,7 @@ export class WatcherService {
   private buffer: DirectoryChangeBuffer;
   private rootPath: string;
   private fsWatcher: fs.FSWatcher | null = null;
+  private debounceTimer: NodeJS.Timeout | null = null;
 
   constructor(rootDirectoryPath: string, buffer?: DirectoryChangeBuffer) {
     this.rootPath = path.resolve(rootDirectoryPath);
@@ -34,14 +35,23 @@ export class WatcherService {
 
       this.buffer.markChange(fullPath, changeType);
       
-      const dirtyNodes = this.buffer.getChangesDFS();
-      if (dirtyNodes.length > 0) {
-        onDirtyNodesChanged(dirtyNodes);
+      if (this.debounceTimer) {
+        clearTimeout(this.debounceTimer);
       }
+      this.debounceTimer = setTimeout(() => {
+        const dirtyNodes = this.buffer.getChangesDFS();
+        if (dirtyNodes.length > 0) {
+          onDirtyNodesChanged(dirtyNodes);
+        }
+      }, 500);
     });
   }
 
   public stop(): void {
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+      this.debounceTimer = null;
+    }
     if (this.fsWatcher) {
       this.fsWatcher.close();
       this.fsWatcher = null;
