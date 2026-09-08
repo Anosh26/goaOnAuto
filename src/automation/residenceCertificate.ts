@@ -43,7 +43,7 @@ function findLatestApplicantDir(rootWorkDir: string): string | null {
 
   if (candidates.length === 0) return null;
   candidates.sort((a, b) => b.mtime - a.mtime);
-  return candidates[0].path;
+  return candidates[0]?.path ?? null;
 }
 
 export function launchResidenceGui(targetDir?: string): void {

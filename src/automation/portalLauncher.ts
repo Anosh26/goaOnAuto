@@ -29,7 +29,7 @@ export function getBraveExecutablePath(customPath?: string): string {
   if (customPath && fs.existsSync(customPath)) {
     return customPath;
   }
-  if (DEFAULT_BRAVE_PATHS.length > 0) {
+  if (DEFAULT_BRAVE_PATHS.length > 0 && DEFAULT_BRAVE_PATHS[0]) {
     return DEFAULT_BRAVE_PATHS[0];
   }
   throw new Error(
@@ -112,8 +112,7 @@ export async function launchBrave(options: BraveLaunchOptions = {}): Promise<Lau
   }
 
   // Get the first open page or create a new one
-  const pages = context.pages();
-  const page = pages.length > 0 ? pages[0] : await context.newPage();
+  const page = context.pages()[0] ?? (await context.newPage());
 
   return {
     context,
