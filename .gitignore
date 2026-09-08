@@ -28,6 +28,7 @@ sample_watch_dir/
 .brave_test_profile/
 .brave_test_session/
 scratch/
+recordings/
 
 # Dataset Raw Data (PII protection)
 dataset/raw/

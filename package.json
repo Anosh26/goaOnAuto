@@ -17,7 +17,9 @@
     "generate:residence": "bun src/automation/residenceCertificate.ts",
     "generate:qr": "python python/vision/generate_qr.py",
     "portal:phase1": "npx tsx tests/portalPhase1.ts",
-    "test:portal:phase1": "npx tsx tests/portalPhase1.ts"
+    "test:portal:phase1": "npx tsx tests/portalPhase1.ts",
+    "portal:track": "npx tsx tools/portalActionTracker.ts",
+    "portal:record": "npx tsx tools/portalActionTracker.ts"
   },
   "keywords": [],
   "author": "",
