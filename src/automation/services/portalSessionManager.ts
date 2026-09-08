@@ -13,6 +13,7 @@ export interface PortalSessionConfig {
   profileDir?: string;
   headless?: boolean;
   loginTimeoutMs?: number;
+  freshLogin?: boolean;
 }
 
 export interface PortalSession {
@@ -104,11 +105,13 @@ export async function launchBravePortalContext(sessionConfig: PortalSessionConfi
 
 /**
  * Checks if the current page indicates an active logged-in session.
+ * Strictly checks for positive citizen session indicators (e.g. Logout button, user profile).
+ * NEVER assumes a user is logged in just because a URL is on goaonline.gov.in.
  */
 export async function isUserLoggedIn(page: Page): Promise<boolean> {
   const url = page.url().toLowerCase();
   
-  // If on auth/registration pages or empty tab, definitely not logged in
+  // 1. If on auth pages, public login, or blank tab -> definitely NOT logged in
   const authPages = ['/public/login', '/public/forgotpassword', '/public/register', '/public/resetpassword'];
   if (authPages.some(p => url.includes(p)) || url === 'about:blank') {
     return false;
@@ -118,34 +121,53 @@ export async function isUserLoggedIn(page: Page): Promise<boolean> {
     return false;
   }
 
+  // 2. If password field is present anywhere on the page -> NOT logged in
   try {
-    // 1. Session cookies check
-    const cookies = await page.context().cookies();
-    const hasAuthCookie = cookies.some(c => 
-      c.domain.includes('goaonline') && (c.name.includes('ASPXAUTH') || c.name.includes('.ASPXAUTH') || c.name.includes('AuthToken'))
-    );
-    if (hasAuthCookie) {
-      return true;
-    }
-
-    // 2. Check for attached user menu / profile / logout elements in DOM
-    const userIndicators = page.locator(
-      '#hlkLogout, #cphHeader_hlkLogout, a[href*="Logout"], a[href*="logout"], .user-menu, #userMenuBox, .user-name, #cphBody_lblUser, #cphHeader_lblUserName, .profile-name'
-    );
-    if (await userIndicators.count() > 0) {
-      return true;
-    }
-
-    // 3. Negative check: presence of password input
-    const passwordInput = page.locator('input[type="password"]');
-    if (await passwordInput.count() > 0) {
+    if (await page.locator('input[type="password"]').count() > 0) {
       return false;
     }
-
-    // 4. If URL is on goaonline and not auth page, consider logged in
-    return true;
   } catch {
-    // Locator check failed
+    // Ignore locator error
+  }
+
+  // 3. If "Login" or "Register" link is present in header -> NOT logged in
+  try {
+    const loginLink = page.locator('#hlkLogin, #cphHeader_hlkLogin, a[href*="/Public/Login" i]');
+    if (await loginLink.count() > 0) {
+      return false;
+    }
+  } catch {
+    // Ignore locator error
+  }
+
+  // 4. Positive check: Logout button or user profile indicator in DOM
+  try {
+    const logoutIndicators = page.locator(
+      '#hlkLogout, #cphHeader_hlkLogout, a[href*="Logout" i], a[href*="logout" i], #cphHeader_lblUserName, #cphBody_lblUser, .profile-name, .user-name, #userMenuBox'
+    );
+    if (await logoutIndicators.count() > 0) {
+      return true;
+    }
+  } catch {
+    // Ignore locator error
+  }
+
+  // 5. Positive check: ASPXAUTH cookie on authenticated citizen pages (e.g., /User/, /Appln/)
+  // Note: /Appln/UIL/deptServices is a public overview page, not proof of authentication.
+  try {
+    const cookies = await page.context().cookies();
+    const hasAuthCookie = cookies.some(c => 
+      c.domain.includes('goaonline') && 
+      (c.name.includes('ASPXAUTH') || c.name.includes('.ASPXAUTH') || c.name.includes('AuthToken')) &&
+      c.value.length > 20
+    );
+
+    const isCitizenAuthenticatedPage = (url.includes('/user/') || url.includes('/dashboard')) && !url.includes('/deptservices');
+    if (hasAuthCookie && isCitizenAuthenticatedPage) {
+      return true;
+    }
+  } catch {
+    // Ignore cookie check error
   }
 
   return false;
@@ -209,25 +231,35 @@ export async function updatePortalStatusOverlay(
  * Actively monitors all tabs for successful authentication.
  * Returns the active authenticated Page.
  */
-export async function waitForManualLogin(page: Page, timeoutMs: number = 300000): Promise<Page> {
-  console.log(`🌐 [PortalSession] Checking current portal state...`);
-  
-  // Check if already logged in from previous persistent session
-  const alreadyLoggedIn = await isUserLoggedIn(page);
-  if (alreadyLoggedIn) {
-    console.log(`✅ [PortalSession] Persistent session active! User is already logged in.`);
-    await updatePortalStatusOverlay(page, 'GoaOnAuto: Active session detected! Navigating to REV05...', 'success');
-    return page;
+export async function waitForManualLogin(page: Page, configOrTimeout: PortalSessionConfig | number = {}): Promise<Page> {
+  const sessionConfig: PortalSessionConfig = typeof configOrTimeout === 'number'
+    ? { loginTimeoutMs: configOrTimeout }
+    : configOrTimeout;
+
+  const timeoutMs = sessionConfig.loginTimeoutMs ?? 300000;
+  const isFresh = sessionConfig.freshLogin ?? true;
+
+  if (isFresh) {
+    console.log(`🧹 [PortalSession] Clearing cookies to guarantee fresh manual login prompt...`);
+    await page.context().clearCookies().catch(() => {});
   }
 
-  // Ensure page navigates to Login URL
-  if (!page.url().toLowerCase().includes('/public/login')) {
-    console.log(`🔗 [PortalSession] Navigating to login page: ${GOA_ONLINE_LOGIN_URL}`);
-    try {
-      await page.goto(GOA_ONLINE_LOGIN_URL, { waitUntil: 'domcontentloaded', timeout: 30000 });
-    } catch (e: any) {
-      console.warn(`⚠️ [PortalSession] Direct navigation notice (${e.message}). Retrying...`);
-      await page.goto(GOA_ONLINE_LOGIN_URL, { timeout: 30000 }).catch(() => {});
+  console.log(`🔗 [PortalSession] Navigating to GoaOnline login page: ${GOA_ONLINE_LOGIN_URL}`);
+  try {
+    await page.goto(GOA_ONLINE_LOGIN_URL, { waitUntil: 'domcontentloaded', timeout: 30000 });
+  } catch (e: any) {
+    console.warn(`⚠️ [PortalSession] Navigation retry notice: ${e.message}`);
+    await page.goto(GOA_ONLINE_LOGIN_URL, { timeout: 30000 }).catch(() => {});
+  }
+  await page.waitForTimeout(1000);
+
+  // If not a fresh login request, check if the portal redirected to a logged-in dashboard
+  if (!isFresh) {
+    const alreadyLoggedIn = await isUserLoggedIn(page);
+    if (alreadyLoggedIn) {
+      console.log(`✅ [PortalSession] Active session detected! User is already logged in.`);
+      await updatePortalStatusOverlay(page, 'GoaOnAuto: Active session detected! Navigating to REV05...', 'success');
+      return page;
     }
   }
 
@@ -249,7 +281,8 @@ export async function waitForManualLogin(page: Page, timeoutMs: number = 300000)
     const allPages = page.context().pages();
     for (const p of allPages) {
       const pUrl = p.url().toLowerCase();
-      if (pUrl.includes('goaonline.gov.in') && !pUrl.includes('/public/login')) {
+      // Must be on goaonline and MUST have navigated away from /public/login
+      if (pUrl.includes('goaonline.gov.in') && !pUrl.includes('/public/login') && !pUrl.includes('/public/forgotpassword') && pUrl !== 'about:blank') {
         const loggedIn = await isUserLoggedIn(p);
         if (loggedIn) {
           console.log(`\n🎉 [PortalSession] Successful login detected! Current URL: ${p.url()}`);
@@ -372,7 +405,7 @@ export async function startPortalPhase1(sessionConfig: PortalSessionConfig = {})
   const { context, page } = await launchBravePortalContext(sessionConfig);
 
   // Step 1 & 2: Login handshake
-  const activePage = await waitForManualLogin(page, sessionConfig.loginTimeoutMs);
+  const activePage = await waitForManualLogin(page, sessionConfig);
 
   // Step 3 & 4: Navigate to REV05 and click Proceed to Apply
   const { formPage, currentUrl } = await navigateToResidenceService(activePage);

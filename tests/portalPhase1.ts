@@ -18,8 +18,10 @@ async function runPhase1() {
   console.log('================================================================\n');
 
   try {
+    const keepSession = process.argv.includes('--keep-session');
     const session = await startPortalPhase1({
-      loginTimeoutMs: 300000 // 5 minutes for user to log in
+      loginTimeoutMs: 300000, // 5 minutes for user to log in
+      freshLogin: !keepSession
     });
 
     console.log('\n================================================================');
