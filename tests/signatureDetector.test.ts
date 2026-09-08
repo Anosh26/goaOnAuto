@@ -48,13 +48,13 @@ cv2.imwrite(sys.argv[2], doc_img)
   });
 
   test('should extract person name from folder hierarchy', () => {
-    const p1 = 'C:\\Users\\Anosh\\My Drive (citizen@example.com)\\Work\\Residence\\2026\\8\\Vijaykumar Tripathi';
+    const p1 = 'C:\\Users\\User\\Drive\\Work\\Residence\\2026\\8\\Vijaykumar Tripathi';
     expect(extractPersonNameFromDirectory(p1)).toBe('vijaykumar_tripathi');
 
-    const p2 = 'C:/Users/Anosh/My Drive (citizen@example.com)/Work/PCC/2026/8/Rohan Gawde';
+    const p2 = 'C:/Users/User/Drive/Work/PCC/2026/8/Rohan Gawde';
     expect(extractPersonNameFromDirectory(p2)).toBe('rohan_gawde');
 
-    const p3 = 'C:/Users/Anosh/Documents/Notes/Projects/goaOnAuto/work_directory';
+    const p3 = 'C:/Users/User/Projects/goaOnAuto/work_directory';
     expect(extractPersonNameFromDirectory(p3)).toBeUndefined();
   });
 

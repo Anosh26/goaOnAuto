@@ -15,7 +15,8 @@
     "data:harvest-interactive": "bun tools/interactive_harvester.ts",
     "data:retrain": "bun tools/retrain_classifier.ts",
     "generate:residence": "bun src/automation/residenceCertificate.ts",
-    "generate:qr": "python python/vision/generate_qr.py"
+    "generate:qr": "python python/vision/generate_qr.py",
+    "test:portal:phase1": "bun tests/portalPhase1.ts"
   },
   "keywords": [],
   "author": "",

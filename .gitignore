@@ -24,6 +24,7 @@ logs/
 *.log
 captcha.png
 sample_watch_dir/
+.brave_automation_profile/
 
 # Dataset Raw Data (PII protection)
 dataset/raw/

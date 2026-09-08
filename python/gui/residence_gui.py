@@ -403,7 +403,7 @@ def sync_tex_file(state: ResidenceFormState) -> tuple[bool, str, str]:
             decl_pattern = r"I, [^,]+, \[Age\] years, \[Wife\] of [^,]+, an Indian national, residing at \[Address\]"
             new_decl = f"I, {deponent_name}, {age} years, {rel_type} {rel_name}, an Indian national, residing at {address}"
             content = re.sub(decl_pattern, lambda m: new_decl, content)
-            content = re.sub(r"My Daughter Miss\. [^ ]+ is a permanent", lambda m: f"My {child_rel} {child_name} is a permanent", content)
+            content = re.sub(r"My Daughter Miss\..*? is a permanent", lambda m: f"My {child_rel} {child_name} is a permanent", content)
             content = re.sub(r"from the year \d{4} to date My Daughter", lambda m: f"from the year {since_year} to date My {child_rel}", content)
             content = re.sub(r"My Daughter has not surrendered", lambda m: f"My {child_rel} has not surrendered", content)
             content = re.sub(r"my Daughter has been permanent", lambda m: f"my {child_rel} has been permanent", content)

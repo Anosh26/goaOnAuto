@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test';
 import * as fs from 'fs';
 import { createWorker, PSM } from 'tesseract.js';
-const email = 'citizen@example.com'
-const password ='dummy_password'
-var captcha ='123456'
+const email = process.env.PORTAL_USERNAME || 'citizen@example.com';
+const password = process.env.PORTAL_PASSWORD || 'dummy_password';
+var captcha = '123456';
 
 async function solveCaptcha(imageBuffer: Buffer): Promise<string> {
   const worker = await createWorker();
