@@ -284,20 +284,49 @@ export async function navigateToResidenceService(page: Page): Promise<{ formPage
   await updatePortalStatusOverlay(activePage, 'GoaOnAuto: Residence Service (REV05) -> Clicking "Proceed to Apply"...', 'working');
   console.log(`📄 [PortalSession] On service overview page: "${await activePage.title()}"`);
 
-  // Target the "Proceed to Apply" button
-  const proceedApplyBtn = activePage.locator(
-    '#cphBody_gvService_lnkProceedApply_0, a:has-text("Proceed to Apply"), button:has-text("Proceed to Apply"), a:has-text("Apply Online"), button:has-text("Apply Online"), a:has-text("Apply"), button:has-text("Apply"), input[value*="Apply"], input[value*="Proceed"]'
-  ).first();
+  // Target the "Proceed to Apply" button using the exact ASP.NET GridView doPostBack target
+  const proceedApplyBtn = activePage.locator([
+    'a[href*="ctl00$cphBody$gvService$ctl02$lnkProceedApply"]',
+    '#ctl00_cphBody_gvService_ctl02_lnkProceedApply',
+    'a[id*="lnkProceedApply"]',
+    'a[href*="lnkProceedApply"]',
+    'a:has-text("Proceed to Apply")',
+    'a:has-text("Apply Online")',
+    'a:has-text("Apply")',
+    'button:has-text("Proceed to Apply")',
+    'input[value*="Proceed"]',
+    'input[value*="Apply"]'
+  ].join(', ')).first();
 
   console.log(`🔍 [PortalSession] Locating 'Proceed to Apply' button...`);
-  await proceedApplyBtn.waitFor({ state: 'visible', timeout: 15000 });
+  const isFound = await proceedApplyBtn.waitFor({ state: 'visible', timeout: 10000 }).then(() => true).catch(() => false);
 
-  console.log(`👆 [PortalSession] Clicking 'Proceed to Apply'...`);
+  console.log(`👆 [PortalSession] Triggering 'Proceed to Apply'...`);
   
   // Watch for potential popup / new tab if opened in separate target
   const [newPage] = await Promise.all([
-    activePage.context().waitForEvent('page', { timeout: 3000 }).catch(() => null),
-    proceedApplyBtn.click().catch((err: any) => console.warn('Click warning:', err.message))
+    activePage.context().waitForEvent('page', { timeout: 4000 }).catch(() => null),
+    (async () => {
+      if (isFound) {
+        try {
+          await proceedApplyBtn.click({ timeout: 5000 });
+          return;
+        } catch (err: any) {
+          console.warn(`Direct click failed (${err.message}). Invoking __doPostBack fallback...`);
+        }
+      }
+      // Direct ASP.NET WebForms __doPostBack trigger
+      await activePage.evaluate(() => {
+        // @ts-ignore
+        if (typeof window.__doPostBack === 'function') {
+          // @ts-ignore
+          window.__doPostBack('ctl00$cphBody$gvService$ctl02$lnkProceedApply', '');
+        } else {
+          const el = document.querySelector('a[href*="lnkProceedApply"]') as HTMLElement;
+          if (el) el.click();
+        }
+      }).catch((e: any) => console.warn('doPostBack dispatch notice:', e.message));
+    })()
   ]);
 
   const formPage = newPage || activePage;
