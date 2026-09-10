@@ -77,6 +77,7 @@ class BgRemoverState:
         self.proc_texture: rl.Texture | None = None
         self.orig_dims = (0, 0)
         self.orig_size_kb = 0.0
+        self.proc_dims = (0, 0)
         initial_file = ""
         if input_path:
             if os.path.isfile(input_path):
@@ -101,6 +102,7 @@ class BgRemoverState:
         self.input_path = os.path.abspath(path_str)
         self.output_path = ""
         self.final_size_kb = 0.0
+        self.proc_dims = (0, 0)
         self.progress_pct = 0.0
         self.display_progress = 0.0
         self.status_msg = f"Loaded: {os.path.basename(self.input_path)}"
@@ -252,7 +254,7 @@ def run_worker_thread(state: BgRemoverState) -> None:
     finally:
         state.is_processing = False
 
-def run_bg_remover_gui(input_path: str = "") -> None:
+def run_bg_remover_gui(input_path: str = "", max_test_frames: int = -1) -> None:
     """Main Raylib window runner for Background Removal GUI."""
     rl.set_config_flags(rl.FLAG_WINDOW_RESIZABLE | rl.FLAG_MSAA_4X_HINT | rl.FLAG_WINDOW_ALWAYS_RUN)
     win_w, win_h = 1080, 760
@@ -277,8 +279,14 @@ def run_bg_remover_gui(input_path: str = "") -> None:
     font_regular = load_custom_font("JetBrainsMono-Regular.ttf", 48)
 
     state = BgRemoverState(input_path)
+    frames_rendered = 0
 
     while not rl.window_should_close():
+        if max_test_frames > 0:
+            frames_rendered += 1
+            if frames_rendered >= max_test_frames:
+                break
+
         dt = rl.get_frame_time()
         state.pulse_timer += dt * 3.0
         state.cursor_timer += dt
@@ -661,9 +669,17 @@ def run_bg_remover_gui(input_path: str = "") -> None:
 
 def main():
     target_path = ""
-    if len(sys.argv) > 1 and not sys.argv[1].startswith("--"):
-        target_path = sys.argv[1]
-    run_bg_remover_gui(target_path)
+    max_test_frames = -1
+    for arg in sys.argv[1:]:
+        if arg.startswith("--test-frames="):
+            try:
+                max_test_frames = int(arg.split("=")[1])
+            except Exception:
+                pass
+        elif not arg.startswith("--") and not target_path:
+            target_path = arg
+
+    run_bg_remover_gui(target_path, max_test_frames=max_test_frames)
 
 if __name__ == "__main__":
     main()
