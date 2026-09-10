@@ -10,16 +10,28 @@ import pyray as rl
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 def load_custom_font(font_filename: str, base_size: int = 48) -> rl.Font | None:
-    """Loads JetBrainsMono font with crisp bilinear filtering."""
-    font_path = os.path.join(_PROJECT_ROOT, "assets", "fonts", font_filename)
-    if os.path.exists(font_path):
-        try:
-            font = rl.load_font_ex(font_path.encode('utf-8'), base_size, None, 0)
-            if font and font.baseSize > 0:
-                rl.set_texture_filter(font.texture, rl.TEXTURE_FILTER_BILINEAR)
-                return font
-        except Exception as e:
-            print(f"Error loading {font_filename}: {e}", file=sys.stderr)
+    """Loads JetBrainsMono / JetBrainsMono Nerd Font with crisp bilinear filtering."""
+    home_dir = os.path.expanduser("~")
+    candidates = [
+        os.path.join(_PROJECT_ROOT, "assets", "fonts", font_filename),
+        os.path.join(home_dir, "AppData", "Local", "Microsoft", "Windows", "Fonts", "JetBrainsMonoNerdFont-Regular.ttf"),
+        os.path.join(home_dir, "AppData", "Local", "Microsoft", "Windows", "Fonts", "JetBrainsMonoNerdFontMono-Regular.ttf"),
+        os.path.join(home_dir, "AppData", "Local", "Microsoft", "Windows", "Fonts", "JetBrainsMono-Regular.ttf"),
+        "C:/Windows/Fonts/JetBrainsMonoNerdFont-Regular.ttf",
+        "C:/Windows/Fonts/JetBrainsMono-Regular.ttf",
+        "C:/Windows/Fonts/cascadiacode.ttf",
+        "C:/Windows/Fonts/consola.ttf",
+        "C:/Windows/Fonts/segoeui.ttf",
+    ]
+    for fp in candidates:
+        if os.path.exists(fp):
+            try:
+                font = rl.load_font_ex(fp.encode('utf-8'), base_size, None, 0)
+                if font and font.baseSize > 0:
+                    rl.set_texture_filter(font.texture, rl.TEXTURE_FILTER_BILINEAR)
+                    return font
+            except Exception:
+                continue
     return None
 
 def draw_text_clean(font: rl.Font | None, text: str, x: float, y: float, font_size: int, color: rl.Color) -> None:

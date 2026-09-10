@@ -19,7 +19,8 @@
     "portal:phase1": "npx tsx tests/portalPhase1.ts",
     "test:portal:phase1": "npx tsx tests/portalPhase1.ts",
     "portal:track": "npx tsx tools/portalActionTracker.ts",
-    "portal:record": "npx tsx tools/portalActionTracker.ts"
+    "portal:record": "npx tsx tools/portalActionTracker.ts",
+    "photo:process": "python python/gui/bg_remover_gui.py"
   },
   "keywords": [],
   "author": "",

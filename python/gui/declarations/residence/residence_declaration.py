@@ -274,7 +274,7 @@ class ResidenceDeclaration(BaseDeclaration):
             content = re.sub(r"\\textbf\{Date:\} [^\n]+", lambda m: f"\\textbf{{Date:}} {date_str}", content)
 
             content = self.inject_photo_and_sig(content, photo_path, sig_path)
-            content = content.replace(r"\doublespacing", r"\onehalfspacing")
+            content = re.sub(r"\\doublespacing|\\onehalfspacing", r"\\setstretch{1.15}", content)
 
             os.makedirs(self.target_dir, exist_ok=True)
             tex_path = self.get_output_tex_path()

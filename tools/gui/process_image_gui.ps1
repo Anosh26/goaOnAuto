@@ -62,6 +62,13 @@ if ($pythonBin -eq "python") {
     }
 }
 
+# Forward to Modern Raylib GPU Background Removal GUI
+$raylibGui = [System.IO.Path]::GetFullPath("$PSScriptRoot\..\..\python\gui\bg_remover_gui.py")
+if (Test-Path $raylibGui) {
+    Start-Process -FilePath $pythonBin -ArgumentList "`"$raylibGui`" `"$inputPath`""
+    Exit 0
+}
+
 # Helper to load JetBrains Mono Nerd Font / JetBrains Mono / Cascadia Code / Consolas / Segoe UI
 function Get-PreferredFont {
     param(
@@ -215,10 +222,22 @@ $slider.Add_ValueChanged({
     }
 })
 
+function Update-PresetHighlights([int]$val) {
+    $activeBg = [System.Drawing.Color]::FromArgb(59, 130, 246)
+    $inactiveBg = [System.Drawing.Color]::FromArgb(63, 63, 70)
+    $btn30.BackColor = if ($val -eq 30) { $activeBg } else { $inactiveBg }
+    $btn50.BackColor = if ($val -eq 50) { $activeBg } else { $inactiveBg }
+    $btn100.BackColor = if ($val -eq 100) { $activeBg } else { $inactiveBg }
+    $btn200.BackColor = if ($val -eq 200) { $activeBg } else { $inactiveBg }
+    $btn500.BackColor = if ($val -eq 500) { $activeBg } else { $inactiveBg }
+    $btn1000.BackColor = if ($val -eq 1000) { $activeBg } else { $inactiveBg }
+}
+
 $numTargetKB.Add_ValueChanged({
     if (-not $script:updatingControls) {
         $script:updatingControls = $true
         $slider.Value = [int]$numTargetKB.Value
+        Update-PresetHighlights ([int]$numTargetKB.Value)
         $script:updatingControls = $false
     }
 })

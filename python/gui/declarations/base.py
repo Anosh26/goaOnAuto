@@ -83,7 +83,7 @@ class BaseDeclaration(ABC):
         # 2. Signature replacement
         if sig_path and os.path.isfile(sig_path):
             clean_sig = os.path.abspath(sig_path).replace("\\", "/")
-            sig_snippet = f'\\includegraphics[width=4.5cm]{{"{clean_sig}"}} \\\\\n    \\rule{{6cm}}{{0.4pt}}'
+            sig_snippet = f'\\includegraphics[width=3.2cm, height=1.1cm, keepaspectratio]{{"{clean_sig}"}} \\\\\n    \\rule{{4.5cm}}{{0.4pt}}'
             content = re.sub(r"\\rule\{6cm\}\{0\.4pt\}", lambda m: sig_snippet, content)
 
         return content

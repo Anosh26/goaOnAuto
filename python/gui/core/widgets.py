@@ -67,7 +67,9 @@ def draw_input_row(
     font_regular: rl.Font | None,
     mouse_pos: rl.Vector2,
     is_mouse_down: bool,
-    cursor_timer: float
+    cursor_timer: float,
+    clip_min_y: float = 0.0,
+    clip_max_y: float = 99999.0
 ) -> tuple[bool, bool]:
     """
     Renders a form field row: label, input box, blinking cursor, and browse button if path.
@@ -85,8 +87,9 @@ def draw_input_row(
     # 2. Input Box
     clicked_box = False
     val_changed = False
+    is_in_clip = (clip_min_y <= mouse_pos.y <= clip_max_y)
 
-    if is_mouse_down and rl.check_collision_point_rec(mouse_pos, field.rect):
+    if is_mouse_down and is_in_clip and rl.check_collision_point_rec(mouse_pos, field.rect):
         clicked_box = True
         if field.is_path and (is_invalid_path or not field.value):
             picked = open_file_dialog(f"Path not correct. Select {field.label}")
@@ -129,7 +132,7 @@ def draw_input_row(
         btn_x = inp_x + inp_w + int(10 * scale)
         field.btn_rect = rl.Rectangle(btn_x, curr_y, btn_w, inp_h)
 
-        btn_hover = rl.check_collision_point_rec(mouse_pos, field.btn_rect)
+        btn_hover = is_in_clip and rl.check_collision_point_rec(mouse_pos, field.btn_rect)
         btn_bg = DRACULA_PURPLE if btn_hover else (DRACULA_RED if (is_invalid_path or is_empty_required) else DRACULA_CURRENT_LINE)
         btn_fg = DRACULA_BG if btn_hover else DRACULA_FG
 
