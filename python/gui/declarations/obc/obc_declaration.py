@@ -7,7 +7,7 @@ import os
 import json
 import re
 from datetime import datetime
-from ..base import BaseDeclaration
+from ..base import BaseDeclaration, calculate_age_from_dob
 from ...core.widgets import FormField
 from ...core.latex_compiler import escape_latex
 
@@ -55,13 +55,18 @@ class ObcDeclaration(BaseDeclaration):
             child_obj = dossier.get("child", {})
             child_name = child_obj.get("name", "") if isinstance(child_obj, dict) else ""
 
+            deponent_age, deponent_dob = self.extract_age_and_dob(dossier, fallback_age="25")
+            child_age, child_dob = self.extract_child_age_and_dob(dossier, fallback_age="15")
+
             data = {
                 "mode": "child" if child_name else "self",
                 "deponent_name": dossier.get("name", {}).get("value", ""),
-                "age": str(dossier.get("age", {}).get("value", "25")),
+                "age": deponent_age,
+                "dob": deponent_dob,
                 "relation_name": rel_name,
                 "child_name": child_name,
-                "child_age": "15",
+                "child_age": child_age,
+                "child_dob": child_dob,
                 "samaj": "Bhandari Naik",
                 "village": "Calangute",
                 "annual_income": "974800",
@@ -78,12 +83,30 @@ class ObcDeclaration(BaseDeclaration):
         photo_path = data.get("photo_path") or self.find_file_pattern(["*passport_photo*", "*white_bg*", "*photo*", "*.jpg", "*.png"])
         sig_path = data.get("sig_path") or self.find_file_pattern(["*signature*", "*sig*"])
 
+        deponent_age = str(data.get("age") or "")
+        dob_str = str(data.get("dob") or "")
+        if (not deponent_age or not deponent_age.isdigit()) and dob_str:
+            calc = calculate_age_from_dob(dob_str)
+            deponent_age = str(calc) if calc is not None else "25"
+        if not deponent_age:
+            deponent_age = "25"
+
+        child_age = str(data.get("child_age") or "")
+        child_dob_str = str(data.get("child_dob") or "")
+        if (not child_age or not child_age.isdigit()) and child_dob_str:
+            calc = calculate_age_from_dob(child_dob_str)
+            child_age = str(calc) if calc is not None else "15"
+        if not child_age:
+            child_age = "15"
+
         self.fields = [
             FormField("deponent_name", "Deponent / Applicant Name", data.get("deponent_name") or "Applicant Name", is_required=True),
-            FormField("age", "Age (Years)", str(data.get("age") or "25"), is_required=True),
+            FormField("age", "Age (Years)", deponent_age, is_required=True),
+            FormField("dob", "Date of Birth (DD/MM/YYYY)", dob_str),
             FormField("relation_name", "Father / Spouse Name", data.get("relation_name") or ""),
             FormField("child_name", "Child Name (Child Mode)", data.get("child_name") or ""),
-            FormField("child_age", "Child Age (Years)", str(data.get("child_age") or "15")),
+            FormField("child_age", "Child Age (Years)", child_age),
+            FormField("child_dob", "Child Date of Birth (DD/MM/YYYY)", child_dob_str),
             FormField("samaj", "OBC Community / Samaj", data.get("samaj") or "Bhandari Naik", is_required=True),
             FormField("village", "Originally From Village", data.get("village") or "Calangute", is_required=True),
             FormField("annual_income", "Annual Family Income (Rs.)", str(data.get("annual_income") or "974800"), is_required=True),
@@ -100,14 +123,38 @@ class ObcDeclaration(BaseDeclaration):
         if not os.path.isdir(self.target_dir):
             return
 
+        dob_val = self.get_field_val("dob")
+        age_str = self.get_field_val("age")
+        if (not age_str or not age_str.isdigit()) and dob_val:
+            calc = calculate_age_from_dob(dob_val)
+            age_val = calc if calc is not None else 25
+        else:
+            try:
+                age_val = int(age_str) if age_str.isdigit() else 25
+            except Exception:
+                age_val = 25
+
+        child_dob_val = self.get_field_val("child_dob")
+        child_age_str = self.get_field_val("child_age")
+        if (not child_age_str or not child_age_str.isdigit()) and child_dob_val:
+            calc = calculate_age_from_dob(child_dob_val)
+            child_age_val = calc if calc is not None else 15
+        else:
+            try:
+                child_age_val = int(child_age_str) if child_age_str.isdigit() else 15
+            except Exception:
+                child_age_val = 15
+
         form_data = {
             "serviceType": "obc_certificate",
             "mode": self.mode,
             "applicantName": self.get_field_val("deponent_name"),
-            "age": self.get_field_val("age"),
+            "age": age_val,
+            "dob": dob_val,
             "relationName": self.get_field_val("relation_name"),
             "childName": self.get_field_val("child_name") if self.mode == "child" else "",
-            "childAge": self.get_field_val("child_age") if self.mode == "child" else "",
+            "childAge": child_age_val if self.mode == "child" else "",
+            "childDob": child_dob_val if self.mode == "child" else "",
             "samaj": self.get_field_val("samaj"),
             "village": self.get_field_val("village"),
             "annualIncome": self.get_field_val("annual_income"),
@@ -129,6 +176,38 @@ class ObcDeclaration(BaseDeclaration):
         except Exception:
             pass
 
+        # Update applicant_dossier.json
+        dossier = self.load_dossier()
+        dossier["name"] = {
+            "value": self.get_field_val("deponent_name"),
+            "confidence": 1.0,
+            "sourceDoc": "User Confirmed GUI"
+        }
+        dossier["age"] = {
+            "value": age_val,
+            "confidence": 1.0,
+            "sourceDoc": "User Confirmed GUI (Calculated from DOB)" if dob_val else "User Confirmed GUI"
+        }
+        if dob_val:
+            dossier["dob"] = {
+                "value": dob_val,
+                "confidence": 1.0,
+                "sourceDoc": "User Confirmed GUI"
+            }
+        if self.mode == "child":
+            dossier["child"] = {
+                "name": self.get_field_val("child_name"),
+                "age": child_age_val,
+                "dob": child_dob_val
+            }
+
+        dossier_path = os.path.join(self.target_dir, "applicant_dossier.json")
+        try:
+            with open(dossier_path, "w", encoding="utf-8") as f:
+                json.dump(dossier, f, indent=2)
+        except Exception:
+            pass
+
     def generate_tex(self) -> tuple[bool, str, str]:
         """Synthesizes obc_declaration.tex reflecting current form state."""
         try:
@@ -143,10 +222,23 @@ class ObcDeclaration(BaseDeclaration):
                 content = f.read()
 
             deponent_name = escape_latex(self.get_field_val("deponent_name"))
-            age = escape_latex(self.get_field_val("age"))
+            age_raw = self.get_field_val("age")
+            dob_raw = self.get_field_val("dob")
+            if (not age_raw or not age_raw.isdigit()) and dob_raw:
+                calc = calculate_age_from_dob(dob_raw)
+                age_raw = str(calc) if calc is not None else "25"
+            age = escape_latex(age_raw or "25")
+
             rel_name = escape_latex(self.get_field_val("relation_name"))
             child_name = escape_latex(self.get_field_val("child_name"))
-            child_age = escape_latex(self.get_field_val("child_age"))
+
+            child_age_raw = self.get_field_val("child_age")
+            child_dob_raw = self.get_field_val("child_dob")
+            if (not child_age_raw or not child_age_raw.isdigit()) and child_dob_raw:
+                calc = calculate_age_from_dob(child_dob_raw)
+                child_age_raw = str(calc) if calc is not None else "15"
+            child_age = escape_latex(child_age_raw or "15")
+
             samaj = escape_latex(self.get_field_val("samaj"))
             village = escape_latex(self.get_field_val("village"))
             income = escape_latex(self.get_field_val("annual_income"))
@@ -159,7 +251,7 @@ class ObcDeclaration(BaseDeclaration):
 
             if not is_child:
                 new_decl = f"I, {deponent_name}, aged {age}, Son of {rel_name} residing at {address}, {village}, {taluka}, North Goa"
-                content = re.sub(r"I, \[Applicant Name\], aged \[Age\], Son of \[Parent Name\] residing at \[Address\], \[Village\], \[Taluka\], North Goa", lambda m: new_decl, content)
+                content = re.sub(r"I,\s*\[Applicant Name\],\s*aged\s*\[Age\],\s*Son of\s*\[Parent Name\]\s*residing at\s*\[Address\],\s*\[Village\],\s*\[Taluka\],\s*North Goa", lambda m: new_decl, content)
                 content = re.sub(r"belong to \[Community/Samaj\]", lambda m: f"belong to {samaj} samaj", content)
                 content = re.sub(r"originally hail from \[Village\]", lambda m: f"originally hail from {village}", content)
                 content = re.sub(r"originally from \[Village\] prior to", lambda m: f"originally from {village} prior to", content)
@@ -168,7 +260,7 @@ class ObcDeclaration(BaseDeclaration):
                 content = re.sub(r"\\textbf\{Identified by: \[Applicant Name\]\}", lambda m: f"\\textbf{{Identified by: {deponent_name}}}", content)
             else:
                 new_decl = f"I, {deponent_name}, aged {age}, Father of {child_name} aged {child_age} residing at {address}, {village}, {taluka}, North Goa"
-                content = re.sub(r"I, \[Parent Name\], aged \[Parent Age\], Father of \[Child Name\] aged \[Child Age\] residing at \[Address\], \[Village\], \[Taluka\], North Goa", lambda m: new_decl, content)
+                content = re.sub(r"I,\s*\[Parent Name\],\s*aged\s*\[Parent Age\],\s*Father of\s*\[Child Name\]\s*aged\s*\[Child Age\]\s*residing at\s*\[Address\],\s*\[Village\],\s*\[Taluka\],\s*North Goa", lambda m: new_decl, content)
                 content = re.sub(r"My Son \[Child Name\] belongs to", lambda m: f"My Son {child_name} belongs to", content)
                 content = re.sub(r"belong to \[Community/Samaj\]", lambda m: f"belong to {samaj} samaj", content)
                 content = re.sub(r"My Son, originally hail from \[Village\]", lambda m: f"My Son, originally hail from {village}", content)

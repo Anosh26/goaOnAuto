@@ -60,19 +60,68 @@ function deduceYearsInGoa(text: string, docType: string, filePath: string): Doss
 }
 
 /**
+ * Calculates person's age from various DOB formats (DD/MM/YYYY, DD-MM-YYYY, YYYY-MM-DD, YYYY).
+ */
+export function calculateAgeFromDob(dobStr: string): number | undefined {
+  if (!dobStr) return undefined;
+  const cleaned = dobStr.trim();
+
+  // 1. DD/MM/YYYY or DD-MM-YYYY or DD.MM.YYYY
+  const dmyMatch = cleaned.match(/^(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{4})$/);
+  if (dmyMatch) {
+    const day = parseInt(dmyMatch[1], 10);
+    const month = parseInt(dmyMatch[2], 10);
+    const year = parseInt(dmyMatch[3], 10);
+    const birthDate = new Date(year, month - 1, day);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age >= 0 && age <= 130 ? age : undefined;
+  }
+
+  // 2. YYYY-MM-DD or YYYY/MM/DD
+  const ymdMatch = cleaned.match(/^(\d{4})[/\-.](\d{1,2})[/\-.](\d{1,2})$/);
+  if (ymdMatch) {
+    const year = parseInt(ymdMatch[1], 10);
+    const month = parseInt(ymdMatch[2], 10);
+    const day = parseInt(ymdMatch[3], 10);
+    const birthDate = new Date(year, month - 1, day);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age >= 0 && age <= 130 ? age : undefined;
+  }
+
+  // 3. 4-digit year only (e.g. YOB: 1998)
+  const yMatch = cleaned.match(/\b(19\d{2}|20\d{2})\b/);
+  if (yMatch) {
+    const year = parseInt(yMatch[1], 10);
+    const age = new Date().getFullYear() - year;
+    return age >= 0 && age <= 130 ? age : undefined;
+  }
+
+  return undefined;
+}
+
+/**
  * Deduces DOB and Age from text.
  */
 function deduceDOB(text: string, filePath: string): { dob?: DossierField<string>; age?: DossierField<number> } {
   // DD/MM/YYYY or DD-MM-YYYY
-  const dobMatch = text.match(/\b(\d{2}[/-]\d{2}[/-]\d{4})\b/);
+  const dobMatch = text.match(/\b(\d{1,2}[/-]\d{1,2}[/-]\d{4})\b/);
   if (dobMatch && dobMatch[1]) {
-    const dobStr = dobMatch[1].replace(/\//g, '-');
-    const year = parseInt(dobStr.substring(6, 10), 10);
-    const age = new Date().getFullYear() - year;
+    const dobStr = dobMatch[1];
+    const age = calculateAgeFromDob(dobStr);
     
     return {
       dob: { value: dobStr, confidence: 0.8, sourceDoc: filePath },
-      age: { value: age, confidence: 0.8, sourceDoc: filePath }
+      age: age !== undefined ? { value: age, confidence: 0.8, sourceDoc: filePath } : undefined
     };
   }
   return {};
@@ -95,12 +144,12 @@ export function synthesizeDossier(
     }
     if (qrResult.dob) {
       dossier.dob = { value: qrResult.dob, confidence: 1.0, sourceDoc: 'Aadhaar QR' };
-      const yearStr = qrResult.dob.split('-').pop();
-      if (yearStr) {
+      const calculatedAge = calculateAgeFromDob(qrResult.dob);
+      if (calculatedAge !== undefined) {
         dossier.age = { 
-          value: new Date().getFullYear() - parseInt(yearStr, 10), 
+          value: calculatedAge, 
           confidence: 1.0, 
-          sourceDoc: 'Aadhaar QR (Calculated)' 
+          sourceDoc: 'Aadhaar QR (Calculated from DOB)' 
         };
       }
     }
@@ -153,6 +202,16 @@ export function synthesizeDossier(
 
   if (bestYearsInGoa) {
     dossier.yearsInGoa = bestYearsInGoa;
+  }
+
+  // Detect photo and signature attachments
+  const photoDoc = documents.find(d => d.docType === 'passport_photo');
+  if (photoDoc && !dossier.photoPath) {
+    dossier.photoPath = photoDoc.filePath;
+  }
+  const sigDoc = documents.find(d => d.docType === 'signature');
+  if (sigDoc && !dossier.signaturePath) {
+    dossier.signaturePath = sigDoc.filePath;
   }
 
   return dossier;

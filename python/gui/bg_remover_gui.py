@@ -72,18 +72,29 @@ class BgRemoverState:
         self.final_size_kb = 0.0
         self.savings_pct = 0.0
 
-        # Textures
+        # Textures & Pending main-thread uploads
         self.orig_texture: rl.Texture | None = None
         self.proc_texture: rl.Texture | None = None
         self.orig_dims = (0, 0)
         self.orig_size_kb = 0.0
-        self.proc_dims = (0, 0)
+        initial_file = ""
+        if input_path:
+            if os.path.isfile(input_path):
+                initial_file = os.path.abspath(input_path)
+            elif os.path.isdir(input_path):
+                import glob
+                for pat in ["*passport_photo*", "*white_bg*", "*photo*", "*face*", "*.jpg", "*.jpeg", "*.png"]:
+                    matches = glob.glob(os.path.join(input_path, pat))
+                    candidates = [m for m in matches if os.path.isfile(m) and not m.endswith(("_declaration.pdf", "_declaration.tex"))]
+                    if candidates:
+                        initial_file = os.path.abspath(candidates[0])
+                        break
+
+        self.pending_input_path = initial_file
+        self.pending_output_path = ""
 
         # Pulse timer for live animated indicators
         self.pulse_timer = 0.0
-
-        if self.input_path and os.path.isfile(self.input_path):
-            self.load_input_image(self.input_path)
 
     def load_input_image(self, path_str: str) -> None:
         """Loads and pre-measures input photo."""
@@ -224,7 +235,12 @@ def run_worker_thread(state: BgRemoverState) -> None:
 
         # Phase 3: Complete
         state.progress_pct = 100.0
-        state.load_output_image(final_output)
+        state.output_path = final_output
+        state.pending_output_path = final_output
+        final_bytes = os.path.getsize(final_output) if os.path.isfile(final_output) else 0
+        state.final_size_kb = round(final_bytes / 1024.0, 1)
+        if state.orig_size_kb > 0:
+            state.savings_pct = max(0.0, round((1.0 - (state.final_size_kb / state.orig_size_kb)) * 100.0, 1))
         state.status_msg = f"✨ Photo Processed Successfully! Saved: {state.final_size_kb} KB"
         state.status_color = DRACULA_GREEN
 
@@ -266,6 +282,34 @@ def run_bg_remover_gui(input_path: str = "") -> None:
         dt = rl.get_frame_time()
         state.pulse_timer += dt * 3.0
         state.cursor_timer += dt
+
+        # Drag-and-drop file loading support
+        if rl.is_file_dropped():
+            dropped = rl.load_dropped_files()
+            if dropped.count > 0:
+                first_file = rl.ffi.string(dropped.paths[0]).decode('utf-8', errors='ignore')
+                if os.path.isfile(first_file):
+                    state.load_input_image(first_file)
+                elif os.path.isdir(first_file):
+                    import glob
+                    for pat in ["*passport_photo*", "*white_bg*", "*photo*", "*face*", "*.jpg", "*.jpeg", "*.png"]:
+                        matches = glob.glob(os.path.join(first_file, pat))
+                        candidates = [m for m in matches if os.path.isfile(m) and not m.endswith(("_declaration.pdf", "_declaration.tex"))]
+                        if candidates:
+                            state.load_input_image(candidates[0])
+                            break
+            rl.unload_dropped_files(dropped)
+
+        # Safely upload pending textures on main thread where OpenGL context lives
+        if state.pending_input_path:
+            path_to_load = state.pending_input_path
+            state.pending_input_path = ""
+            state.load_input_image(path_to_load)
+
+        if state.pending_output_path:
+            path_to_load = state.pending_output_path
+            state.pending_output_path = ""
+            state.load_output_image(path_to_load)
 
         # Smooth progress interpolation
         state.display_progress += (state.progress_pct - state.display_progress) * min(1.0, dt * 10.0)

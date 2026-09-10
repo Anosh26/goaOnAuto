@@ -27,6 +27,7 @@ try:
     from .core.latex_compiler import compile_latex_to_pdf
     from .core.widgets import draw_button, draw_input_row, draw_image_preview_card
     from .declarations import get_declaration, BaseDeclaration
+    from .declarations.base import calculate_age_from_dob
 except (ImportError, ValueError):
     from python.gui.core.colors import (
         DRACULA_BG, DRACULA_CURRENT_LINE, DRACULA_FG,
@@ -39,6 +40,7 @@ except (ImportError, ValueError):
     from python.gui.core.latex_compiler import compile_latex_to_pdf
     from python.gui.core.widgets import draw_button, draw_input_row, draw_image_preview_card
     from python.gui.declarations import get_declaration, BaseDeclaration
+    from python.gui.declarations.base import calculate_age_from_dob
 
 class DeclarationAppState:
     """Manages application-level UI state for the General Window."""
@@ -246,6 +248,16 @@ def run_app(declaration_type: str = "residence", target_dir: str = "", no_prompt
                     active_f.value += chr(char_code)
                     app_state.tex_dirty = True
                 char_code = rl.get_char_pressed()
+
+            # Dynamic age recalculation if typing in DOB field
+            if active_f.key == "dob":
+                calc = calculate_age_from_dob(active_f.value)
+                if calc is not None:
+                    declaration.set_field_val("age", str(calc))
+            elif active_f.key == "child_dob":
+                calc = calculate_age_from_dob(active_f.value)
+                if calc is not None:
+                    declaration.set_field_val("child_age", str(calc))
 
         # Mouse wheel vertical scrolling
         wheel = rl.get_mouse_wheel_move()

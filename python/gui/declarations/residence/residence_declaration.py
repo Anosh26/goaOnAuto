@@ -7,7 +7,7 @@ import os
 import json
 import re
 from datetime import datetime
-from ..base import BaseDeclaration
+from ..base import BaseDeclaration, calculate_age_from_dob
 from ...core.widgets import FormField
 from ...core.latex_compiler import escape_latex
 
@@ -42,7 +42,13 @@ class ResidenceDeclaration(BaseDeclaration):
                     if isinstance(form_json, dict):
                         data["mode"] = form_json.get("mode", "self")
                         data["deponent_name"] = form_json.get("applicantName", "")
-                        data["age"] = str(form_json.get("age", ""))
+                        data["dob"] = str(form_json.get("dob", ""))
+                        raw_age = str(form_json.get("age", ""))
+                        if (not raw_age or not raw_age.isdigit()) and data["dob"]:
+                            calc = calculate_age_from_dob(data["dob"])
+                            data["age"] = str(calc) if calc is not None else "25"
+                        else:
+                            data["age"] = raw_age or "25"
                         data["relation_type"] = form_json.get("relationType", "Daughter of")
                         data["relation_name"] = form_json.get("relationName", "")
                         data["child_name"] = form_json.get("childName", "")
@@ -61,7 +67,7 @@ class ResidenceDeclaration(BaseDeclaration):
         if not data:
             dossier = self.load_dossier()
             deponent_name = dossier.get("name", {}).get("value", "")
-            deponent_age = str(dossier.get("age", {}).get("value", ""))
+            deponent_age, deponent_dob = self.extract_age_and_dob(dossier, fallback_age="25")
             address_obj = dossier.get("address", {}).get("value", {})
             full_address = address_obj.get("full", "") if isinstance(address_obj, dict) else str(address_obj or "")
             taluka = address_obj.get("taluka", "Bardez") if isinstance(address_obj, dict) else "Bardez"
@@ -80,6 +86,7 @@ class ResidenceDeclaration(BaseDeclaration):
             data["mode"] = "child" if child_name else "self"
             data["deponent_name"] = deponent_name
             data["age"] = deponent_age
+            data["dob"] = deponent_dob
             data["relation_type"] = rel_type
             data["relation_name"] = rel_name
             data["child_name"] = child_name
@@ -100,6 +107,7 @@ class ResidenceDeclaration(BaseDeclaration):
         self.fields = [
             FormField("deponent_name", "Deponent Name", data.get("deponent_name") or "Applicant Name", is_required=True),
             FormField("age", "Age (Years)", data.get("age") or "25", is_required=True),
+            FormField("dob", "Date of Birth (DD/MM/YYYY)", data.get("dob") or ""),
             FormField("relation_type", "Relation Type", data.get("relation_type") or "Daughter of"),
             FormField("relation_name", "Parent / Spouse Name", data.get("relation_name") or ""),
             FormField("child_name", "Child Name (Child Mode)", data.get("child_name") or ""),
@@ -127,11 +135,16 @@ class ResidenceDeclaration(BaseDeclaration):
             since_year_int = current_year - 15
             years_in_goa = 15
 
+        dob_val = self.get_field_val("dob")
         age_str = self.get_field_val("age")
-        try:
-            age_val = int(age_str) if age_str.isdigit() else age_str
-        except Exception:
-            age_val = 25
+        if (not age_str or not age_str.isdigit()) and dob_val:
+            calc = calculate_age_from_dob(dob_val)
+            age_val = calc if calc is not None else 25
+        else:
+            try:
+                age_val = int(age_str) if age_str.isdigit() else 25
+            except Exception:
+                age_val = 25
 
         tex_file = self.get_output_tex_path()
         pdf_file = self.get_output_pdf_path()
@@ -142,6 +155,7 @@ class ResidenceDeclaration(BaseDeclaration):
             "mode": self.mode,
             "applicantName": self.get_field_val("deponent_name"),
             "age": age_val,
+            "dob": dob_val,
             "relationType": self.get_field_val("relation_type"),
             "relationName": self.get_field_val("relation_name"),
             "childName": self.get_field_val("child_name") if self.mode == "child" else "",
@@ -176,8 +190,14 @@ class ResidenceDeclaration(BaseDeclaration):
         dossier["age"] = {
             "value": age_val,
             "confidence": 1.0,
-            "sourceDoc": "User Confirmed GUI"
+            "sourceDoc": "User Confirmed GUI (Calculated from DOB)" if dob_val else "User Confirmed GUI"
         }
+        if dob_val:
+            dossier["dob"] = {
+                "value": dob_val,
+                "confidence": 1.0,
+                "sourceDoc": "User Confirmed GUI"
+            }
         dossier["relation"] = {
             "type": self.get_field_val("relation_type"),
             "name": self.get_field_val("relation_name"),
@@ -238,7 +258,13 @@ class ResidenceDeclaration(BaseDeclaration):
                 content = f.read()
 
             deponent_name = escape_latex(self.get_field_val("deponent_name"))
-            age = escape_latex(self.get_field_val("age"))
+            age_raw = self.get_field_val("age")
+            dob_raw = self.get_field_val("dob")
+            if (not age_raw or not age_raw.isdigit()) and dob_raw:
+                calc = calculate_age_from_dob(dob_raw)
+                age_raw = str(calc) if calc is not None else "25"
+            age = escape_latex(age_raw or "25")
+
             rel_type = escape_latex(self.get_field_val("relation_type"))
             rel_name = escape_latex(self.get_field_val("relation_name"))
             child_name = escape_latex(self.get_field_val("child_name"))
@@ -252,14 +278,14 @@ class ResidenceDeclaration(BaseDeclaration):
             sig_path = self.get_field_val("sig_path")
 
             if not is_child:
-                decl_pattern = r"I, [^,]+, \[Age\] years, \[Daughter/Wife\] of \[Name\], an Indian national, residing at \[Address\]"
+                decl_pattern = r"I,\s*\[Applicant Name\],\s*\[Age\]\s*years,\s*\[Daughter/Wife\]\s*of\s*\[Name\],\s*an Indian national,\s*residing at\s*\[Address\]"
                 new_decl = f"I, {deponent_name}, {age} years, {rel_type} {rel_name}, an Indian national, residing at {address}"
                 content = re.sub(decl_pattern, lambda m: new_decl, content)
                 content = re.sub(r"from the year \d{4} to date", lambda m: f"from the year {since_year} to date", content)
                 content = re.sub(r"office of the Mamlatdar of [^,]+ Taluka", lambda m: f"office of the Mamlatdar of {taluka} Taluka", content)
                 content = re.sub(r"\\textbf\{DEPONENT: [^}]+\}", lambda m: f"\\textbf{{DEPONENT: {deponent_name}}}", content)
             else:
-                decl_pattern = r"I, [^,]+, \[Age\] years, \[Wife\] of [^,]+, an Indian national, residing at \[Address\]"
+                decl_pattern = r"I,\s*\[Parent Name\],\s*\[Age\]\s*years,\s*\[Wife\]\s*of\s*\[Relation Name\],\s*an Indian national,\s*residing at\s*\[Address\]"
                 new_decl = f"I, {deponent_name}, {age} years, {rel_type} {rel_name}, an Indian national, residing at {address}"
                 content = re.sub(decl_pattern, lambda m: new_decl, content)
                 content = re.sub(r"My Daughter Miss\..*? is a permanent", lambda m: f"My {child_rel} {child_name} is a permanent", content)

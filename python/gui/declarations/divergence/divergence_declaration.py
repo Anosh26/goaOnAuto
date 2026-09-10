@@ -7,7 +7,7 @@ import os
 import json
 import re
 from datetime import datetime
-from ..base import BaseDeclaration
+from ..base import BaseDeclaration, calculate_age_from_dob
 from ...core.widgets import FormField
 from ...core.latex_compiler import escape_latex
 
@@ -53,9 +53,12 @@ class DivergenceDeclaration(BaseDeclaration):
             rel_obj = dossier.get("relation", {})
             rel_name = rel_obj.get("name", "") if isinstance(rel_obj, dict) else ""
 
+            deponent_age, deponent_dob = self.extract_age_and_dob(dossier, fallback_age="50")
+
             data = {
                 "deponent_name": deponent_name or "Applicant Name",
-                "age": str(dossier.get("age", {}).get("value", "50")),
+                "age": deponent_age,
+                "dob": deponent_dob,
                 "spouse_name": rel_name,
                 "birth_cert_name": deponent_name or "Name On Birth Cert",
                 "aadhaar_name": deponent_name or "Name On Aadhaar",
@@ -72,9 +75,18 @@ class DivergenceDeclaration(BaseDeclaration):
         photo_path = data.get("photo_path") or self.find_file_pattern(["*passport_photo*", "*white_bg*", "*photo*", "*.jpg", "*.png"])
         sig_path = data.get("sig_path") or self.find_file_pattern(["*signature*", "*sig*"])
 
+        deponent_age = str(data.get("age") or "")
+        dob_str = str(data.get("dob") or "")
+        if (not deponent_age or not deponent_age.isdigit()) and dob_str:
+            calc = calculate_age_from_dob(dob_str)
+            deponent_age = str(calc) if calc is not None else "50"
+        if not deponent_age:
+            deponent_age = "50"
+
         self.fields = [
             FormField("deponent_name", "Deponent Name", data.get("deponent_name") or "Applicant Name", is_required=True),
-            FormField("age", "Age (Years)", str(data.get("age") or "50"), is_required=True),
+            FormField("age", "Age (Years)", deponent_age, is_required=True),
+            FormField("dob", "Date of Birth (DD/MM/YYYY)", dob_str),
             FormField("spouse_name", "Spouse / Parent Name", data.get("spouse_name") or ""),
             FormField("birth_cert_name", "Name on Birth Certificate", data.get("birth_cert_name") or "Name as per Birth Cert", is_required=True),
             FormField("aadhaar_name", "Name on Aadhaar Card", data.get("aadhaar_name") or "Name as per Aadhaar", is_required=True),
@@ -93,10 +105,22 @@ class DivergenceDeclaration(BaseDeclaration):
         if not os.path.isdir(self.target_dir):
             return
 
+        dob_val = self.get_field_val("dob")
+        age_str = self.get_field_val("age")
+        if (not age_str or not age_str.isdigit()) and dob_val:
+            calc = calculate_age_from_dob(dob_val)
+            age_val = calc if calc is not None else 50
+        else:
+            try:
+                age_val = int(age_str) if age_str.isdigit() else 50
+            except Exception:
+                age_val = 50
+
         form_data = {
             "serviceType": "divergence_certificate",
             "applicantName": self.get_field_val("deponent_name"),
-            "age": self.get_field_val("age"),
+            "age": age_val,
+            "dob": dob_val,
             "spouseName": self.get_field_val("spouse_name"),
             "birthCertName": self.get_field_val("birth_cert_name"),
             "aadhaarName": self.get_field_val("aadhaar_name"),
@@ -120,6 +144,32 @@ class DivergenceDeclaration(BaseDeclaration):
         except Exception:
             pass
 
+        # Update applicant_dossier.json
+        dossier = self.load_dossier()
+        dossier["name"] = {
+            "value": self.get_field_val("deponent_name"),
+            "confidence": 1.0,
+            "sourceDoc": "User Confirmed GUI"
+        }
+        dossier["age"] = {
+            "value": age_val,
+            "confidence": 1.0,
+            "sourceDoc": "User Confirmed GUI (Calculated from DOB)" if dob_val else "User Confirmed GUI"
+        }
+        if dob_val:
+            dossier["dob"] = {
+                "value": dob_val,
+                "confidence": 1.0,
+                "sourceDoc": "User Confirmed GUI"
+            }
+
+        dossier_path = os.path.join(self.target_dir, "applicant_dossier.json")
+        try:
+            with open(dossier_path, "w", encoding="utf-8") as f:
+                json.dump(dossier, f, indent=2)
+        except Exception:
+            pass
+
     def generate_tex(self) -> tuple[bool, str, str]:
         """Synthesizes divergence_declaration.tex reflecting current form state."""
         try:
@@ -131,7 +181,13 @@ class DivergenceDeclaration(BaseDeclaration):
                 content = f.read()
 
             deponent_name = escape_latex(self.get_field_val("deponent_name"))
-            age = escape_latex(self.get_field_val("age"))
+            age_raw = self.get_field_val("age")
+            dob_raw = self.get_field_val("dob")
+            if (not age_raw or not age_raw.isdigit()) and dob_raw:
+                calc = calculate_age_from_dob(dob_raw)
+                age_raw = str(calc) if calc is not None else "50"
+            age = escape_latex(age_raw or "50")
+
             spouse_name = escape_latex(self.get_field_val("spouse_name"))
             birth_name = escape_latex(self.get_field_val("birth_cert_name"))
             aadhaar_name = escape_latex(self.get_field_val("aadhaar_name"))
@@ -145,7 +201,7 @@ class DivergenceDeclaration(BaseDeclaration):
             sig_path = self.get_field_val("sig_path")
 
             new_decl = f"I, {deponent_name}, Age {age} years, Wife of {spouse_name}, an Indian national, residing at {address}, {village}, {taluka}, North Goa, Goa"
-            content = re.sub(r"I, \[Applicant Name\], Age \[Age\] years, Wife of \[Spouse Name\], an Indian national, residing at \[Address\], \[Village\], \[Taluka\], North Goa, Goa", lambda m: new_decl, content)
+            content = re.sub(r"I,\s*\[Applicant Name\],\s*Age\s*\[Age\]\s*years,\s*Wife of\s*\[Spouse Name\],\s*an Indian national,\s*residing at\s*\[Address\],\s*\[Village\],\s*\[Taluka\],\s*North Goa,\s*Goa", lambda m: new_decl, content)
             content = re.sub(r"recorded as \[Birth Certificate Name\]\.", lambda m: f"recorded as {birth_name}.", content)
             content = re.sub(r"recorded as \[Aadhaar Name\]\.", lambda m: f"recorded as {aadhaar_name}.", content)
             content = re.sub(r"recorded as \[Name on Daughter's Cert\]\.", lambda m: f"recorded as {other_name}.", content)

@@ -91,7 +91,13 @@ def draw_text_clean(font, text: str, x: int, y: int, font_size: int, color: rl.C
     """Draws crisp text using custom TTF if loaded, else fallback to Raylib default font."""
     try:
         raw_bytes = text.encode('utf-8', 'ignore')
-        if font and font.base_size > 0:
+        font_valid = False
+        if font:
+            try:
+                font_valid = (font.baseSize > 0)
+            except Exception:
+                font_valid = (getattr(font, 'base_size', 0) > 0)
+        if font_valid:
             rl.draw_text_ex(font, raw_bytes, rl.Vector2(float(x), float(y)), float(font_size), 1.0, color)
         else:
             rl.draw_text(raw_bytes, x, y, font_size, color)
@@ -123,24 +129,33 @@ def main():
     except Exception:
         pass
 
-    # Load readable clean system font
-    font = None
-    font_paths = [
-        "C:/Windows/Fonts/segoeui.ttf",
-        "C:/Windows/Fonts/cascadiacode.ttf",
-        "C:/Windows/Fonts/consola.ttf",
-        "C:/Windows/Fonts/arial.ttf"
-    ]
-    for fp in font_paths:
-        if os.path.exists(fp):
-            try:
-                loaded = rl.load_font_ex(fp.encode('utf-8'), 32, None, 0)
-                if loaded and loaded.base_size > 0:
-                    rl.set_texture_filter(loaded.texture, rl.TEXTURE_FILTER_BILINEAR)
-                    font = loaded
-                    break
-            except Exception:
-                font = None
+    # Load readable clean JetBrains Mono / Nerd Font
+    try:
+        from python.gui.core.fonts import load_custom_font
+        font = load_custom_font("JetBrainsMono-Bold.ttf", 32)
+    except Exception:
+        font = None
+
+    if not font:
+        font_paths = [
+            os.path.join(project_root, "assets", "fonts", "JetBrainsMono-Bold.ttf"),
+            os.path.join(project_root, "assets", "fonts", "JetBrainsMono-Regular.ttf"),
+            os.path.join(os.path.expanduser("~"), "AppData", "Local", "Microsoft", "Windows", "Fonts", "JetBrainsMonoNerdFont-Regular.ttf"),
+            "C:/Windows/Fonts/segoeui.ttf",
+            "C:/Windows/Fonts/cascadiacode.ttf",
+            "C:/Windows/Fonts/consola.ttf",
+            "C:/Windows/Fonts/arial.ttf"
+        ]
+        for fp in font_paths:
+            if os.path.exists(fp):
+                try:
+                    loaded = rl.load_font_ex(fp.encode('utf-8'), 32, None, 0)
+                    if loaded and (getattr(loaded, 'baseSize', 0) > 0 or getattr(loaded, 'base_size', 0) > 0):
+                        rl.set_texture_filter(loaded.texture, rl.TEXTURE_FILTER_BILINEAR)
+                        font = loaded
+                        break
+                except Exception:
+                    font = None
 
     display_progress = 0.0
     pulse_timer = 0.0
@@ -250,8 +265,11 @@ def main():
 
         rl.end_drawing()
 
-    if font and font.base_size > 0:
-        rl.unload_font(font)
+    if font:
+        try:
+            rl.unload_font(font)
+        except Exception:
+            pass
     rl.close_window()
 
 if __name__ == "__main__":
