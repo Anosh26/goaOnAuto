@@ -12,10 +12,22 @@
 
 $projectRoot = [System.IO.Path]::GetFullPath("$PSScriptRoot\..\..")
 $automationScript = Join-Path $projectRoot "src\automation\extractAndDeclare.ts"
+$portalScript = Join-Path $projectRoot "src\automation\fillResidencePortal.ts"
+$ocrScript = Join-Path $projectRoot "src\scanner\runOcrScanner.ts"
 $bgRemoverScript = Join-Path $projectRoot "python\gui\bg_remover_gui.py"
 
 if (-not (Test-Path $automationScript)) {
     Write-Error "Automation script not found at $automationScript"
+    Exit 1
+}
+
+if (-not (Test-Path $portalScript)) {
+    Write-Error "Portal filler script not found at $portalScript"
+    Exit 1
+}
+
+if (-not (Test-Path $ocrScript)) {
+    Write-Error "OCR scanner script not found at $ocrScript"
     Exit 1
 }
 
@@ -38,6 +50,17 @@ if (-not $pythonPath -or -not (Test-Path $pythonPath)) {
         $pythonPath = $localPy
     } else {
         $pythonPath = "python.exe"
+    }
+}
+
+# Resolve TSX binary for Playwright execution (Node-based runner required for Playwright on Windows)
+$tsxPath = Join-Path $projectRoot "node_modules\.bin\tsx.exe"
+if (-not (Test-Path $tsxPath)) {
+    $cmdTsx = (Get-Command tsx -ErrorAction SilentlyContinue).Source
+    if ($cmdTsx) {
+        $tsxPath = $cmdTsx
+    } else {
+        $tsxPath = "npx.cmd tsx"
     }
 }
 
@@ -70,6 +93,13 @@ foreach ($fmt in $imageFormats) {
 # 2. Define Menu Actions
 $subActions = @(
     @{
+        Id = "0_ScanOCR"
+        Title = "🔍 Scan & Classify Documents (OCR)"
+        CommandType = "ocr"
+        Icon = "imageres.dll,-98"
+        SeparatorBefore = $false
+    },
+    @{
         Id = "1_Residence"
         Title = "🏛️ Residence Certificate Declaration"
         CommandType = "bun"
@@ -99,6 +129,14 @@ $subActions = @(
         CommandType = "python"
         ArgType = "bg_remover"
         Icon = "imageres.dll,-71"
+        SeparatorBefore = $true
+    },
+    @{
+        Id = "5_PortalResidence"
+        Title = "🌐 Auto-Fill GoaOnline Residence Form"
+        CommandType = "portal"
+        ArgType = "residence"
+        Icon = "imageres.dll,-25"
         SeparatorBefore = $true
     }
 )
@@ -164,7 +202,11 @@ foreach ($scope in $targetScopes) {
             Set-ItemProperty -Path $itemPath -Name "CommandFlags" -Value 32 -Type DWord -ErrorAction SilentlyContinue
         }
 
-        if ($action.CommandType -eq "bun") {
+        if ($action.CommandType -eq "ocr") {
+            $cmdString = "cmd.exe /c start `"GoaOnAuto - Document OCR Scanner`" cmd.exe /k `"`"$tsxPath`" `"$ocrScript`" --dir `"$argTarget`"`""
+        } elseif ($action.CommandType -eq "portal") {
+            $cmdString = "cmd.exe /c start `"GoaOnAuto - Portal Automation`" cmd.exe /k `"`"$tsxPath`" `"$portalScript`" --dir `"$argTarget`"`""
+        } elseif ($action.CommandType -eq "bun") {
             $cmdString = "`"$bunPath`" `"$automationScript`" --type $($action.ArgType) --dir `"$argTarget`""
         } else {
             $cmdString = "`"$pythonPath`" `"$bgRemoverScript`" `"$argTarget`""
@@ -180,8 +222,11 @@ Write-Host "   - Folders (Right-click any folder)"
 Write-Host "   - Folder Background (Right-click inside any directory)"
 Write-Host "   - Image Files (.jpg, .jpeg, .png, .webp, .bmp, .tiff)"
 Write-Host "`n   Menu Items:"
+Write-Host "   0. 🔍 Scan & Classify Documents (OCR)"
 Write-Host "   1. 🏛️ Residence Certificate Declaration"
 Write-Host "   2. 📜 OBC Certificate Declaration"
 Write-Host "   3. ⚖️ Divergence Certificate Declaration"
 Write-Host "   ---------------------------------------"
 Write-Host "   4. 🎨 Background Remover & Photo Optimizer (<50KB)"
+Write-Host "   ---------------------------------------"
+Write-Host "   5. 🌐 Auto-Fill GoaOnline Residence Form"

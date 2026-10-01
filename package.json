@@ -14,10 +14,16 @@
     "data:harvest": "bun tools/harvest_dataset.ts",
     "data:harvest-interactive": "bun tools/interactive_harvester.ts",
     "data:retrain": "bun tools/retrain_classifier.ts",
+    "portal:fill": "tsx src/automation/fillResidencePortal.ts",
+    "portal:fill:residence": "tsx src/automation/fillResidencePortal.ts",
     "portal:residence": "bun src/automation/residenceCertificate.ts",
+    "ocr:scan": "tsx src/scanner/runOcrScanner.ts",
     "generate:qr": "python python/vision/generate_qr.py",
     "portal:phase1": "npx tsx tests/portalPhase1.ts",
     "test:portal:phase1": "npx tsx tests/portalPhase1.ts",
+    "portal:phase2": "npx tsx tests/portalPhase2Test.ts",
+    "test:portal:phase2": "npx tsx tests/portalPhase2Test.ts",
+    "portal:survey": "npx tsx tools/surveyScreen1.ts",
     "portal:track": "npx tsx tools/portalActionTracker.ts",
     "portal:record": "npx tsx tools/portalActionTracker.ts",
     "photo:process": "python python/gui/bg_remover_gui.py",
@@ -36,7 +42,8 @@
   "devDependencies": {
     "@playwright/test": "^1.59.1",
     "@types/bun": "^1.3.14",
-    "@types/node": "^25.6.2"
+    "@types/node": "^25.6.2",
+    "tsx": "^4.23.15"
   },
   "dependencies": {
     "tesseract.js": "^7.0.0"

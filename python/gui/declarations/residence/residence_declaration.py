@@ -60,12 +60,15 @@ class ResidenceDeclaration(BaseDeclaration):
                         data["date"] = form_json.get("declarationDate", datetime.now().strftime("%d/%m/%Y"))
                         data["photo_path"] = form_json.get("photoPath", "")
                         data["sig_path"] = form_json.get("signaturePath", "")
+                        data["aadhaar_no"] = form_json.get("idProofNumber", "")
+                        data["prev_cert_no"] = form_json.get("previousCertNumber", "")
+                        data["prev_cert_date"] = form_json.get("previousCertDate", "")
             except Exception:
                 pass
 
-        # 2. Fallback to applicant_dossier.json
+        # 2. Check/supplement from applicant_dossier.json
+        dossier = self.load_dossier()
         if not data:
-            dossier = self.load_dossier()
             deponent_name = dossier.get("name", {}).get("value", "")
             deponent_age, deponent_dob = self.extract_age_and_dob(dossier, fallback_age="25")
             address_obj = dossier.get("address", {}).get("value", {})
@@ -99,6 +102,19 @@ class ResidenceDeclaration(BaseDeclaration):
             data["photo_path"] = dossier.get("photoPath", "")
             data["sig_path"] = dossier.get("signaturePath", "")
 
+        if not data.get("aadhaar_no"):
+            id_val = dossier.get("idProofNumber") or dossier.get("aadhaar")
+            if isinstance(id_val, dict):
+                data["aadhaar_no"] = str(id_val.get("value") or "")
+            elif id_val:
+                data["aadhaar_no"] = str(id_val)
+
+        if not data.get("prev_cert_no"):
+            prev_cert = dossier.get("previousResidenceCert")
+            if isinstance(prev_cert, dict):
+                data["prev_cert_no"] = prev_cert.get("number", "")
+                data["prev_cert_date"] = prev_cert.get("issueDate", "")
+
         self.mode = data.get("mode", "self")
 
         photo_path = data.get("photo_path") or self.find_file_pattern(["*passport_photo*", "*white_bg*", "*photo*", "*.jpg", "*.png"])
@@ -108,6 +124,7 @@ class ResidenceDeclaration(BaseDeclaration):
             FormField("deponent_name", "Deponent Name", data.get("deponent_name") or "Applicant Name", is_required=True),
             FormField("age", "Age (Years)", data.get("age") or "25", is_required=True),
             FormField("dob", "Date of Birth (DD/MM/YYYY)", data.get("dob") or ""),
+            FormField("aadhaar_no", "Aadhaar Card No (12 Digits)", data.get("aadhaar_no") or ""),
             FormField("relation_type", "Relation Type", data.get("relation_type") or "Daughter of"),
             FormField("relation_name", "Parent / Spouse Name", data.get("relation_name") or ""),
             FormField("child_name", "Child Name (Child Mode)", data.get("child_name") or ""),
@@ -115,6 +132,8 @@ class ResidenceDeclaration(BaseDeclaration):
             FormField("since_year", "Residing Since Year", data.get("since_year") or "2009", is_required=True),
             FormField("address", "Full Address", data.get("address") or "H.No. 123, Goa", is_required=True),
             FormField("taluka", "Taluka Mamlatdar Office", data.get("taluka") or "Bardez"),
+            FormField("prev_cert_no", "Prev Residence Cert No", data.get("prev_cert_no") or ""),
+            FormField("prev_cert_date", "Prev Cert Issue Date", data.get("prev_cert_date") or ""),
             FormField("place", "Place", data.get("place") or "Mapusa"),
             FormField("date", "Date (DD/MM/YYYY)", data.get("date") or datetime.now().strftime("%d/%m/%Y")),
             FormField("photo_path", "Passport Photo Path", photo_path, is_path=True, is_required=True),
@@ -149,15 +168,35 @@ class ResidenceDeclaration(BaseDeclaration):
         tex_file = self.get_output_tex_path()
         pdf_file = self.get_output_pdf_path()
 
-        # 1. Save residence_form_data.json
-        form_data = {
+        # 1. Merge into existing residence_form_data.json to preserve portal fields
+        form_json_path = os.path.join(self.target_dir, "residence_form_data.json")
+        form_data: dict = {}
+        if os.path.exists(form_json_path):
+            try:
+                with open(form_json_path, "r", encoding="utf-8") as f:
+                    loaded = json.load(f)
+                    if isinstance(loaded, dict):
+                        form_data = loaded
+            except Exception:
+                pass
+
+        prev_no = self.get_field_val("prev_cert_no")
+        prev_date = self.get_field_val("prev_cert_date")
+        aadhaar_no = self.get_field_val("aadhaar_no").replace(" ", "").replace("-", "")
+
+        # Standard mode is relative for citizen agents
+        target_mode = form_data.get("mode") or ("child" if self.mode == "child" else "relative")
+
+        form_data.update({
             "serviceType": "residence_certificate",
-            "mode": self.mode,
+            "mode": target_mode,
             "applicantName": self.get_field_val("deponent_name"),
             "age": age_val,
             "dob": dob_val,
             "relationType": self.get_field_val("relation_type"),
             "relationName": self.get_field_val("relation_name"),
+            "relativeRelation": form_data.get("relativeRelation") or self.get_field_val("relation_type") or "Father",
+            "relativeName": form_data.get("relativeName") or self.get_field_val("relation_name") or "Parent Name",
             "childName": self.get_field_val("child_name") if self.mode == "child" else "",
             "childRelation": self.get_field_val("child_relation") if self.mode == "child" else "",
             "sinceYear": since_year_int,
@@ -171,9 +210,21 @@ class ResidenceDeclaration(BaseDeclaration):
             "declarationTexPath": tex_file if os.path.exists(tex_file) else "",
             "declarationPdfPath": pdf_file if os.path.exists(pdf_file) else "",
             "updatedAt": datetime.now().isoformat()
-        }
+        })
 
-        form_json_path = os.path.join(self.target_dir, "residence_form_data.json")
+        if aadhaar_no:
+            form_data["idProofType"] = "Aadhaar Card"
+            form_data["idProofNumber"] = aadhaar_no
+
+        if prev_no:
+            form_data["issuedEarlier"] = "Yes"
+            form_data["previousCertNumber"] = prev_no
+            form_data["previousCertDate"] = prev_date
+            if "previousCertAuthority" not in form_data:
+                form_data["previousCertAuthority"] = f"Mamlatdar of {self.get_field_val('taluka')}"
+            if "previousCertAddress" not in form_data:
+                form_data["previousCertAddress"] = self.get_field_val("address")
+
         try:
             with open(form_json_path, "w", encoding="utf-8") as f:
                 json.dump(form_data, f, indent=2)
@@ -198,6 +249,25 @@ class ResidenceDeclaration(BaseDeclaration):
                 "confidence": 1.0,
                 "sourceDoc": "User Confirmed GUI"
             }
+        if aadhaar_no:
+            dossier["idProofNumber"] = {
+                "value": aadhaar_no,
+                "confidence": 1.0,
+                "sourceDoc": "User Confirmed GUI"
+            }
+            dossier["aadhaar"] = {
+                "value": aadhaar_no,
+                "confidence": 1.0,
+                "sourceDoc": "User Confirmed GUI"
+            }
+        if prev_no:
+            dossier["hasPreviousResidenceCert"] = True
+            dossier["previousResidenceCert"] = {
+                "number": prev_no,
+                "issueDate": prev_date,
+                "authority": form_data.get("previousCertAuthority", f"Mamlatdar of {self.get_field_val('taluka')}")
+            }
+
         dossier["relation"] = {
             "type": self.get_field_val("relation_type"),
             "name": self.get_field_val("relation_name"),

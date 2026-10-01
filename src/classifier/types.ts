@@ -41,4 +41,24 @@ export interface ApplicantDossier {
   }>;
   yearsInGoa?: DossierField<number>;
   gender?: DossierField<string>;
+  aadhaar?: DossierField<string>;
+  idProofNumber?: DossierField<string>;
+  hasPreviousResidenceCert?: boolean;
+  previousResidenceCert?: {
+    number?: string;
+    issueDate?: string;
+    authority?: string;
+    sourceDoc?: string;
+  };
+  photoPath?: string;
+  signaturePath?: string;
+  relation?: {
+    type: string;
+    name: string;
+    confidence?: number;
+  };
+  child?: {
+    name: string;
+    relation: string;
+  };
 }

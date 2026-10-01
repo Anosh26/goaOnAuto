@@ -236,6 +236,34 @@ bun run data:evaluate
 bun run data:retrain
 ```
 
+### 5. Automated GoaOnline Portal Form Filling
+Auto-fills GoaOnline Citizen Service applications (REV05 Residence Certificate Screen 1) using verified client dossiers and declarations:
+
+```bash
+# Run portal form filler for specific client folder:
+bun run portal:fill "C:/path/to/client_folder"
+
+# Or auto-detect the latest applicant folder:
+bun run portal:fill
+```
+
+### 6. Windows Unified Right-Click Context Menu
+Access all GoaOnAuto tools directly from Windows Explorer by right-clicking any client folder, directory background, or image file:
+
+```bash
+# Register unified right-click menu:
+bun run menu:register
+
+# Unregister / clean up context menu:
+bun run menu:unregister
+```
+**Right-Click Menu Options:**
+1. 🏛️ **Residence Certificate Declaration**
+2. 📜 **OBC Certificate Declaration**
+3. ⚖️ **Divergence Certificate Declaration**
+4. 🎨 **Background Remover & Photo Optimizer (<50KB)**
+5. 🌐 **Auto-Fill GoaOnline Residence Form** (Opens terminal + Brave browser, populates Screen 1 in Safe Review Mode)
+
 ---
 
 ## ⚙️ Configuration (.env)

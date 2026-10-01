@@ -21,6 +21,7 @@ def _extract_legacy_xml(xml_string: str) -> dict:
         
     return {
         "format": "legacy_xml",
+        "uid": data.get("uid", ""),
         "name": data.get("name", ""),
         "dob": data.get("dob", data.get("yob", "")),
         "gender": data.get("gender", ""),

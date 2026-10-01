@@ -8,9 +8,16 @@ export const DOCUMENT_RULES: DocumentTypeRule[] = [
   {
     id: 'aadhaar',
     name: 'Aadhaar Card',
-    keywords: ['unique identification authority', 'government of india', 'aadhaar', 'uidai', 'year of birth'],
-    patterns: [/\b\d{4}\s?\d{4}\s?\d{4}\b/],
-    priority: 10
+    keywords: [
+      'unique identification authority', 'government of india', 'aadhaar', 'aadhar', 'adhar', 'uidai',
+      'year of birth', 'date of birth', 'mera aadhaar', 'meri pehchan', 'enrolment no', 'enrollment no',
+      'help@uidai.gov.in', 'uidai.gov.in', 'female / mahila', 'male / purush', 'vid :', 'vid', 'meraaadhaar'
+    ],
+    patterns: [
+      /\b[2-9]\d{3}\s*\d{4}\s*\d{4}\b/,
+      /\b\d{4}\s+\d{4}\s+\d{4}\b/
+    ],
+    priority: 11
   },
   {
     id: 'pan',
@@ -111,8 +118,17 @@ export const DOCUMENT_RULES: DocumentTypeRule[] = [
   {
     id: 'residence_cert',
     name: 'Residence Certificate',
-    keywords: ['residence certificate', 'certificate of residence', 'resident of', 'mamlatdar', 'sub divisional officer', 'residing at'],
-    priority: 8
+    keywords: [
+      'residence certificate', 'certificate of residence', 'resident of', 'mamlatdar', 'sub divisional officer',
+      'residing at', 'office of the mamlatdar', 'taluka mamlatdar', 'mamlatdar of', 'residence/domicile',
+      'domicile certificate', 'continuously residing', 'ordinary resident', 'permanently residing',
+      'certified that shri', 'certified that smt', 'certified that kumari'
+    ],
+    patterns: [
+      /(?:residence|resident).*certificate/i,
+      /certificate.*(?:residence|resident)/i
+    ],
+    priority: 9
   },
   {
     id: 'caste_cert',

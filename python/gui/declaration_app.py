@@ -51,6 +51,7 @@ class DeclarationAppState:
         self.status_msg = f"Ready to customize and generate {declaration.declaration_id.upper()} declaration"
         self.status_color = DRACULA_CYAN
         self.cursor_timer = 0.0
+        self.backspace_timer = 0.0
         self.tex_dirty = True
         self.last_sync_time = "Not synced yet"
         self.is_compiled = False
@@ -187,10 +188,10 @@ def run_app(declaration_type: str = "residence", target_dir: str = "", no_prompt
         scale = max(0.95, min(1.35, w / 1260.0))
         scale_y = max(0.90, min(1.25, h / 820.0))
 
-        title_size = max(16, min(20, int(18 * scale)))
-        label_size = max(13, min(15, int(14 * scale)))
-        input_size = max(13, min(15, int(14 * scale)))
-        btn_size = max(12, min(14, int(13 * scale)))
+        title_size = max(20, min(26, int(22 * scale)))
+        label_size = max(16, min(20, int(17 * scale)))
+        input_size = max(16, min(20, int(17 * scale)))
+        btn_size = max(14, min(17, int(15 * scale)))
 
         mouse_pos = rl.get_mouse_position()
         is_mouse_down = rl.is_mouse_button_pressed(rl.MOUSE_BUTTON_LEFT)
@@ -206,7 +207,7 @@ def run_app(declaration_type: str = "residence", target_dir: str = "", no_prompt
         view_h = max(100, h - content_y - footer_h - 6)
 
         # Keyboard Navigation: Tab / Shift+Tab with automatic viewport scrolling
-        row_h = 52
+        row_h = 60
         if rl.is_key_pressed(rl.KEY_TAB):
             if rl.is_key_down(rl.KEY_LEFT_SHIFT) or rl.is_key_down(rl.KEY_RIGHT_SHIFT):
                 app_state.active_field_idx = (app_state.active_field_idx - 1) % len(visible_fields)
@@ -220,14 +221,23 @@ def run_app(declaration_type: str = "residence", target_dir: str = "", no_prompt
             elif field_top + row_h > app_state.target_scroll_y + view_h:
                 app_state.target_scroll_y = float(field_top + row_h - view_h + 20)
 
-        # Text input & Backspace
+        # Text input & Backspace (Fixed: single tap deletes exactly 1 char, hold repeats smoothly)
         if active_f:
-            if rl.is_key_pressed(rl.KEY_BACKSPACE) or (rl.is_key_down(rl.KEY_BACKSPACE) and app_state.cursor_timer > 0.4):
-                if len(active_f.value) > 0:
-                    active_f.value = active_f.value[:-1]
-                    app_state.tex_dirty = True
-                    if rl.is_key_down(rl.KEY_BACKSPACE):
-                        app_state.cursor_timer = 0.35
+            backspace_triggered = False
+            if rl.is_key_pressed(rl.KEY_BACKSPACE):
+                backspace_triggered = True
+                app_state.backspace_timer = 0.0
+            elif rl.is_key_down(rl.KEY_BACKSPACE):
+                app_state.backspace_timer += dt
+                if app_state.backspace_timer > 0.45:
+                    backspace_triggered = True
+                    app_state.backspace_timer = 0.40
+            else:
+                app_state.backspace_timer = 0.0
+
+            if backspace_triggered and len(active_f.value) > 0:
+                active_f.value = active_f.value[:-1]
+                app_state.tex_dirty = True
 
             if (rl.is_key_down(rl.KEY_LEFT_CONTROL) or rl.is_key_down(rl.KEY_RIGHT_CONTROL)) and rl.is_key_pressed(rl.KEY_V):
                 try:
@@ -354,7 +364,7 @@ def run_app(declaration_type: str = "residence", target_dir: str = "", no_prompt
             rl.begin_scissor_mode(0, content_y, left_w + 10, view_h)
 
             lbl_x = 22
-            lbl_w = min(190, int(left_w * 0.35))
+            lbl_w = min(230, int(left_w * 0.38))
             inp_x = lbl_x + lbl_w + 12
 
             for i, field in enumerate(visible_fields):
@@ -374,7 +384,7 @@ def run_app(declaration_type: str = "residence", target_dir: str = "", no_prompt
                     inp_x=inp_x,
                     inp_w=inp_w,
                     curr_y=curr_y,
-                    inp_h=36,
+                    inp_h=40,
                     scale=scale,
                     scale_y=scale_y,
                     label_size=label_size,
@@ -496,7 +506,7 @@ def run_app(declaration_type: str = "residence", target_dir: str = "", no_prompt
                 rl.begin_scissor_mode(0, content_y, w, view_h)
 
                 lbl_x = 20
-                lbl_w = min(170, max(120, int(w * 0.32)))
+                lbl_w = min(220, max(140, int(w * 0.36)))
                 inp_x = lbl_x + lbl_w + 10
 
                 for i, field in enumerate(visible_fields):
@@ -515,7 +525,7 @@ def run_app(declaration_type: str = "residence", target_dir: str = "", no_prompt
                         inp_x=inp_x,
                         inp_w=inp_w,
                         curr_y=curr_y,
-                        inp_h=36,
+                        inp_h=40,
                         scale=scale,
                         scale_y=scale_y,
                         label_size=label_size,

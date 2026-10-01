@@ -99,7 +99,21 @@ export async function launchBravePortalContext(sessionConfig: PortalSessionConfi
     await dialog.accept();
   });
 
-  const page = context.pages()[0] || await context.newPage();
+  let page = context.pages()[0];
+  if (!page) {
+    page = await context.waitForEvent('page', { timeout: 3000 }).catch(() => null) || await context.newPage();
+  }
+
+  // Auto-close orphan about:blank tabs if another tab exists
+  const allPages = context.pages();
+  if (allPages.length > 1) {
+    for (const p of allPages) {
+      if (p !== page && (p.url() === 'about:blank' || p.url() === '')) {
+        await p.close().catch(() => {});
+      }
+    }
+  }
+
   return { context, page };
 }
 
@@ -311,83 +325,153 @@ export async function navigateToResidenceService(page: Page): Promise<{ formPage
   const activePage = page.context().pages().find(p => p.url().toLowerCase().includes('goaonline.gov.in')) || page;
   await activePage.bringToFront();
 
+  // Register dialog handler to auto-accept any confirmation prompts
+  activePage.on('dialog', async (dialog) => {
+    console.log(`💬 [PortalSession] Portal dialog detected: "${dialog.message()}". Accepting...`);
+    await dialog.accept().catch(() => {});
+  });
+
   await activePage.goto(RESIDENCE_SERVICE_URL, { waitUntil: 'domcontentloaded', timeout: 30000 });
-  await activePage.waitForTimeout(1500);
+  await activePage.waitForTimeout(2000);
 
   await updatePortalStatusOverlay(activePage, 'GoaOnAuto: Residence Service (REV05) -> Clicking "Proceed to Apply"...', 'working');
   console.log(`📄 [PortalSession] On service overview page: "${await activePage.title()}"`);
 
-  // Target the "Proceed to Apply" button using the exact ASP.NET GridView doPostBack target
+  // Target the "Proceed to Apply" button using precise selectors
   const proceedApplyBtn = activePage.locator([
-    'a[href*="ctl00$cphBody$gvService$ctl02$lnkProceedApply"]',
-    '#ctl00_cphBody_gvService_ctl02_lnkProceedApply',
+    '#cphBody_gvService_lnkProceedApply_0',
     'a[id*="lnkProceedApply"]',
+    'a[href*="ctl00$cphBody$gvService$ctl02$lnkProceedApply"]',
     'a[href*="lnkProceedApply"]',
     'a:has-text("Proceed to Apply")',
-    'a:has-text("Apply Online")',
-    'a:has-text("Apply")',
-    'button:has-text("Proceed to Apply")',
-    'input[value*="Proceed"]',
-    'input[value*="Apply"]'
+    'button:has-text("Proceed to Apply")'
   ].join(', ')).first();
 
   console.log(`🔍 [PortalSession] Locating 'Proceed to Apply' button...`);
   const isFound = await proceedApplyBtn.waitFor({ state: 'visible', timeout: 10000 }).then(() => true).catch(() => false);
 
-  console.log(`👆 [PortalSession] Triggering 'Proceed to Apply'...`);
-  
-  // Watch for potential popup / new tab if opened in separate target
-  const [newPage] = await Promise.all([
-    activePage.context().waitForEvent('page', { timeout: 4000 }).catch(() => null),
-    (async () => {
-      if (isFound) {
-        try {
-          await proceedApplyBtn.click({ timeout: 5000 });
-          return;
-        } catch (err: any) {
-          console.warn(`Direct click failed (${err.message}). Invoking __doPostBack fallback...`);
-        }
-      }
-      // Direct ASP.NET WebForms __doPostBack trigger
-      await activePage.evaluate(() => {
-        // @ts-ignore
-        if (typeof window.__doPostBack === 'function') {
-          // @ts-ignore
-          window.__doPostBack('ctl00$cphBody$gvService$ctl02$lnkProceedApply', '');
-        } else {
-          const el = document.querySelector('a[href*="lnkProceedApply"]') as HTMLElement;
-          if (el) el.click();
-        }
-      }).catch((e: any) => console.warn('doPostBack dispatch notice:', e.message));
-    })()
-  ]);
-
-  const formPage = newPage || activePage;
-  await formPage.bringToFront();
-
-  // Handle potential disclaimer / "Continue Anyway" / modal button if it pops up
-  try {
-    const continueBtn = formPage.locator(
-      '#cphBody_btnCOntinue, input[value*="Continue"], button:has-text("Continue"), button:has-text("I Agree"), button:has-text("Accept")'
-    ).first();
-
-    const isContinueVisible = await continueBtn.isVisible({ timeout: 2500 }).catch(() => false);
-    if (isContinueVisible) {
-      console.log(`ℹ️ [PortalSession] Found disclaimer confirmation button. Clicking to proceed...`);
-      await continueBtn.click();
-    }
-  } catch {
-    // No disclaimer popup, proceed normally
+  if (!isFound) {
+    console.warn(`⚠️ [PortalSession] Proceed to Apply button not directly visible. Inspecting page controls...`);
   }
 
-  // Wait for the application form (Screen 1) to load
-  console.log(`⏳ [PortalSession] Waiting for Residence Application Form (Screen 1) to load...`);
-  await formPage.waitForLoadState('domcontentloaded');
-  await formPage.waitForTimeout(2000);
+  // Listen for potential new tab / window popup
+  let newTabPromise: Promise<Page | null> = activePage.context().waitForEvent('page', { timeout: 12000 }).catch(() => null);
+
+  console.log(`👆 [PortalSession] Triggering 'Proceed to Apply'...`);
+
+  // Highlight the button using visual tracker if injected
+  await activePage.evaluate(() => {
+    // @ts-ignore
+    if (typeof window.__goaOnAutoHighlightElementBySelector === 'function') {
+      // @ts-ignore
+      window.__goaOnAutoHighlightElementBySelector('#cphBody_gvService_lnkProceedApply_0, a[href*="lnkProceedApply"]');
+    }
+  }).catch(() => {});
+
+  // Scroll into view if found
+  if (isFound) {
+    await proceedApplyBtn.scrollIntoViewIfNeeded().catch(() => {});
+  }
+
+  // Trigger both DOM click and ASP.NET PostBack in page context
+  // In ASP.NET WebForms, anchor tags have href="javascript:__doPostBack(...)".
+  // Playwright synthetic click events often do not invoke javascript: pseudoprotocol URLs.
+  // Executing target.click() directly inside page.evaluate guarantees native browser dispatch.
+  const triggerResult = await activePage.evaluate(() => {
+    const el = (
+      document.querySelector('#cphBody_gvService_lnkProceedApply_0') ||
+      document.querySelector('a[id*="lnkProceedApply"]') ||
+      document.querySelector('a[href*="lnkProceedApply"]') ||
+      Array.from(document.querySelectorAll('a')).find(a => (a.textContent || '').trim().toLowerCase() === 'proceed to apply')
+    ) as HTMLElement | null;
+
+    if (el) {
+      el.focus();
+      el.click();
+      return 'native_dom_click';
+    }
+
+    // Direct ASP.NET WebForms __doPostBack fallback
+    // @ts-ignore
+    if (typeof window.__doPostBack === 'function') {
+      // @ts-ignore
+      window.__doPostBack('ctl00$cphBody$gvService$ctl02$lnkProceedApply', '');
+      return 'window_doPostBack';
+    }
+
+    return 'not_found';
+  }).catch((e: any) => `eval_error: ${e.message}`);
+
+  console.log(`⚡ [PortalSession] In-page trigger dispatched: ${triggerResult}`);
+
+  // Also dispatch Playwright click as a secondary trigger if element exists
+  if (isFound) {
+    await proceedApplyBtn.click({ force: true, timeout: 3000 }).catch((e) => {
+      console.log(`ℹ️ [PortalSession] Playwright click notice: ${e.message}`);
+    });
+  }
+
+  // Wait for new tab or active page navigation
+  const newPage = await newTabPromise;
+  let formPage: Page = newPage || activePage;
+
+  // Poll for navigation transition away from deptServices overview page
+  console.log(`⏳ [PortalSession] Waiting for transition to Application Form (Screen 1)...`);
+  const startTime = Date.now();
+  const maxWaitMs = 25000;
+  let navigated = false;
+
+  while (Date.now() - startTime < maxWaitMs) {
+    // Check all pages in context to see if any page reached the application form
+    const allPages = activePage.context().pages();
+    for (const p of allPages) {
+      const u = p.url();
+      if (u.includes('services.goaonline.gov.in') || (u.includes('/GS/') && !u.includes('deptServices'))) {
+        formPage = p;
+        navigated = true;
+        break;
+      }
+    }
+
+    if (navigated) break;
+
+    // Check if active page itself navigated away from deptServices
+    const currentUrl = formPage.url();
+    if (!currentUrl.includes('deptServices') && !currentUrl.includes('about:blank') && currentUrl.includes('goaonline')) {
+      navigated = true;
+      break;
+    }
+
+    // Check for intermediate disclaimer / continue button
+    try {
+      const continueBtn = formPage.locator(
+        '#cphBody_btnCOntinue, input[value*="Continue"], button:has-text("Continue"), button:has-text("I Agree"), button:has-text("Accept")'
+      ).first();
+      if (await continueBtn.isVisible({ timeout: 500 }).catch(() => false)) {
+        console.log(`ℹ️ [PortalSession] Found disclaimer confirmation button. Clicking to proceed...`);
+        await continueBtn.click().catch(() => {});
+      }
+    } catch {}
+
+    await formPage.waitForTimeout(1000);
+  }
+
+  await formPage.bringToFront();
+  await formPage.waitForLoadState('domcontentloaded').catch(() => {});
 
   const finalUrl = formPage.url();
+
+  // Validate that we actually left the deptServices overview page
+  if (finalUrl.includes('deptServices')) {
+    console.error(`\n❌ [PortalSession] 'Proceed to Apply' failed to navigate. Current URL is still: ${finalUrl}`);
+    console.error(`   The portal remained on the service overview page instead of entering Screen 1.`);
+    throw new Error(
+      `'Proceed to Apply' button was clicked but page remained on overview (${finalUrl}). Please verify portal session status or CAPTCHA.`
+    );
+  }
+
   console.log(`✅ [PortalSession] Screen 1 reached! Current URL: ${finalUrl}`);
-  console.log(`📋 [PortalSession] Page Title: "${await formPage.title()}"`);
+  console.log(`📋 [PortalSession] Page Title: "${await formPage.title().catch(() => '')}"`);
 
   await updatePortalStatusOverlay(formPage, '✨ GoaOnAuto: Residence Form Screen 1 Loaded!', 'success');
 

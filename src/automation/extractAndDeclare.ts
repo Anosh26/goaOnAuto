@@ -27,13 +27,14 @@ function parseArgs(): CliArgs {
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
+    if (!arg) continue;
     if (arg === '--type' && args[i + 1]) {
-      const raw = args[++i].toLowerCase();
+      const raw = (args[++i] || '').toLowerCase();
       if (raw === 'obc' || raw === 'divergence' || raw === 'residence' || raw === 'photo' || raw === 'bg_remover') {
         type = raw as any;
       }
     } else if (arg === '--dir' && args[i + 1]) {
-      dir = args[++i];
+      dir = args[++i] || '';
     } else if (!arg.startsWith('--') && !dir) {
       dir = arg;
     }
@@ -122,7 +123,7 @@ export async function runExtractAndDeclare(): Promise<void> {
   // 3. Run GPU OCR batch processing
   progress.update({
     status: `⚡ GPU OCR Analyzing ${candidateFiles.length} documents...`,
-    current_file: path.basename(candidateFiles[0]),
+    current_file: candidateFiles[0] ? path.basename(candidateFiles[0]) : 'Document',
     progress_percent: 25,
     queue_length: candidateFiles.length
   });
