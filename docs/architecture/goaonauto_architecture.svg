@@ -1,0 +1,890 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2800 2100" width="100%" height="100%" style="background-color: #080c14; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+
+  <defs>
+    <!-- Background Grid -->
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#111927" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#1e293b" />
+    </pattern>
+
+    <!-- Card Shadow Filters -->
+    <filter id="card-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.6"/>
+    </filter>
+    <filter id="glow-emerald" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <filter id="glow-purple" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+
+    <!-- Arrow Markers -->
+    <marker id="arrow-emerald" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#10b981" />
+    </marker>
+    <marker id="arrow-purple" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#a855f7" />
+    </marker>
+    <marker id="arrow-amber" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#f59e0b" />
+    </marker>
+    <marker id="arrow-pink" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#ec4899" />
+    </marker>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#38bdf8" />
+    </marker>
+    <marker id="arrow-cyan" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#06b6d4" />
+    </marker>
+
+    <!-- Linear Gradients for Category Headers -->
+    <linearGradient id="grad-title" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="50%" stop-color="#a855f7" />
+      <stop offset="100%" stop-color="#ec4899" />
+    </linearGradient>
+
+    <linearGradient id="grad-col1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#0b0f17" stop-opacity="0.9" />
+    </linearGradient>
+    <linearGradient id="grad-col2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#a855f7" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#0b0f17" stop-opacity="0.9" />
+    </linearGradient>
+    <linearGradient id="grad-col3" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#0b0f17" stop-opacity="0.9" />
+    </linearGradient>
+    <linearGradient id="grad-col4" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ec4899" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#0b0f17" stop-opacity="0.9" />
+    </linearGradient>
+    <linearGradient id="grad-col5" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#0b0f17" stop-opacity="0.9" />
+    </linearGradient>
+  </defs>
+
+<rect width="2800" height="2100" fill="#080c14" />
+<rect width="2800" height="2100" fill="url(#grid)" />
+<rect width="2800" height="2100" fill="url(#dots)" opacity="0.7"/>
+
+  <g id="header-banner" transform="translate(60, 40)">
+    <!-- Header Background Box -->
+    <rect width="2680" height="110" rx="16" fill="#0d1527" stroke="#1e293b" stroke-width="1.5" filter="url(#card-shadow)"/>
+    
+    <!-- Title & Subtitle -->
+    <text x="32" y="48" font-size="34" font-weight="900" fill="url(#grad-title)" letter-spacing="1.2">
+      GOAONAUTO — FULL SYSTEM ARCHITECTURE &amp; DATA PIPELINE
+    </text>
+    <text x="32" y="84" font-size="16" font-weight="500" fill="#94a3b8">
+      High-Throughput Citizen Service Automation: GPU Neural Vision, Aadhaar QR Decompression, Raylib GUI Studio &amp; Playwright WebForms Driver
+    </text>
+
+    <!-- Stack Badges -->
+    <g transform="translate(1620, 36)">
+      <!-- Badge 1: Bun / TS -->
+      <rect x="0" y="0" width="160" height="38" rx="8" fill="#1e293b" stroke="#38bdf8" stroke-width="1.2"/>
+      <text x="80" y="24" font-size="13" font-weight="700" fill="#38bdf8" text-anchor="middle">⚡ Bun &amp; TypeScript</text>
+
+      <!-- Badge 2: PyTorch CUDA -->
+      <rect x="175" y="0" width="180" height="38" rx="8" fill="#1e293b" stroke="#a855f7" stroke-width="1.2"/>
+      <text x="265" y="24" font-size="13" font-weight="700" fill="#c084fc" text-anchor="middle">🔥 PyTorch CUDA 12.4</text>
+
+      <!-- Badge 3: Raylib Static 6.0 -->
+      <rect x="370" y="0" width="170" height="38" rx="8" fill="#1e293b" stroke="#ec4899" stroke-width="1.2"/>
+      <text x="455" y="24" font-size="13" font-weight="700" fill="#f472b6" text-anchor="middle">🎨 Raylib GUI (C/Py)</text>
+
+      <!-- Badge 4: Playwright + Brave -->
+      <rect x="555" y="0" width="180" height="38" rx="8" fill="#1e293b" stroke="#f59e0b" stroke-width="1.2"/>
+      <text x="645" y="24" font-size="13" font-weight="700" fill="#fbbf24" text-anchor="middle">🦁 Playwright &amp; Brave</text>
+
+      <!-- Badge 5: XeLaTeX Engine -->
+      <rect x="750" y="0" width="170" height="38" rx="8" fill="#1e293b" stroke="#10b981" stroke-width="1.2"/>
+      <text x="835" y="24" font-size="13" font-weight="700" fill="#34d399" text-anchor="middle">📄 XeLaTeX Compiler</text>
+
+      <!-- Badge 6: EasyOCR -->
+      <rect x="935" y="0" width="100" height="38" rx="8" fill="#1e293b" stroke="#64748b" stroke-width="1.2"/>
+      <text x="985" y="24" font-size="13" font-weight="700" fill="#94a3b8" text-anchor="middle">EasyOCR</text>
+    </g>
+  </g>
+
+
+  <!-- Column 1 Container -->
+  <g id="col-ingress">
+    <rect x="60" y="180" width="500" height="1420" rx="16" fill="url(#grad-col1)" stroke="#10b981" stroke-width="1.8" stroke-opacity="0.4"/>
+    <text x="80" y="215" font-size="20" font-weight="800" fill="#10b981" letter-spacing="0.8">1. INGRESS &amp; ORCHESTRATION</text>
+    <text x="80" y="235" font-size="12" font-weight="500" fill="#64748b">Event ingestion, filesystem watchdogs &amp; pipeline dispatch</text>
+
+<g transform="translate(75, 255)">
+  <rect width="470" height="175" rx="12" fill="#0f172a" stroke="#10b981" stroke-width="1.6" filter="url(#card-shadow)"/>
+  <path d="M 0 12 Q 0 0 12 0 L 458 0 Q 470 0 470 12 L 470 38 L 0 38 Z" fill="#10b981" fill-opacity="0.12"/>
+  <line x1="0" y1="38" x2="470" y2="38" stroke="#10b981" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="16" y="25" font-size="15" font-weight="800" fill="#ffffff" letter-spacing="0.3">Windows Shell Integration</text>
+  <rect x="360" y="8" width="96" height="22" rx="6" fill="#1e293b" stroke="#10b981" stroke-width="1"/>
+  <text x="408" y="23" font-size="10" font-weight="800" fill="#10b981" text-anchor="middle">SHELL HOOK</text>
+  <text x="16" y="58" font-size="12" font-weight="600" fill="#94a3b8">Desktop &amp; Explorer Action Triggers</text>
+  <rect x="16" y="68" width="438" height="22" rx="4" fill="#090d16" stroke="#334155" stroke-width="0.8"/>
+  <text x="24" y="83" font-size="10" font-family="monospace" font-weight="600" fill="#10b981">tools/context-menu/register_unified_context_menu.ps1</text>
+  <circle cx="22" cy="104" r="3" fill="#10b981"/>
+  <text x="32" y="108" font-size="11.5" font-weight="450" fill="#cbd5e1">Direct right-click directory ingestion (6 actions)</text>
+  <circle cx="22" cy="124" r="3" fill="#10b981"/>
+  <text x="32" y="128" font-size="11.5" font-weight="450" fill="#cbd5e1">Auto-dispatches OCR scan, dossier build &amp; portal autofill</text>
+  <circle cx="22" cy="144" r="3" fill="#10b981"/>
+  <text x="32" y="148" font-size="11.5" font-weight="450" fill="#cbd5e1">Registers cascading context keys under Windows HKCU registry</text>
+  <circle cx="22" cy="164" r="3" fill="#10b981"/>
+  <text x="32" y="168" font-size="11.5" font-weight="450" fill="#cbd5e1">Zero command-line barrier for administrative non-technical operators</text>
+</g>
+<g transform="translate(75, 450)">
+  <rect width="470" height="165" rx="12" fill="#0f172a" stroke="#10b981" stroke-width="1.6" filter="url(#card-shadow)"/>
+  <path d="M 0 12 Q 0 0 12 0 L 458 0 Q 470 0 470 12 L 470 38 L 0 38 Z" fill="#10b981" fill-opacity="0.12"/>
+  <line x1="0" y1="38" x2="470" y2="38" stroke="#10b981" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="16" y="25" font-size="15" font-weight="800" fill="#ffffff" letter-spacing="0.3">Background Tray Service</text>
+  <rect x="360" y="8" width="96" height="22" rx="6" fill="#1e293b" stroke="#10b981" stroke-width="1"/>
+  <text x="408" y="23" font-size="10" font-weight="800" fill="#10b981" text-anchor="middle">SYSTEM TRAY</text>
+  <text x="16" y="58" font-size="12" font-weight="600" fill="#94a3b8">Headless Daemon Manager &amp; Status Tray</text>
+  <rect x="16" y="68" width="438" height="22" rx="4" fill="#090d16" stroke="#334155" stroke-width="0.8"/>
+  <text x="24" y="83" font-size="10" font-family="monospace" font-weight="600" fill="#10b981">tools/tray/tray_service.py</text>
+  <circle cx="22" cy="104" r="3" fill="#10b981"/>
+  <text x="32" y="108" font-size="11.5" font-weight="450" fill="#cbd5e1">Pystray icon living in Windows notification area</text>
+  <circle cx="22" cy="124" r="3" fill="#10b981"/>
+  <text x="32" y="128" font-size="11.5" font-weight="450" fill="#cbd5e1">Monitors GPU Worker daemon health &amp; TCP port 50051</text>
+  <circle cx="22" cy="144" r="3" fill="#10b981"/>
+  <text x="32" y="148" font-size="11.5" font-weight="450" fill="#cbd5e1">One-click daemon startup, graceful shutdown &amp; log inspection</text>
+  <circle cx="22" cy="164" r="3" fill="#10b981"/>
+  <text x="32" y="168" font-size="11.5" font-weight="450" fill="#cbd5e1">Launches work directory watcher as non-blocking background child</text>
+</g>
+<g transform="translate(75, 635)">
+  <rect width="470" height="220" rx="12" fill="#0f172a" stroke="#10b981" stroke-width="1.6" filter="url(#card-shadow)"/>
+  <path d="M 0 12 Q 0 0 12 0 L 458 0 Q 470 0 470 12 L 470 38 L 0 38 Z" fill="#10b981" fill-opacity="0.12"/>
+  <line x1="0" y1="38" x2="470" y2="38" stroke="#10b981" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="16" y="25" font-size="15" font-weight="800" fill="#ffffff" letter-spacing="0.3">Work Directory Watcher</text>
+  <rect x="360" y="8" width="96" height="22" rx="6" fill="#1e293b" stroke="#10b981" stroke-width="1"/>
+  <text x="408" y="23" font-size="10" font-weight="800" fill="#10b981" text-anchor="middle">EVENT DISPATCH</text>
+  <text x="16" y="58" font-size="12" font-weight="600" fill="#94a3b8">Recursive Chokidar Watchdog &amp; DFS Buffer</text>
+  <rect x="16" y="68" width="438" height="22" rx="4" fill="#090d16" stroke="#334155" stroke-width="0.8"/>
+  <text x="24" y="83" font-size="10" font-family="monospace" font-weight="600" fill="#10b981">src/workDirectoryWatcher.ts</text>
+  <circle cx="22" cy="104" r="3" fill="#10b981"/>
+  <text x="32" y="108" font-size="11.5" font-weight="450" fill="#cbd5e1">Chokidar recursive file watcher on applicant root directories</text>
+  <circle cx="22" cy="124" r="3" fill="#10b981"/>
+  <text x="32" y="128" font-size="11.5" font-weight="450" fill="#cbd5e1">Dirty-bit buffer &amp; 800ms debounce prevents partial read crashes</text>
+  <circle cx="22" cy="144" r="3" fill="#10b981"/>
+  <text x="32" y="148" font-size="11.5" font-weight="450" fill="#cbd5e1">DFS recursive folder resolution for nested client scans</text>
+  <circle cx="22" cy="164" r="3" fill="#10b981"/>
+  <text x="32" y="168" font-size="11.5" font-weight="450" fill="#cbd5e1">Automatic pipeline trigger upon PDF / image batch drop</text>
+  <circle cx="22" cy="184" r="3" fill="#10b981"/>
+  <text x="32" y="188" font-size="11.5" font-weight="450" fill="#cbd5e1">Maintains task isolation &amp; status telemetry state across folders</text>
+</g>
+<g transform="translate(75, 875)">
+  <rect width="470" height="220" rx="12" fill="#0f172a" stroke="#10b981" stroke-width="1.6" filter="url(#card-shadow)"/>
+  <path d="M 0 12 Q 0 0 12 0 L 458 0 Q 470 0 470 12 L 470 38 L 0 38 Z" fill="#10b981" fill-opacity="0.12"/>
+  <line x1="0" y1="38" x2="470" y2="38" stroke="#10b981" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="16" y="25" font-size="15" font-weight="800" fill="#ffffff" letter-spacing="0.3">Extract &amp; Declare Orchestrator</text>
+  <rect x="360" y="8" width="96" height="22" rx="6" fill="#1e293b" stroke="#10b981" stroke-width="1"/>
+  <text x="408" y="23" font-size="10" font-weight="800" fill="#10b981" text-anchor="middle">COORDINATOR</text>
+  <text x="16" y="58" font-size="12" font-weight="600" fill="#94a3b8">End-to-End Execution Pipeline Coordinator</text>
+  <rect x="16" y="68" width="438" height="22" rx="4" fill="#090d16" stroke="#334155" stroke-width="0.8"/>
+  <text x="24" y="83" font-size="10" font-family="monospace" font-weight="600" fill="#10b981">src/automation/extractAndDeclare.ts</text>
+  <circle cx="22" cy="104" r="3" fill="#10b981"/>
+  <text x="32" y="108" font-size="11.5" font-weight="450" fill="#cbd5e1">Master workflow orchestrator uniting Vision, Classifier &amp; GUI</text>
+  <circle cx="22" cy="124" r="3" fill="#10b981"/>
+  <text x="32" y="128" font-size="11.5" font-weight="450" fill="#cbd5e1">Executes batch OCR -&gt; Classifier -&gt; Dossier synthesis in order</text>
+  <circle cx="22" cy="144" r="3" fill="#10b981"/>
+  <text x="32" y="148" font-size="11.5" font-weight="450" fill="#cbd5e1">Detects missing mandatory documents &amp; prompts operator</text>
+  <circle cx="22" cy="164" r="3" fill="#10b981"/>
+  <text x="32" y="168" font-size="11.5" font-weight="450" fill="#cbd5e1">Conditionally routes to AI Background Remover or Declaration GUI</text>
+  <circle cx="22" cy="184" r="3" fill="#10b981"/>
+  <text x="32" y="188" font-size="11.5" font-weight="450" fill="#cbd5e1">Passes structured IPC payload to Raylib progress window</text>
+</g>
+<g transform="translate(75, 1115)">
+  <rect width="470" height="245" rx="12" fill="#0f172a" stroke="#10b981" stroke-width="1.6" filter="url(#card-shadow)"/>
+  <path d="M 0 12 Q 0 0 12 0 L 458 0 Q 470 0 470 12 L 470 38 L 0 38 Z" fill="#10b981" fill-opacity="0.12"/>
+  <line x1="0" y1="38" x2="470" y2="38" stroke="#10b981" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="16" y="25" font-size="15" font-weight="800" fill="#ffffff" letter-spacing="0.3">Native GUI IPC Bridges</text>
+  <rect x="360" y="8" width="96" height="22" rx="6" fill="#1e293b" stroke="#10b981" stroke-width="1"/>
+  <text x="408" y="23" font-size="10" font-weight="800" fill="#10b981" text-anchor="middle">STDIO IPC</text>
+  <text x="16" y="58" font-size="12" font-weight="600" fill="#94a3b8">Subprocess IPC Adapters (TypeScript -&gt; Raylib GUI)</text>
+  <rect x="16" y="68" width="438" height="22" rx="4" fill="#090d16" stroke="#334155" stroke-width="0.8"/>
+  <text x="24" y="83" font-size="10" font-family="monospace" font-weight="600" fill="#10b981">src/gui/progressBridge.ts | confirmationBridge.ts</text>
+  <circle cx="22" cy="104" r="3" fill="#10b981"/>
+  <text x="32" y="108" font-size="11.5" font-weight="450" fill="#cbd5e1">progressBridge.ts: Streams live scan percentages &amp; step state</text>
+  <circle cx="22" cy="124" r="3" fill="#10b981"/>
+  <text x="32" y="128" font-size="11.5" font-weight="450" fill="#cbd5e1">confirmationBridge.ts: Operator confirmation dialog bridge</text>
+  <circle cx="22" cy="144" r="3" fill="#10b981"/>
+  <text x="32" y="148" font-size="11.5" font-weight="450" fill="#cbd5e1">ocrTrainerBridge.ts: Launches interactive ground-truth GUI</text>
+  <circle cx="22" cy="164" r="3" fill="#10b981"/>
+  <text x="32" y="168" font-size="11.5" font-weight="450" fill="#cbd5e1">Non-blocking stdio JSON streaming with automatic teardown</text>
+  <circle cx="22" cy="184" r="3" fill="#10b981"/>
+  <text x="32" y="188" font-size="11.5" font-weight="450" fill="#cbd5e1">Prevents Node / Bun event loop stalls during heavy graphical UI</text>
+</g>
+<g transform="translate(75, 1380)">
+  <rect width="470" height="190" rx="12" fill="#0f172a" stroke="#10b981" stroke-width="1.6" filter="url(#card-shadow)"/>
+  <path d="M 0 12 Q 0 0 12 0 L 458 0 Q 470 0 470 12 L 470 38 L 0 38 Z" fill="#10b981" fill-opacity="0.12"/>
+  <line x1="0" y1="38" x2="470" y2="38" stroke="#10b981" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="16" y="25" font-size="15" font-weight="800" fill="#ffffff" letter-spacing="0.3">Developer Task Palette</text>
+  <rect x="360" y="8" width="96" height="22" rx="6" fill="#1e293b" stroke="#10b981" stroke-width="1"/>
+  <text x="408" y="23" font-size="10" font-weight="800" fill="#10b981" text-anchor="middle">CLI RUNNER</text>
+  <text x="16" y="58" font-size="12" font-weight="600" fill="#94a3b8">High-Speed Bun &amp; TSX Execution Targets</text>
+  <rect x="16" y="68" width="438" height="22" rx="4" fill="#090d16" stroke="#334155" stroke-width="0.8"/>
+  <text x="24" y="83" font-size="10" font-family="monospace" font-weight="600" fill="#10b981">package.json (bun scripts)</text>
+  <circle cx="22" cy="104" r="3" fill="#10b981"/>
+  <text x="32" y="108" font-size="11.5" font-weight="450" fill="#cbd5e1">bun run ocr:scan [dir] -&gt; Standalone batch scanner &amp; renaming</text>
+  <circle cx="22" cy="124" r="3" fill="#10b981"/>
+  <text x="32" y="128" font-size="11.5" font-weight="450" fill="#cbd5e1">bun run portal:fill [dir] -&gt; Playwright auto-fill runner</text>
+  <circle cx="22" cy="144" r="3" fill="#10b981"/>
+  <text x="32" y="148" font-size="11.5" font-weight="450" fill="#cbd5e1">bun run data:retrain -&gt; Classifier weight re-tuning</text>
+  <circle cx="22" cy="164" r="3" fill="#10b981"/>
+  <text x="32" y="168" font-size="11.5" font-weight="450" fill="#cbd5e1">bun run menu:register -&gt; Instant Windows Context Menu installer</text>
+</g>
+  </g>
+
+  <!-- Column 2 Container -->
+  <g id="col-gpu-vision">
+    <rect x="590" y="180" width="510" height="1420" rx="16" fill="url(#grad-col2)" stroke="#a855f7" stroke-width="1.8" stroke-opacity="0.4"/>
+    <text x="610" y="215" font-size="20" font-weight="800" fill="#c084fc" letter-spacing="0.8">2. GPU VISION &amp; AI DAEMON</text>
+    <text x="610" y="235" font-size="12" font-weight="500" fill="#64748b">PyTorch CUDA inference, Aadhaar QR unpack &amp; biometrics</text>
+
+<g transform="translate(605, 255)">
+  <rect width="480" height="185" rx="12" fill="#0f172a" stroke="#a855f7" stroke-width="1.6" filter="url(#card-shadow)"/>
+  <path d="M 0 12 Q 0 0 12 0 L 468 0 Q 480 0 480 12 L 480 38 L 0 38 Z" fill="#a855f7" fill-opacity="0.12"/>
+  <line x1="0" y1="38" x2="480" y2="38" stroke="#a855f7" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="16" y="25" font-size="15" font-weight="800" fill="#ffffff" letter-spacing="0.3">GPU Daemon Client</text>
+  <rect x="370" y="8" width="96" height="22" rx="6" fill="#1e293b" stroke="#a855f7" stroke-width="1"/>
+  <text x="418" y="23" font-size="10" font-weight="800" fill="#a855f7" text-anchor="middle">JSON-RPC TCP</text>
+  <text x="16" y="58" font-size="12" font-weight="600" fill="#94a3b8">High-Throughput IPC Socket Client</text>
+  <rect x="16" y="68" width="448" height="22" rx="4" fill="#090d16" stroke="#334155" stroke-width="0.8"/>
+  <text x="24" y="83" font-size="10" font-family="monospace" font-weight="600" fill="#a855f7">src/scanner/gpuDaemonClient.ts</text>
+  <circle cx="22" cy="104" r="3" fill="#a855f7"/>
+  <text x="32" y="108" font-size="11.5" font-weight="450" fill="#cbd5e1">Persistent JSON-RPC socket connection over 127.0.0.1:50051</text>
+  <circle cx="22" cy="124" r="3" fill="#a855f7"/>
+  <text x="32" y="128" font-size="11.5" font-weight="450" fill="#cbd5e1">Batches document image paths for concurrent tensor execution</text>
+  <circle cx="22" cy="144" r="3" fill="#a855f7"/>
+  <text x="32" y="148" font-size="11.5" font-weight="450" fill="#cbd5e1">Sub-50ms roundtrip overhead via persistent socket buffer</text>
+  <circle cx="22" cy="164" r="3" fill="#a855f7"/>
+  <text x="32" y="168" font-size="11.5" font-weight="450" fill="#cbd5e1">Automatic daemon auto-launch fallback if worker daemon is offline</text>
+</g>
+<g transform="translate(605, 460)">
+  <rect width="480" height="220" rx="12" fill="#0f172a" stroke="#a855f7" stroke-width="1.6" filter="url(#card-shadow)"/>
+  <path d="M 0 12 Q 0 0 12 0 L 468 0 Q 480 0 480 12 L 480 38 L 0 38 Z" fill="#a855f7" fill-opacity="0.12"/>
+  <line x1="0" y1="38" x2="480" y2="38" stroke="#a855f7" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="16" y="25" font-size="15" font-weight="800" fill="#ffffff" letter-spacing="0.3">Python GPU Worker Daemon</text>
+  <rect x="370" y="8" width="96" height="22" rx="6" fill="#1e293b" stroke="#a855f7" stroke-width="1"/>
+  <text x="418" y="23" font-size="10" font-weight="800" fill="#a855f7" text-anchor="middle">PERSISTENT VRAM</text>
+  <text x="16" y="58" font-size="12" font-weight="600" fill="#94a3b8">CUDA Neural Model Host &amp; Server Loop</text>
+  <rect x="16" y="68" width="448" height="22" rx="4" fill="#090d16" stroke="#334155" stroke-width="0.8"/>
+  <text x="24" y="83" font-size="10" font-family="monospace" font-weight="600" fill="#a855f7">python/daemons/gpu_worker_daemon.py</text>
+  <circle cx="22" cy="104" r="3" fill="#a855f7"/>
+  <text x="32" y="108" font-size="11.5" font-weight="450" fill="#cbd5e1">Preloads PyTorch, EasyOCR &amp; OpenCV models into VRAM once</text>
+  <circle cx="22" cy="124" r="3" fill="#a855f7"/>
+  <text x="32" y="128" font-size="11.5" font-weight="450" fill="#cbd5e1">Eliminates 6-8s Python cold-start latency per document</text>
+  <circle cx="22" cy="144" r="3" fill="#a855f7"/>
+  <text x="32" y="148" font-size="11.5" font-weight="450" fill="#cbd5e1">Multi-threaded request dispatcher handling image batches</text>
+  <circle cx="22" cy="164" r="3" fill="#a855f7"/>
+  <text x="32" y="168" font-size="11.5" font-weight="450" fill="#cbd5e1">NVIDIA RTX 4060 hardware acceleration via CUDA 12.4 FP16</text>
+  <circle cx="22" cy="184" r="3" fill="#a855f7"/>
+  <text x="32" y="188" font-size="11.5" font-weight="450" fill="#cbd5e1">Graceful GPU memory recycling &amp; cache clearing prevents leaks</text>
+</g>
+<g transform="translate(605, 700)">
+  <rect width="480" height="225" rx="12" fill="#0f172a" stroke="#a855f7" stroke-width="1.6" filter="url(#card-shadow)"/>
+  <path d="M 0 12 Q 0 0 12 0 L 468 0 Q 480 0 480 12 L 480 38 L 0 38 Z" fill="#a855f7" fill-opacity="0.12"/>
+  <line x1="0" y1="38" x2="480" y2="38" stroke="#a855f7" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="16" y="25" font-size="15" font-weight="800" fill="#ffffff" letter-spacing="0.3">GPU OCR Inference Engine</text>
+  <rect x="370" y="8" width="96" height="22" rx="6" fill="#1e293b" stroke="#a855f7" stroke-width="1"/>
+  <text x="418" y="23" font-size="10" font-weight="800" fill="#a855f7" text-anchor="middle">CUDA RTX 4060</text>
+  <text x="16" y="58" font-size="12" font-weight="600" fill="#94a3b8">EasyOCR Deep Learning &amp; Tesseract Hybrid</text>
+  <rect x="16" y="68" width="448" height="22" rx="4" fill="#090d16" stroke="#334155" stroke-width="0.8"/>
+  <text x="24" y="83" font-size="10" font-family="monospace" font-weight="600" fill="#a855f7">python/ocr/gpu_ocr_engine.py</text>
+  <circle cx="22" cy="104" r="3" fill="#a855f7"/>
+  <text x="32" y="108" font-size="11.5" font-weight="450" fill="#cbd5e1">CRAFT Text Detection + ResNet-BiLSTM-CTC Recognition</text>
+  <circle cx="22" cy="124" r="3" fill="#a855f7"/>
+  <text x="32" y="128" font-size="11.5" font-weight="450" fill="#cbd5e1">Batch tensor inference across arbitrary resolutions and rotations</text>
+  <circle cx="22" cy="144" r="3" fill="#a855f7"/>
+  <text x="32" y="148" font-size="11.5" font-weight="450" fill="#cbd5e1">Automatic contrast enhancement, deskewing &amp; unsharp masking</text>
+  <circle cx="22" cy="164" r="3" fill="#a855f7"/>
+  <text x="32" y="168" font-size="11.5" font-weight="450" fill="#cbd5e1">Fallback to Tesseract OCR with PSM-6/11 for dense tabular pages</text>
+  <circle cx="22" cy="184" r="3" fill="#a855f7"/>
+  <text x="32" y="188" font-size="11.5" font-weight="450" fill="#cbd5e1">Returns character bounding boxes, normalized lines &amp; confidences</text>
+</g>
+<g transform="translate(605, 945)">
+  <rect width="480" height="240" rx="12" fill="#0f172a" stroke="#a855f7" stroke-width="1.6" filter="url(#card-shadow)"/>
+  <path d="M 0 12 Q 0 0 12 0 L 468 0 Q 480 0 480 12 L 480 38 L 0 38 Z" fill="#a855f7" fill-opacity="0.12"/>
+  <line x1="0" y1="38" x2="480" y2="38" stroke="#a855f7" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="16" y="25" font-size="15" font-weight="800" fill="#ffffff" letter-spacing="0.3">Aadhaar QR Decompression Engine</text>
+  <rect x="370" y="8" width="96" height="22" rx="6" fill="#1e293b" stroke="#a855f7" stroke-width="1"/>
+  <text x="418" y="23" font-size="10" font-weight="800" fill="#a855f7" text-anchor="middle">ZLIB BIT-UNPACK</text>
+  <text x="16" y="58" font-size="12" font-weight="600" fill="#94a3b8">Secure V2/V3 Compressed &amp; XML Aadhaar Decoder</text>
+  <rect x="16" y="68" width="448" height="22" rx="4" fill="#090d16" stroke="#334155" stroke-width="0.8"/>
+  <text x="24" y="83" font-size="10" font-family="monospace" font-weight="600" fill="#a855f7">python/vision/aadhaar_qr.py</text>
+  <circle cx="22" cy="104" r="3" fill="#a855f7"/>
+  <text x="32" y="108" font-size="11.5" font-weight="450" fill="#cbd5e1">Decodes pyzbar raw high-density 2D barcode scan</text>
+  <circle cx="22" cy="124" r="3" fill="#a855f7"/>
+  <text x="32" y="128" font-size="11.5" font-weight="450" fill="#cbd5e1">Extracts binary BigInt byte array from V2/V3 secure QR codes</text>
+  <circle cx="22" cy="144" r="3" fill="#a855f7"/>
+  <text x="32" y="148" font-size="11.5" font-weight="450" fill="#cbd5e1">Decompresses via zlib with header detection &amp; bit-stream parsing</text>
+  <circle cx="22" cy="164" r="3" fill="#a855f7"/>
+  <text x="32" y="168" font-size="11.5" font-weight="450" fill="#cbd5e1">Zero-error extraction: Full Name, DOB, Gender, CareOf, Address</text>
+  <circle cx="22" cy="184" r="3" fill="#a855f7"/>
+  <text x="32" y="188" font-size="11.5" font-weight="450" fill="#cbd5e1">Bypasses noisy optical OCR on Aadhaar cards with 100% precision</text>
+  <circle cx="22" cy="204" r="3" fill="#a855f7"/>
+  <text x="32" y="208" font-size="11.5" font-weight="450" fill="#cbd5e1">Verhoeff 12-digit UID checksum validation</text>
+</g>
+<g transform="translate(605, 1205)">
+  <rect width="480" height="215" rx="12" fill="#0f172a" stroke="#a855f7" stroke-width="1.6" filter="url(#card-shadow)"/>
+  <path d="M 0 12 Q 0 0 12 0 L 468 0 Q 480 0 480 12 L 480 38 L 0 38 Z" fill="#a855f7" fill-opacity="0.12"/>
+  <line x1="0" y1="38" x2="480" y2="38" stroke="#a855f7" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="16" y="25" font-size="15" font-weight="800" fill="#ffffff" letter-spacing="0.3">Biometric Feature Detectors</text>
+  <rect x="370" y="8" width="96" height="22" rx="6" fill="#1e293b" stroke="#a855f7" stroke-width="1"/>
+  <text x="418" y="23" font-size="10" font-weight="800" fill="#a855f7" text-anchor="middle">CV VISION</text>
+  <text x="16" y="58" font-size="12" font-weight="600" fill="#94a3b8">OpenCV Passport Photo &amp; Signature Extractors</text>
+  <rect x="16" y="68" width="448" height="22" rx="4" fill="#090d16" stroke="#334155" stroke-width="0.8"/>
+  <text x="24" y="83" font-size="10" font-family="monospace" font-weight="600" fill="#a855f7">python/vision/photo_detector.py | signature_detector.py</text>
+  <circle cx="22" cy="104" r="3" fill="#a855f7"/>
+  <text x="32" y="108" font-size="11.5" font-weight="450" fill="#cbd5e1">Photo: Haar Cascade &amp; DNN face localization with 3.5x4.5cm ratio</text>
+  <circle cx="22" cy="124" r="3" fill="#a855f7"/>
+  <text x="32" y="128" font-size="11.5" font-weight="450" fill="#cbd5e1">Signature: Morphological dilation &amp; connected component labeling</text>
+  <circle cx="22" cy="144" r="3" fill="#a855f7"/>
+  <text x="32" y="148" font-size="11.5" font-weight="450" fill="#cbd5e1">Filters ink stroke density to isolate signatures from document text</text>
+  <circle cx="22" cy="164" r="3" fill="#a855f7"/>
+  <text x="32" y="168" font-size="11.5" font-weight="450" fill="#cbd5e1">Saves cropped transparent alpha signatures ready for LaTeX insertion</text>
+  <circle cx="22" cy="184" r="3" fill="#a855f7"/>
+  <text x="32" y="188" font-size="11.5" font-weight="450" fill="#cbd5e1">Auto-crops passport photo to 350x450px ready for background removal</text>
+</g>
+<g transform="translate(605, 1440)">
+  <rect width="480" height="140" rx="12" fill="#0f172a" stroke="#a855f7" stroke-width="1.6" filter="url(#card-shadow)"/>
+  <path d="M 0 12 Q 0 0 12 0 L 468 0 Q 480 0 480 12 L 480 38 L 0 38 Z" fill="#a855f7" fill-opacity="0.12"/>
+  <line x1="0" y1="38" x2="480" y2="38" stroke="#a855f7" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="16" y="25" font-size="15" font-weight="800" fill="#ffffff" letter-spacing="0.3">AI Background Removal Service</text>
+  <rect x="370" y="8" width="96" height="22" rx="6" fill="#1e293b" stroke="#a855f7" stroke-width="1"/>
+  <text x="418" y="23" font-size="10" font-weight="800" fill="#a855f7" text-anchor="middle">U2-NET</text>
+  <text x="16" y="58" font-size="12" font-weight="600" fill="#94a3b8">Deep Learning Portrait Matting</text>
+  <rect x="16" y="68" width="448" height="22" rx="4" fill="#090d16" stroke="#334155" stroke-width="0.8"/>
+  <text x="24" y="83" font-size="10" font-family="monospace" font-weight="600" fill="#a855f7">python/vision/ai_remove_bg.py</text>
+  <circle cx="22" cy="104" r="3" fill="#a855f7"/>
+  <text x="32" y="108" font-size="11.5" font-weight="450" fill="#cbd5e1">U2-Net / BiRefNet neural segmentation for portrait photos</text>
+  <circle cx="22" cy="124" r="3" fill="#a855f7"/>
+  <text x="32" y="128" font-size="11.5" font-weight="450" fill="#cbd5e1">Replaces background with compliant pure solid white backdrop</text>
+  <circle cx="22" cy="144" r="3" fill="#a855f7"/>
+  <text x="32" y="148" font-size="11.5" font-weight="450" fill="#cbd5e1">Compresses output under strictly enforced portal limit (50KB JPEG)</text>
+</g>
+  </g>
+
+  <!-- Column 3 Container -->
+  <g id="col-classifier">
+    <rect x="1130" y="180" width="510" height="1420" rx="16" fill="url(#grad-col3)" stroke="#f59e0b" stroke-width="1.8" stroke-opacity="0.4"/>
+    <text x="1150" y="215" font-size="20" font-weight="800" fill="#fbbf24" letter-spacing="0.8">3. CLASSIFICATION &amp; DOSSIER</text>
+    <text x="1150" y="235" font-size="12" font-weight="500" fill="#64748b">OCR cleanup, rule-based classification &amp; verified dossier synthesis</text>
+
+<g transform="translate(1145, 255)">
+  <rect width="480" height="190" rx="12" fill="#0f172a" stroke="#f59e0b" stroke-width="1.6" filter="url(#card-shadow)"/>
+  <path d="M 0 12 Q 0 0 12 0 L 468 0 Q 480 0 480 12 L 480 38 L 0 38 Z" fill="#f59e0b" fill-opacity="0.12"/>
+  <line x1="0" y1="38" x2="480" y2="38" stroke="#f59e0b" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="16" y="25" font-size="15" font-weight="800" fill="#ffffff" letter-spacing="0.3">OCR Post-Processor</text>
+  <rect x="370" y="8" width="96" height="22" rx="6" fill="#1e293b" stroke="#f59e0b" stroke-width="1"/>
+  <text x="418" y="23" font-size="10" font-weight="800" fill="#f59e0b" text-anchor="middle">LEXICAL CLEANUP</text>
+  <text x="16" y="58" font-size="12" font-weight="600" fill="#94a3b8">Lexical Normalizer &amp; Confusion Matrix Corrector</text>
+  <rect x="16" y="68" width="448" height="22" rx="4" fill="#090d16" stroke="#334155" stroke-width="0.8"/>
+  <text x="24" y="83" font-size="10" font-family="monospace" font-weight="600" fill="#f59e0b">src/scanner/ocrPostProcessor.ts</text>
+  <circle cx="22" cy="104" r="3" fill="#f59e0b"/>
+  <text x="32" y="108" font-size="11.5" font-weight="450" fill="#cbd5e1">Repairs classic OCR optical confusions: O-&gt;0, l-&gt;1, S-&gt;5, B-&gt;8</text>
+  <circle cx="22" cy="124" r="3" fill="#f59e0b"/>
+  <text x="32" y="128" font-size="11.5" font-weight="450" fill="#cbd5e1">Normalizes Goa-specific terminology: 'TALUKA', 'VILLAGE', 'MAMLATDAR'</text>
+  <circle cx="22" cy="144" r="3" fill="#f59e0b"/>
+  <text x="32" y="148" font-size="11.5" font-weight="450" fill="#cbd5e1">Learned dictionary corrections loaded from dataset/spell_corrections.json</text>
+  <circle cx="22" cy="164" r="3" fill="#f59e0b"/>
+  <text x="32" y="168" font-size="11.5" font-weight="450" fill="#cbd5e1">Standardizes inconsistent Indian date strings (DD/MM/YYYY, DD-MM-YY)</text>
+</g>
+<g transform="translate(1145, 465)">
+  <rect width="480" height="250" rx="12" fill="#0f172a" stroke="#f59e0b" stroke-width="1.6" filter="url(#card-shadow)"/>
+  <path d="M 0 12 Q 0 0 12 0 L 468 0 Q 480 0 480 12 L 480 38 L 0 38 Z" fill="#f59e0b" fill-opacity="0.12"/>
+  <line x1="0" y1="38" x2="480" y2="38" stroke="#f59e0b" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="16" y="25" font-size="15" font-weight="800" fill="#ffffff" letter-spacing="0.3">Multi-Class Document Classifier</text>
+  <rect x="370" y="8" width="96" height="22" rx="6" fill="#1e293b" stroke="#f59e0b" stroke-width="1"/>
+  <text x="418" y="23" font-size="10" font-weight="800" fill="#f59e0b" text-anchor="middle">MULTI-CLASS</text>
+  <text x="16" y="58" font-size="12" font-weight="600" fill="#94a3b8">Weighted Keyword Scoring &amp; Regex Rules</text>
+  <rect x="16" y="68" width="448" height="22" rx="4" fill="#090d16" stroke="#334155" stroke-width="0.8"/>
+  <text x="24" y="83" font-size="10" font-family="monospace" font-weight="600" fill="#f59e0b">src/classifier/documentClassifier.ts | rules.ts</text>
+  <circle cx="22" cy="104" r="3" fill="#f59e0b"/>
+  <text x="32" y="108" font-size="11.5" font-weight="450" fill="#cbd5e1">Classifies 15+ official government document types in Goa</text>
+  <circle cx="22" cy="124" r="3" fill="#f59e0b"/>
+  <text x="32" y="128" font-size="11.5" font-weight="450" fill="#cbd5e1">Target Classes: Aadhaar Card, Birth Certificate, Talathi Residence,</text>
+  <circle cx="22" cy="144" r="3" fill="#f59e0b"/>
+  <text x="32" y="148" font-size="11.5" font-weight="450" fill="#cbd5e1">  School Leaving / Bonafide, Caste / OBC Certificate, Ration Card,</text>
+  <circle cx="22" cy="164" r="3" fill="#f59e0b"/>
+  <text x="32" y="168" font-size="11.5" font-weight="450" fill="#cbd5e1">  Electricity / Water Utility Bills, Marriage Certificate, Passport</text>
+  <circle cx="22" cy="184" r="3" fill="#f59e0b"/>
+  <text x="32" y="188" font-size="11.5" font-weight="450" fill="#cbd5e1">Weighted scoring engine balances positive keywords &amp; negative penalties</text>
+  <circle cx="22" cy="204" r="3" fill="#f59e0b"/>
+  <text x="32" y="208" font-size="11.5" font-weight="450" fill="#cbd5e1">Automatically renames raw camera files into clean, predictable standards</text>
+</g>
+<g transform="translate(1145, 735)">
+  <rect width="480" height="180" rx="12" fill="#0f172a" stroke="#f59e0b" stroke-width="1.6" filter="url(#card-shadow)"/>
+  <path d="M 0 12 Q 0 0 12 0 L 468 0 Q 480 0 480 12 L 480 38 L 0 38 Z" fill="#f59e0b" fill-opacity="0.12"/>
+  <line x1="0" y1="38" x2="480" y2="38" stroke="#f59e0b" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="16" y="25" font-size="15" font-weight="800" fill="#ffffff" letter-spacing="0.3">Entity &amp; Name Extractor</text>
+  <rect x="370" y="8" width="96" height="22" rx="6" fill="#1e293b" stroke="#f59e0b" stroke-width="1"/>
+  <text x="418" y="23" font-size="10" font-weight="800" fill="#f59e0b" text-anchor="middle">NER PARSER</text>
+  <text x="16" y="58" font-size="12" font-weight="600" fill="#94a3b8">Applicant &amp; Relative Name Deductions</text>
+  <rect x="16" y="68" width="448" height="22" rx="4" fill="#090d16" stroke="#334155" stroke-width="0.8"/>
+  <text x="24" y="83" font-size="10" font-family="monospace" font-weight="600" fill="#f59e0b">src/classifier/nameExtractor.ts</text>
+  <circle cx="22" cy="104" r="3" fill="#f59e0b"/>
+  <text x="32" y="108" font-size="11.5" font-weight="450" fill="#cbd5e1">Extracts Applicant Full Name, Father's Name &amp; Spouse Name</text>
+  <circle cx="22" cy="124" r="3" fill="#f59e0b"/>
+  <text x="32" y="128" font-size="11.5" font-weight="450" fill="#cbd5e1">Handles Goan naming conventions (Portuguese &amp; Konkani patronymics)</text>
+  <circle cx="22" cy="144" r="3" fill="#f59e0b"/>
+  <text x="32" y="148" font-size="11.5" font-weight="450" fill="#cbd5e1">Filters government headers ('GOVERNMENT OF GOA', 'DIRECTORATE')</text>
+  <circle cx="22" cy="164" r="3" fill="#f59e0b"/>
+  <text x="32" y="168" font-size="11.5" font-weight="450" fill="#cbd5e1">Resolves divergence when Aadhaar name differs from Birth Certificate</text>
+</g>
+<g transform="translate(1145, 935)">
+  <rect width="480" height="260" rx="12" fill="#0f172a" stroke="#f59e0b" stroke-width="1.6" filter="url(#card-shadow)"/>
+  <path d="M 0 12 Q 0 0 12 0 L 468 0 Q 480 0 480 12 L 480 38 L 0 38 Z" fill="#f59e0b" fill-opacity="0.12"/>
+  <line x1="0" y1="38" x2="480" y2="38" stroke="#f59e0b" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="16" y="25" font-size="15" font-weight="800" fill="#ffffff" letter-spacing="0.3">Applicant Dossier Synthesizer</text>
+  <rect x="370" y="8" width="96" height="22" rx="6" fill="#1e293b" stroke="#f59e0b" stroke-width="1"/>
+  <text x="418" y="23" font-size="10" font-weight="800" fill="#f59e0b" text-anchor="middle">SYNTHESIZER</text>
+  <text x="16" y="58" font-size="12" font-weight="600" fill="#94a3b8">Multi-Source Identity Aggregation Engine</text>
+  <rect x="16" y="68" width="448" height="22" rx="4" fill="#090d16" stroke="#334155" stroke-width="0.8"/>
+  <text x="24" y="83" font-size="10" font-family="monospace" font-weight="600" fill="#f59e0b">src/classifier/dossierExtractor.ts</text>
+  <circle cx="22" cy="104" r="3" fill="#f59e0b"/>
+  <text x="32" y="108" font-size="11.5" font-weight="450" fill="#cbd5e1">Unifies Aadhaar QR data, OCR extractions &amp; filename signals</text>
+  <circle cx="22" cy="124" r="3" fill="#f59e0b"/>
+  <text x="32" y="128" font-size="11.5" font-weight="450" fill="#cbd5e1">Calculates exact chronological age from DOB string automatically</text>
+  <circle cx="22" cy="144" r="3" fill="#f59e0b"/>
+  <text x="32" y="148" font-size="11.5" font-weight="450" fill="#cbd5e1">Deduces years of continuous residence in Goa from school &amp; bills</text>
+  <circle cx="22" cy="164" r="3" fill="#f59e0b"/>
+  <text x="32" y="168" font-size="11.5" font-weight="450" fill="#cbd5e1">Verifies Aadhaar 12-digit number via Verhoeff Modulo-10 checksum</text>
+  <circle cx="22" cy="184" r="3" fill="#f59e0b"/>
+  <text x="32" y="188" font-size="11.5" font-weight="450" fill="#cbd5e1">Extracts complete residential address: House No, Village, Taluka, Pin</text>
+  <circle cx="22" cy="204" r="3" fill="#f59e0b"/>
+  <text x="32" y="208" font-size="11.5" font-weight="450" fill="#cbd5e1">Emits applicant_dossier.json: The Verified Single Source of Truth</text>
+</g>
+<g transform="translate(1145, 1215)">
+  <rect width="480" height="365" rx="12" fill="#0f172a" stroke="#f59e0b" stroke-width="1.6" filter="url(#card-shadow)"/>
+  <path d="M 0 12 Q 0 0 12 0 L 468 0 Q 480 0 480 12 L 480 38 L 0 38 Z" fill="#f59e0b" fill-opacity="0.12"/>
+  <line x1="0" y1="38" x2="480" y2="38" stroke="#f59e0b" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="16" y="25" font-size="15" font-weight="800" fill="#ffffff" letter-spacing="0.3">Unified Applicant Dossier</text>
+  <rect x="370" y="8" width="96" height="22" rx="6" fill="#1e293b" stroke="#f59e0b" stroke-width="1"/>
+  <text x="418" y="23" font-size="10" font-weight="800" fill="#f59e0b" text-anchor="middle">DATA MODEL</text>
+  <text x="16" y="58" font-size="12" font-weight="600" fill="#94a3b8">The Single Source of Truth JSON Schema</text>
+  <rect x="16" y="68" width="448" height="22" rx="4" fill="#090d16" stroke="#334155" stroke-width="0.8"/>
+  <text x="24" y="83" font-size="10" font-family="monospace" font-weight="600" fill="#f59e0b">applicant_dossier.json</text>
+  <circle cx="22" cy="104" r="3" fill="#f59e0b"/>
+  <text x="32" y="108" font-size="11.5" font-weight="450" fill="#cbd5e1">applicant: { name, dob, age, gender, maritalStatus, mobile, email }</text>
+  <circle cx="22" cy="124" r="3" fill="#f59e0b"/>
+  <text x="32" y="128" font-size="11.5" font-weight="450" fill="#cbd5e1">identity: { aadhaarNumber, isVerhoeffValid: true, aadhaarPath }</text>
+  <circle cx="22" cy="144" r="3" fill="#f59e0b"/>
+  <text x="32" y="148" font-size="11.5" font-weight="450" fill="#cbd5e1">residence: { houseNo, locality, taluka, village, district, pincode }</text>
+  <circle cx="22" cy="164" r="3" fill="#f59e0b"/>
+  <text x="32" y="168" font-size="11.5" font-weight="450" fill="#cbd5e1">stayDuration: { yearsInGoa: 15+, stayFromDate: 'YYYY-MM-DD' }</text>
+  <circle cx="22" cy="184" r="3" fill="#f59e0b"/>
+  <text x="32" y="188" font-size="11.5" font-weight="450" fill="#cbd5e1">child: { name, dob, age, relation: 'Son' | 'Daughter' }</text>
+  <circle cx="22" cy="204" r="3" fill="#f59e0b"/>
+  <text x="32" y="208" font-size="11.5" font-weight="450" fill="#cbd5e1">assets: { photoPath, sigPath, declarationPdfPath }</text>
+  <circle cx="22" cy="224" r="3" fill="#f59e0b"/>
+  <text x="32" y="228" font-size="11.5" font-weight="450" fill="#cbd5e1">classifiedFiles: { birthCertificate, schoolLeaving, talathiReport }</text>
+  <circle cx="22" cy="244" r="3" fill="#f59e0b"/>
+  <text x="32" y="248" font-size="11.5" font-weight="450" fill="#cbd5e1">verification: { isVerified: true, extractedAt: 'ISO_TIMESTAMP' }</text>
+</g>
+  </g>
+
+  <!-- Column 4 Container -->
+  <g id="col-raylib-gui">
+    <rect x="1670" y="180" width="520" height="1420" rx="16" fill="url(#grad-col4)" stroke="#ec4899" stroke-width="1.8" stroke-opacity="0.4"/>
+    <text x="1690" y="215" font-size="20" font-weight="800" fill="#f472b6" letter-spacing="0.8">4. RAYLIB STUDIO &amp; LATEX PIPELINE</text>
+    <text x="1690" y="235" font-size="12" font-weight="500" fill="#64748b">High-DPI native hardware GUI &amp; XeLaTeX legal declaration generation</text>
+
+<g transform="translate(1685, 255)">
+  <rect width="490" height="250" rx="12" fill="#0f172a" stroke="#ec4899" stroke-width="1.6" filter="url(#card-shadow)"/>
+  <path d="M 0 12 Q 0 0 12 0 L 478 0 Q 490 0 490 12 L 490 38 L 0 38 Z" fill="#ec4899" fill-opacity="0.12"/>
+  <line x1="0" y1="38" x2="490" y2="38" stroke="#ec4899" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="16" y="25" font-size="15" font-weight="800" fill="#ffffff" letter-spacing="0.3">Declaration Desktop App</text>
+  <rect x="380" y="8" width="96" height="22" rx="6" fill="#1e293b" stroke="#ec4899" stroke-width="1"/>
+  <text x="428" y="23" font-size="10" font-weight="800" fill="#ec4899" text-anchor="middle">RAYLIB 6.0</text>
+  <text x="16" y="58" font-size="12" font-weight="600" fill="#94a3b8">Hardware-Accelerated Raylib C/Python GUI Studio</text>
+  <rect x="16" y="68" width="458" height="22" rx="4" fill="#090d16" stroke="#334155" stroke-width="0.8"/>
+  <text x="24" y="83" font-size="10" font-family="monospace" font-weight="600" fill="#ec4899">python/gui/declaration_app.py</text>
+  <circle cx="22" cy="104" r="3" fill="#ec4899"/>
+  <text x="32" y="108" font-size="11.5" font-weight="450" fill="#cbd5e1">60 FPS GPU-rendered immediate mode GUI via Raylib Static 6.0</text>
+  <circle cx="22" cy="124" r="3" fill="#ec4899"/>
+  <text x="32" y="128" font-size="11.5" font-weight="450" fill="#cbd5e1">Dracula Design System: crisp dark mode, high contrast &amp; custom fonts</text>
+  <circle cx="22" cy="144" r="3" fill="#ec4899"/>
+  <text x="32" y="148" font-size="11.5" font-weight="450" fill="#cbd5e1">Dual Layout: Wide Dual-Column OR Narrow Multitasking Tab Mode</text>
+  <circle cx="22" cy="164" r="3" fill="#ec4899"/>
+  <text x="32" y="168" font-size="11.5" font-weight="450" fill="#cbd5e1">Full text editing: cursor positioning, Ctrl+Arrow word jumping, paste</text>
+  <circle cx="22" cy="184" r="3" fill="#ec4899"/>
+  <text x="32" y="188" font-size="11.5" font-weight="450" fill="#cbd5e1">Tab / Shift+Tab keyboard field cycling with auto-scroll tracking</text>
+  <circle cx="22" cy="204" r="3" fill="#ec4899"/>
+  <text x="32" y="208" font-size="11.5" font-weight="450" fill="#cbd5e1">Live dirty-state tracking with automatic TeX re-synthesis</text>
+</g>
+<g transform="translate(1685, 525)">
+  <rect width="490" height="190" rx="12" fill="#0f172a" stroke="#ec4899" stroke-width="1.6" filter="url(#card-shadow)"/>
+  <path d="M 0 12 Q 0 0 12 0 L 478 0 Q 490 0 490 12 L 490 38 L 0 38 Z" fill="#ec4899" fill-opacity="0.12"/>
+  <line x1="0" y1="38" x2="490" y2="38" stroke="#ec4899" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="16" y="25" font-size="15" font-weight="800" fill="#ffffff" letter-spacing="0.3">Dynamic Signature Scaler</text>
+  <rect x="380" y="8" width="96" height="22" rx="6" fill="#1e293b" stroke="#ec4899" stroke-width="1"/>
+  <text x="428" y="23" font-size="10" font-weight="800" fill="#ec4899" text-anchor="middle">LIVE SCALER</text>
+  <text x="16" y="58" font-size="12" font-weight="600" fill="#94a3b8">Real-Time Visual &amp; Dimension Synchronizer</text>
+  <rect x="16" y="68" width="458" height="22" rx="4" fill="#090d16" stroke="#334155" stroke-width="0.8"/>
+  <text x="24" y="83" font-size="10" font-family="monospace" font-weight="600" fill="#ec4899">python/gui/core/widgets.py | declarations/base.py</text>
+  <circle cx="22" cy="104" r="3" fill="#ec4899"/>
+  <text x="32" y="108" font-size="11.5" font-weight="450" fill="#cbd5e1">Interactive UI Modifier: [-] 100% [+] [↺] (3.2x1.1cm)</text>
+  <circle cx="22" cy="124" r="3" fill="#ec4899"/>
+  <text x="32" y="128" font-size="11.5" font-weight="450" fill="#cbd5e1">Dynamic preview scaling inside Raylib texture card (50% to 240%)</text>
+  <circle cx="22" cy="144" r="3" fill="#ec4899"/>
+  <text x="32" y="148" font-size="11.5" font-weight="450" fill="#cbd5e1">Synchronizes mathematical dimensions into LaTeX generation string</text>
+  <circle cx="22" cy="164" r="3" fill="#ec4899"/>
+  <text x="32" y="168" font-size="11.5" font-weight="450" fill="#cbd5e1">Calculates: width={w_cm}cm, height={h_cm}cm, rule={rule_cm}cm</text>
+  <circle cx="22" cy="184" r="3" fill="#ec4899"/>
+  <text x="32" y="188" font-size="11.5" font-weight="450" fill="#cbd5e1">Eliminates misaligned or oversized signature prints on official forms</text>
+</g>
+<g transform="translate(1685, 735)">
+  <rect width="490" height="250" rx="12" fill="#0f172a" stroke="#ec4899" stroke-width="1.6" filter="url(#card-shadow)"/>
+  <path d="M 0 12 Q 0 0 12 0 L 478 0 Q 490 0 490 12 L 490 38 L 0 38 Z" fill="#ec4899" fill-opacity="0.12"/>
+  <line x1="0" y1="38" x2="490" y2="38" stroke="#ec4899" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="16" y="25" font-size="15" font-weight="800" fill="#ffffff" letter-spacing="0.3">Modular Declaration Generators</text>
+  <rect x="380" y="8" width="96" height="22" rx="6" fill="#1e293b" stroke="#ec4899" stroke-width="1"/>
+  <text x="428" y="23" font-size="10" font-weight="800" fill="#ec4899" text-anchor="middle">OOP MODULES</text>
+  <text x="16" y="58" font-size="12" font-weight="600" fill="#94a3b8">Extensible OOP Declaration Classes</text>
+  <rect x="16" y="68" width="458" height="22" rx="4" fill="#090d16" stroke="#334155" stroke-width="0.8"/>
+  <text x="24" y="83" font-size="10" font-family="monospace" font-weight="600" fill="#ec4899">python/gui/declarations/ (residence, obc, divergence)</text>
+  <circle cx="22" cy="104" r="3" fill="#ec4899"/>
+  <text x="32" y="108" font-size="11.5" font-weight="450" fill="#cbd5e1">BaseDeclaration: Abstract base class handling dossier loading &amp; TeX inject</text>
+  <circle cx="22" cy="124" r="3" fill="#ec4899"/>
+  <text x="32" y="128" font-size="11.5" font-weight="450" fill="#cbd5e1">ResidenceDeclaration: Self vs. Child mode with dynamic age math</text>
+  <circle cx="22" cy="144" r="3" fill="#ec4899"/>
+  <text x="32" y="148" font-size="11.5" font-weight="450" fill="#cbd5e1">OBCDeclaration: Caste credentials, sub-caste &amp; income declarations</text>
+  <circle cx="22" cy="164" r="3" fill="#ec4899"/>
+  <text x="32" y="168" font-size="11.5" font-weight="450" fill="#cbd5e1">DivergenceDeclaration: Name difference affidavit &amp; alias binding</text>
+  <circle cx="22" cy="184" r="3" fill="#ec4899"/>
+  <text x="32" y="188" font-size="11.5" font-weight="450" fill="#cbd5e1">Dynamic field mapping: generates inputs based on selected declaration</text>
+  <circle cx="22" cy="204" r="3" fill="#ec4899"/>
+  <text x="32" y="208" font-size="11.5" font-weight="450" fill="#cbd5e1">Auto-saves both form state JSON and updates applicant dossier</text>
+</g>
+<g transform="translate(1685, 1005)">
+  <rect width="490" height="240" rx="12" fill="#0f172a" stroke="#ec4899" stroke-width="1.6" filter="url(#card-shadow)"/>
+  <path d="M 0 12 Q 0 0 12 0 L 478 0 Q 490 0 490 12 L 490 38 L 0 38 Z" fill="#ec4899" fill-opacity="0.12"/>
+  <line x1="0" y1="38" x2="490" y2="38" stroke="#ec4899" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="16" y="25" font-size="15" font-weight="800" fill="#ffffff" letter-spacing="0.3">LaTeX XeTeX Compiler Pipeline</text>
+  <rect x="380" y="8" width="96" height="22" rx="6" fill="#1e293b" stroke="#ec4899" stroke-width="1"/>
+  <text x="428" y="23" font-size="10" font-weight="800" fill="#ec4899" text-anchor="middle">XELATEX PDF</text>
+  <text x="16" y="58" font-size="12" font-weight="600" fill="#94a3b8">Publication-Quality Legal PDF Synthesis</text>
+  <rect x="16" y="68" width="458" height="22" rx="4" fill="#090d16" stroke="#334155" stroke-width="0.8"/>
+  <text x="24" y="83" font-size="10" font-family="monospace" font-weight="600" fill="#ec4899">templates/latex/ (residence.tex, obc.tex, divergence.tex)</text>
+  <circle cx="22" cy="104" r="3" fill="#ec4899"/>
+  <text x="32" y="108" font-size="11.5" font-weight="450" fill="#cbd5e1">Injects applicant photo (1.2x1.5in) &amp; scaled signature image</text>
+  <circle cx="22" cy="124" r="3" fill="#ec4899"/>
+  <text x="32" y="128" font-size="11.5" font-weight="450" fill="#cbd5e1">Escapes LaTeX special characters (&amp;, %, $, #, _) to prevent crashes</text>
+  <circle cx="22" cy="144" r="3" fill="#ec4899"/>
+  <text x="32" y="148" font-size="11.5" font-weight="450" fill="#cbd5e1">Invokes xelatex / pdflatex non-interactively with batchmode</text>
+  <circle cx="22" cy="164" r="3" fill="#ec4899"/>
+  <text x="32" y="168" font-size="11.5" font-weight="450" fill="#cbd5e1">Generates print-ready high-resolution legal declaration PDF</text>
+  <circle cx="22" cy="184" r="3" fill="#ec4899"/>
+  <text x="32" y="188" font-size="11.5" font-weight="450" fill="#cbd5e1">One-click 'Open PDF' in native Windows PDF viewer from GUI footer</text>
+  <circle cx="22" cy="204" r="3" fill="#ec4899"/>
+  <text x="32" y="208" font-size="11.5" font-weight="450" fill="#cbd5e1">Output: residence_declaration.pdf ready for portal upload</text>
+</g>
+<g transform="translate(1685, 1265)">
+  <rect width="490" height="315" rx="12" fill="#0f172a" stroke="#ec4899" stroke-width="1.6" filter="url(#card-shadow)"/>
+  <path d="M 0 12 Q 0 0 12 0 L 478 0 Q 490 0 490 12 L 490 38 L 0 38 Z" fill="#ec4899" fill-opacity="0.12"/>
+  <line x1="0" y1="38" x2="490" y2="38" stroke="#ec4899" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="16" y="25" font-size="15" font-weight="800" fill="#ffffff" letter-spacing="0.3">Auxiliary Raylib Tool Suite</text>
+  <rect x="380" y="8" width="96" height="22" rx="6" fill="#1e293b" stroke="#ec4899" stroke-width="1"/>
+  <text x="428" y="23" font-size="10" font-weight="800" fill="#ec4899" text-anchor="middle">NATIVE TOOLS</text>
+  <text x="16" y="58" font-size="12" font-weight="600" fill="#94a3b8">Specialized Native Graphical Windows</text>
+  <rect x="16" y="68" width="458" height="22" rx="4" fill="#090d16" stroke="#334155" stroke-width="0.8"/>
+  <text x="24" y="83" font-size="10" font-family="monospace" font-weight="600" fill="#ec4899">python/gui/ (bg_remover_gui.py, progress_gui.py, ...)</text>
+  <circle cx="22" cy="104" r="3" fill="#ec4899"/>
+  <text x="32" y="108" font-size="11.5" font-weight="450" fill="#cbd5e1">bg_remover_gui.py: Interactive pan/zoom crop tool with live rembg preview</text>
+  <circle cx="22" cy="124" r="3" fill="#ec4899"/>
+  <text x="32" y="128" font-size="11.5" font-weight="450" fill="#cbd5e1">progress_gui.py: Floating non-blocking progress bar with step status</text>
+  <circle cx="22" cy="144" r="3" fill="#ec4899"/>
+  <text x="32" y="148" font-size="11.5" font-weight="450" fill="#cbd5e1">confirmation_gui.py: Operator verification modal for high-stakes fields</text>
+  <circle cx="22" cy="164" r="3" fill="#ec4899"/>
+  <text x="32" y="168" font-size="11.5" font-weight="450" fill="#cbd5e1">ocr_trainer_gui.py: OCR word-box visualizer &amp; rating interface</text>
+  <circle cx="22" cy="184" r="3" fill="#ec4899"/>
+  <text x="32" y="188" font-size="11.5" font-weight="450" fill="#cbd5e1">Ultra-lightweight static binaries (PyRay) with zero heavy Electron bloat</text>
+</g>
+  </g>
+
+  <!-- Column 5 Container -->
+  <g id="col-portal">
+    <rect x="2220" y="180" width="520" height="1420" rx="16" fill="url(#grad-col5)" stroke="#38bdf8" stroke-width="1.8" stroke-opacity="0.4"/>
+    <text x="2240" y="215" font-size="20" font-weight="800" fill="#38bdf8" letter-spacing="0.8">5. BROWSER PORTAL AUTOMATION</text>
+    <text x="2240" y="235" font-size="12" font-weight="500" fill="#64748b">Playwright Brave automation, ASP.NET postbacks &amp; Screen 1-2 auto-fill</text>
+
+<g transform="translate(2235, 255)">
+  <rect width="490" height="250" rx="12" fill="#0f172a" stroke="#38bdf8" stroke-width="1.6" filter="url(#card-shadow)"/>
+  <path d="M 0 12 Q 0 0 12 0 L 478 0 Q 490 0 490 12 L 490 38 L 0 38 Z" fill="#38bdf8" fill-opacity="0.12"/>
+  <line x1="0" y1="38" x2="490" y2="38" stroke="#38bdf8" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="16" y="25" font-size="15" font-weight="800" fill="#ffffff" letter-spacing="0.3">Brave Portal Session Manager</text>
+  <rect x="380" y="8" width="96" height="22" rx="6" fill="#1e293b" stroke="#38bdf8" stroke-width="1"/>
+  <text x="428" y="23" font-size="10" font-weight="800" fill="#38bdf8" text-anchor="middle">PLAYWRIGHT BRAVE</text>
+  <text x="16" y="58" font-size="12" font-weight="600" fill="#94a3b8">Persistent Citizen Session &amp; Browser Context</text>
+  <rect x="16" y="68" width="458" height="22" rx="4" fill="#090d16" stroke="#334155" stroke-width="0.8"/>
+  <text x="24" y="83" font-size="10" font-family="monospace" font-weight="600" fill="#38bdf8">src/automation/services/portalSessionManager.ts</text>
+  <circle cx="22" cy="104" r="3" fill="#38bdf8"/>
+  <text x="32" y="108" font-size="11.5" font-weight="450" fill="#cbd5e1">Launches Brave browser with persistent user profile (.brave_automation_profile)</text>
+  <circle cx="22" cy="124" r="3" fill="#38bdf8"/>
+  <text x="32" y="128" font-size="11.5" font-weight="450" fill="#cbd5e1">Retains citizen login tokens, cookies &amp; site permissions across runs</text>
+  <circle cx="22" cy="144" r="3" fill="#38bdf8"/>
+  <text x="32" y="148" font-size="11.5" font-weight="450" fill="#cbd5e1">Cleans stale SingletonLock files preventing profile-in-use crashes</text>
+  <circle cx="22" cy="164" r="3" fill="#38bdf8"/>
+  <text x="32" y="168" font-size="11.5" font-weight="450" fill="#cbd5e1">Enforces chromiumSandbox: true &amp; ignoreDefaultArgs: ['--no-sandbox']</text>
+  <circle cx="22" cy="184" r="3" fill="#38bdf8"/>
+  <text x="32" y="188" font-size="11.5" font-weight="450" fill="#cbd5e1">Auto-accepts browser alert/confirm dialogs via context.on('dialog')</text>
+  <circle cx="22" cy="204" r="3" fill="#38bdf8"/>
+  <text x="32" y="208" font-size="11.5" font-weight="450" fill="#cbd5e1">Closes orphan about:blank tabs automatically</text>
+</g>
+<g transform="translate(2235, 525)">
+  <rect width="490" height="240" rx="12" fill="#0f172a" stroke="#38bdf8" stroke-width="1.6" filter="url(#card-shadow)"/>
+  <path d="M 0 12 Q 0 0 12 0 L 478 0 Q 490 0 490 12 L 490 38 L 0 38 Z" fill="#38bdf8" fill-opacity="0.12"/>
+  <line x1="0" y1="38" x2="490" y2="38" stroke="#38bdf8" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="16" y="25" font-size="15" font-weight="800" fill="#ffffff" letter-spacing="0.3">Citizen Auth &amp;amp; Navigation</text>
+  <rect x="380" y="8" width="96" height="22" rx="6" fill="#1e293b" stroke="#38bdf8" stroke-width="1"/>
+  <text x="428" y="23" font-size="10" font-weight="800" fill="#38bdf8" text-anchor="middle">POSTBACK BRIDGE</text>
+  <text x="16" y="58" font-size="12" font-weight="600" fill="#94a3b8">Human-in-the-Loop Login &amp; ASP.NET Postback Bridge</text>
+  <rect x="16" y="68" width="458" height="22" rx="4" fill="#090d16" stroke="#334155" stroke-width="0.8"/>
+  <text x="24" y="83" font-size="10" font-family="monospace" font-weight="600" fill="#38bdf8">src/automation/scripts/phase1_browser_login.ts</text>
+  <circle cx="22" cy="104" r="3" fill="#38bdf8"/>
+  <text x="32" y="108" font-size="11.5" font-weight="450" fill="#cbd5e1">Detects manual citizen OTP authentication on GoaOnline portal</text>
+  <circle cx="22" cy="124" r="3" fill="#38bdf8"/>
+  <text x="32" y="128" font-size="11.5" font-weight="450" fill="#cbd5e1">Phase 1 Breakthrough: Solves ASP.NET WebForms javascript: navigation</text>
+  <circle cx="22" cy="144" r="3" fill="#38bdf8"/>
+  <text x="32" y="148" font-size="11.5" font-weight="450" fill="#cbd5e1">Dispatches native page.evaluate() on #cphBody_gvService_lnkProceedApply_0</text>
+  <circle cx="22" cy="164" r="3" fill="#38bdf8"/>
+  <text x="32" y="168" font-size="11.5" font-weight="450" fill="#cbd5e1">Invokes window.__doPostBack('ctl00$cphBody$gvService$ctl02$lnkProceedApply')</text>
+  <circle cx="22" cy="184" r="3" fill="#38bdf8"/>
+  <text x="32" y="188" font-size="11.5" font-weight="450" fill="#cbd5e1">Strict URL transition polling to verify entry into REV05 service</text>
+</g>
+<g transform="translate(2235, 785)">
+  <rect width="490" height="300" rx="12" fill="#0f172a" stroke="#38bdf8" stroke-width="1.6" filter="url(#card-shadow)"/>
+  <path d="M 0 12 Q 0 0 12 0 L 478 0 Q 490 0 490 12 L 490 38 L 0 38 Z" fill="#38bdf8" fill-opacity="0.12"/>
+  <line x1="0" y1="38" x2="490" y2="38" stroke="#38bdf8" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="16" y="25" font-size="15" font-weight="800" fill="#ffffff" letter-spacing="0.3">Residence Form Automation</text>
+  <rect x="380" y="8" width="96" height="22" rx="6" fill="#1e293b" stroke="#38bdf8" stroke-width="1"/>
+  <text x="428" y="23" font-size="10" font-weight="800" fill="#38bdf8" text-anchor="middle">POM SCREEN 1</text>
+  <text x="16" y="58" font-size="12" font-weight="600" fill="#94a3b8">Comprehensive 59-Control DOM Page Object Model</text>
+  <rect x="16" y="68" width="458" height="22" rx="4" fill="#090d16" stroke="#334155" stroke-width="0.8"/>
+  <text x="24" y="83" font-size="10" font-family="monospace" font-weight="600" fill="#38bdf8">src/automation/pages/residenceFormPage.ts</text>
+  <circle cx="22" cy="104" r="3" fill="#38bdf8"/>
+  <text x="32" y="108" font-size="11.5" font-weight="450" fill="#cbd5e1">Application Mode: Self (#id6a) vs Relative / Child (#id6b)</text>
+  <circle cx="22" cy="124" r="3" fill="#38bdf8"/>
+  <text x="32" y="128" font-size="11.5" font-weight="450" fill="#cbd5e1">Personal Data: Name, DOB, Age, Gender, Marital Status, Mobile, Email</text>
+  <circle cx="22" cy="144" r="3" fill="#38bdf8"/>
+  <text x="32" y="148" font-size="11.5" font-weight="450" fill="#cbd5e1">Aadhaar Input with live 12-digit Verhoeff modulo-10 validation</text>
+  <circle cx="22" cy="164" r="3" fill="#38bdf8"/>
+  <text x="32" y="168" font-size="11.5" font-weight="450" fill="#cbd5e1">Dynamic AJAX Address Modal: Triggers #btnaddnew, waits for modal</text>
+  <circle cx="22" cy="184" r="3" fill="#38bdf8"/>
+  <text x="32" y="188" font-size="11.5" font-weight="450" fill="#cbd5e1">Cascading Selectors: District -&gt; waits AJAX -&gt; Taluka -&gt; Village</text>
+  <circle cx="22" cy="204" r="3" fill="#38bdf8"/>
+  <text x="32" y="208" font-size="11.5" font-weight="450" fill="#cbd5e1">Address Save &amp; Confirm: Dispatches #id4f &amp; confirms #id4d dialog</text>
+  <circle cx="22" cy="224" r="3" fill="#38bdf8"/>
+  <text x="32" y="228" font-size="11.5" font-weight="450" fill="#cbd5e1">Self-Declaration Checkbox (#id41) &amp; Safe Review Mode preservation</text>
+</g>
+<g transform="translate(2235, 1105)">
+  <rect width="490" height="220" rx="12" fill="#0f172a" stroke="#38bdf8" stroke-width="1.6" filter="url(#card-shadow)"/>
+  <path d="M 0 12 Q 0 0 12 0 L 478 0 Q 490 0 490 12 L 490 38 L 0 38 Z" fill="#38bdf8" fill-opacity="0.12"/>
+  <line x1="0" y1="38" x2="490" y2="38" stroke="#38bdf8" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="16" y="25" font-size="15" font-weight="800" fill="#ffffff" letter-spacing="0.3">DOM Survey &amp; Action Tracker</text>
+  <rect x="380" y="8" width="96" height="22" rx="6" fill="#1e293b" stroke="#38bdf8" stroke-width="1"/>
+  <text x="428" y="23" font-size="10" font-weight="800" fill="#38bdf8" text-anchor="middle">TELEMETRY</text>
+  <text x="16" y="58" font-size="12" font-weight="600" fill="#94a3b8">WebForms Reverse-Engineering &amp; Blueprint Recorder</text>
+  <rect x="16" y="68" width="458" height="22" rx="4" fill="#090d16" stroke="#334155" stroke-width="0.8"/>
+  <text x="24" y="83" font-size="10" font-family="monospace" font-weight="600" fill="#38bdf8">tools/surveyScreen1.ts | tools/portalActionTracker.ts</text>
+  <circle cx="22" cy="104" r="3" fill="#38bdf8"/>
+  <text x="32" y="108" font-size="11.5" font-weight="450" fill="#cbd5e1">surveyScreen1.ts: Live DOM inventory extractor (59 controls indexed)</text>
+  <circle cx="22" cy="124" r="3" fill="#38bdf8"/>
+  <text x="32" y="128" font-size="11.5" font-weight="450" fill="#cbd5e1">Generates screen1_survey_latest.md with complete element metadata</text>
+  <circle cx="22" cy="144" r="3" fill="#38bdf8"/>
+  <text x="32" y="148" font-size="11.5" font-weight="450" fill="#cbd5e1">portalActionTracker.ts: Visual overlay recording human operator actions</text>
+  <circle cx="22" cy="164" r="3" fill="#38bdf8"/>
+  <text x="32" y="168" font-size="11.5" font-weight="450" fill="#cbd5e1">Generates 291-step simulation blueprint mapping every click &amp; keypress</text>
+  <circle cx="22" cy="184" r="3" fill="#38bdf8"/>
+  <text x="32" y="188" font-size="11.5" font-weight="450" fill="#cbd5e1">Provides ground truth for bulletproof Playwright locator resilience</text>
+</g>
+<g transform="translate(2235, 1345)">
+  <rect width="490" height="235" rx="12" fill="#0f172a" stroke="#38bdf8" stroke-width="1.6" filter="url(#card-shadow)"/>
+  <path d="M 0 12 Q 0 0 12 0 L 478 0 Q 490 0 490 12 L 490 38 L 0 38 Z" fill="#38bdf8" fill-opacity="0.12"/>
+  <line x1="0" y1="38" x2="490" y2="38" stroke="#38bdf8" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="16" y="25" font-size="15" font-weight="800" fill="#ffffff" letter-spacing="0.3">Document Upload &amp; Submission</text>
+  <rect x="380" y="8" width="96" height="22" rx="6" fill="#1e293b" stroke="#38bdf8" stroke-width="1"/>
+  <text x="428" y="23" font-size="10" font-weight="800" fill="#38bdf8" text-anchor="middle">PHASE 3 UPLOAD</text>
+  <text x="16" y="58" font-size="12" font-weight="600" fill="#94a3b8">Phase 3 Attachment Uploader &amp; Review</text>
+  <rect x="16" y="68" width="458" height="22" rx="4" fill="#090d16" stroke="#334155" stroke-width="0.8"/>
+  <text x="24" y="83" font-size="10" font-family="monospace" font-weight="600" fill="#38bdf8">src/automation/fillResidencePortal.ts (Phase 3)</text>
+  <circle cx="22" cy="104" r="3" fill="#38bdf8"/>
+  <text x="32" y="108" font-size="11.5" font-weight="450" fill="#cbd5e1">Upload Slot 1: Applicant Passport Photo (&lt; 50KB Solid White BG)</text>
+  <circle cx="22" cy="124" r="3" fill="#38bdf8"/>
+  <text x="32" y="128" font-size="11.5" font-weight="450" fill="#cbd5e1">Upload Slot 2: Generated &amp; Signed Residence Declaration PDF</text>
+  <circle cx="22" cy="144" r="3" fill="#38bdf8"/>
+  <text x="32" y="148" font-size="11.5" font-weight="450" fill="#cbd5e1">Upload Slot 3: Identity Proof (Classified Aadhaar / Voter Card)</text>
+  <circle cx="22" cy="164" r="3" fill="#38bdf8"/>
+  <text x="32" y="168" font-size="11.5" font-weight="450" fill="#cbd5e1">Upload Slot 4: Age Proof (Birth Certificate / School Leaving)</text>
+  <circle cx="22" cy="184" r="3" fill="#38bdf8"/>
+  <text x="32" y="188" font-size="11.5" font-weight="450" fill="#cbd5e1">Upload Slot 5: 15-Year Residence Proofs (Electricity / Water / Ration)</text>
+  <circle cx="22" cy="204" r="3" fill="#38bdf8"/>
+  <text x="32" y="208" font-size="11.5" font-weight="450" fill="#cbd5e1">Leaves final confirmation window open for human operator review</text>
+</g>
+  </g>
+
+  <!-- Bottom Zone: Continuous Feedback & Training Loop -->
+  <g id="bottom-feedback-loop" transform="translate(60, 1630)">
+    <rect width="2680" height="380" rx="16" fill="#0c111d" stroke="#eab308" stroke-width="1.8" stroke-opacity="0.5" filter="url(#card-shadow)"/>
+    
+    <!-- Zone Header -->
+    <path d="M 0 16 Q 0 0 16 0 L 2664 0 Q 2680 0 2680 16 L 2680 44 L 0 44 Z" fill="#eab308" fill-opacity="0.12"/>
+    <line x1="0" y1="44" x2="2680" y2="44" stroke="#eab308" stroke-opacity="0.3" stroke-width="1"/>
+    <text x="24" y="28" font-size="18" font-weight="800" fill="#facc15" letter-spacing="0.8">
+      6. CONTINUOUS LEARNING, RETRAINING &amp; GROUND-TRUTH FEEDBACK LOOP
+    </text>
+    <text x="760" y="28" font-size="13" font-weight="500" fill="#94a3b8">
+      Human-in-the-loop review, automated spell-correction training, dynamic keyword weight re-tuning &amp; regression prevention
+    </text>
+
+<g transform="translate(20, 60)">
+  <rect width="630" height="290" rx="12" fill="#0f172a" stroke="#eab308" stroke-width="1.6" filter="url(#card-shadow)"/>
+  <path d="M 0 12 Q 0 0 12 0 L 618 0 Q 630 0 630 12 L 630 38 L 0 38 Z" fill="#eab308" fill-opacity="0.12"/>
+  <line x1="0" y1="38" x2="630" y2="38" stroke="#eab308" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="16" y="25" font-size="15" font-weight="800" fill="#ffffff" letter-spacing="0.3">Interactive OCR Trainer &amp; Rater</text>
+  <rect x="520" y="8" width="96" height="22" rx="6" fill="#1e293b" stroke="#eab308" stroke-width="1"/>
+  <text x="568" y="23" font-size="10" font-weight="800" fill="#eab308" text-anchor="middle">OCR TRAINER</text>
+  <text x="16" y="58" font-size="12" font-weight="600" fill="#94a3b8">Human-in-the-Loop Text Correction &amp; Rating Studio</text>
+  <rect x="16" y="68" width="598" height="22" rx="4" fill="#090d16" stroke="#334155" stroke-width="0.8"/>
+  <text x="24" y="83" font-size="10" font-family="monospace" font-weight="600" fill="#eab308">tools/runOcrTrainer.ts | python/gui/ocr_trainer_gui.py</text>
+  <circle cx="22" cy="104" r="3" fill="#eab308"/>
+  <text x="32" y="108" font-size="11.5" font-weight="450" fill="#cbd5e1">Scans applicant document and displays bounding boxes with recognized text</text>
+  <circle cx="22" cy="124" r="3" fill="#eab308"/>
+  <text x="32" y="128" font-size="11.5" font-weight="450" fill="#cbd5e1">Operator reviews extracted tokens, corrects OCR mistakes &amp; enters ground truth</text>
+  <circle cx="22" cy="144" r="3" fill="#eab308"/>
+  <text x="32" y="148" font-size="11.5" font-weight="450" fill="#cbd5e1">Rate extraction quality (1 to 5 stars) per document field</text>
+  <circle cx="22" cy="164" r="3" fill="#eab308"/>
+  <text x="32" y="168" font-size="11.5" font-weight="450" fill="#cbd5e1">Automatically generates spell correction pairs into dataset/spell_corrections.json</text>
+  <circle cx="22" cy="184" r="3" fill="#eab308"/>
+  <text x="32" y="188" font-size="11.5" font-weight="450" fill="#cbd5e1">Progressively improves OCR accuracy without expensive model re-training</text>
+</g>
+<g transform="translate(680, 60)">
+  <rect width="630" height="290" rx="12" fill="#0f172a" stroke="#eab308" stroke-width="1.6" filter="url(#card-shadow)"/>
+  <path d="M 0 12 Q 0 0 12 0 L 618 0 Q 630 0 630 12 L 630 38 L 0 38 Z" fill="#eab308" fill-opacity="0.12"/>
+  <line x1="0" y1="38" x2="630" y2="38" stroke="#eab308" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="16" y="25" font-size="15" font-weight="800" fill="#ffffff" letter-spacing="0.3">Classifier Weight Retrainer</text>
+  <rect x="520" y="8" width="96" height="22" rx="6" fill="#1e293b" stroke="#eab308" stroke-width="1"/>
+  <text x="568" y="23" font-size="10" font-weight="800" fill="#eab308" text-anchor="middle">TF-IDF RETRAIN</text>
+  <text x="16" y="58" font-size="12" font-weight="600" fill="#94a3b8">Automated Keyword Scoring Optimization Engine</text>
+  <rect x="16" y="68" width="598" height="22" rx="4" fill="#090d16" stroke="#334155" stroke-width="0.8"/>
+  <text x="24" y="83" font-size="10" font-family="monospace" font-weight="600" fill="#eab308">tools/retrain_classifier.ts | dataset/rules_learned.json</text>
+  <circle cx="22" cy="104" r="3" fill="#eab308"/>
+  <text x="32" y="108" font-size="11.5" font-weight="450" fill="#cbd5e1">Analyzes labeled document corpus in dataset/training_samples/</text>
+  <circle cx="22" cy="124" r="3" fill="#eab308"/>
+  <text x="32" y="128" font-size="11.5" font-weight="450" fill="#cbd5e1">Computes TF-IDF frequencies &amp; keyword discrimination scores across 15 categories</text>
+  <circle cx="22" cy="144" r="3" fill="#eab308"/>
+  <text x="32" y="148" font-size="11.5" font-weight="450" fill="#cbd5e1">Adjusts positive weights and negative penalty rules automatically</text>
+  <circle cx="22" cy="164" r="3" fill="#eab308"/>
+  <text x="32" y="168" font-size="11.5" font-weight="450" fill="#cbd5e1">Eliminates misclassification edge cases (e.g. distinguishing Birth vs Death certs)</text>
+  <circle cx="22" cy="184" r="3" fill="#eab308"/>
+  <text x="32" y="188" font-size="11.5" font-weight="450" fill="#cbd5e1">Generates optimized rules directly deployed to src/classifier/rules.ts</text>
+</g>
+<g transform="translate(1340, 60)">
+  <rect width="630" height="290" rx="12" fill="#0f172a" stroke="#eab308" stroke-width="1.6" filter="url(#card-shadow)"/>
+  <path d="M 0 12 Q 0 0 12 0 L 618 0 Q 630 0 630 12 L 630 38 L 0 38 Z" fill="#eab308" fill-opacity="0.12"/>
+  <line x1="0" y1="38" x2="630" y2="38" stroke="#eab308" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="16" y="25" font-size="15" font-weight="800" fill="#ffffff" letter-spacing="0.3">Dataset Evaluator &amp; Benchmarks</text>
+  <rect x="520" y="8" width="96" height="22" rx="6" fill="#1e293b" stroke="#eab308" stroke-width="1"/>
+  <text x="568" y="23" font-size="10" font-weight="800" fill="#eab308" text-anchor="middle">BENCHMARKS</text>
+  <text x="16" y="58" font-size="12" font-weight="600" fill="#94a3b8">Continuous Regression Testing &amp; GPU Profiler</text>
+  <rect x="16" y="68" width="598" height="22" rx="4" fill="#090d16" stroke="#334155" stroke-width="0.8"/>
+  <text x="24" y="83" font-size="10" font-family="monospace" font-weight="600" fill="#eab308">tests/datasetEvaluator.ts | tests/gpuBatchBenchmark.ts</text>
+  <circle cx="22" cy="104" r="3" fill="#eab308"/>
+  <text x="32" y="108" font-size="11.5" font-weight="450" fill="#cbd5e1">Automated test harness executing across 100+ multi-page test fixtures</text>
+  <circle cx="22" cy="124" r="3" fill="#eab308"/>
+  <text x="32" y="128" font-size="11.5" font-weight="450" fill="#cbd5e1">Calculates precision, recall &amp; F1-score across all 15 certificate categories</text>
+  <circle cx="22" cy="144" r="3" fill="#eab308"/>
+  <text x="32" y="148" font-size="11.5" font-weight="450" fill="#cbd5e1">gpuBatchBenchmark.ts: Measures batch tensor throughput vs single-image latency</text>
+  <circle cx="22" cy="164" r="3" fill="#eab308"/>
+  <text x="32" y="168" font-size="11.5" font-weight="450" fill="#cbd5e1">Validates Verhoeff checksum pass rate and age calculation edge cases</text>
+  <circle cx="22" cy="184" r="3" fill="#eab308"/>
+  <text x="32" y="188" font-size="11.5" font-weight="450" fill="#cbd5e1">Strict CI threshold prevents accuracy regression before portal deployment</text>
+</g>
+<g transform="translate(2000, 60)">
+  <rect width="660" height="290" rx="12" fill="#0f172a" stroke="#eab308" stroke-width="1.6" filter="url(#card-shadow)"/>
+  <path d="M 0 12 Q 0 0 12 0 L 648 0 Q 660 0 660 12 L 660 38 L 0 38 Z" fill="#eab308" fill-opacity="0.12"/>
+  <line x1="0" y1="38" x2="660" y2="38" stroke="#eab308" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="16" y="25" font-size="15" font-weight="800" fill="#ffffff" letter-spacing="0.3">Ground-Truth Dataset Store</text>
+  <rect x="550" y="8" width="96" height="22" rx="6" fill="#1e293b" stroke="#eab308" stroke-width="1"/>
+  <text x="598" y="23" font-size="10" font-weight="800" fill="#eab308" text-anchor="middle">GROUND TRUTH</text>
+  <text x="16" y="58" font-size="12" font-weight="600" fill="#94a3b8">Curated Golden Records &amp; Dictionaries</text>
+  <rect x="16" y="68" width="628" height="22" rx="4" fill="#090d16" stroke="#334155" stroke-width="0.8"/>
+  <text x="24" y="83" font-size="10" font-family="monospace" font-weight="600" fill="#eab308">dataset/ (dataset_manifest.json, spell_corrections.json, ...)</text>
+  <circle cx="22" cy="104" r="3" fill="#eab308"/>
+  <text x="32" y="108" font-size="11.5" font-weight="450" fill="#cbd5e1">dataset_manifest.json: Ground-truth labeled documents with verified text</text>
+  <circle cx="22" cy="124" r="3" fill="#eab308"/>
+  <text x="32" y="128" font-size="11.5" font-weight="450" fill="#cbd5e1">spell_corrections.json: Dictionary of Goan administrative term corrections</text>
+  <circle cx="22" cy="144" r="3" fill="#eab308"/>
+  <text x="32" y="148" font-size="11.5" font-weight="450" fill="#cbd5e1">rules_learned.json: Calibrated keyword weights and confidence thresholds</text>
+  <circle cx="22" cy="164" r="3" fill="#eab308"/>
+  <text x="32" y="168" font-size="11.5" font-weight="450" fill="#cbd5e1">applicant_dossier.json: Standardized schema templates for all certificate types</text>
+  <circle cx="22" cy="184" r="3" fill="#eab308"/>
+  <text x="32" y="188" font-size="11.5" font-weight="450" fill="#cbd5e1">Guarantees deterministic, reproducible extraction across diverse scanner hardware</text>
+</g>
+  </g>
+
+  <!-- Visual Connectors & Data Pipelines -->
+  <g id="pipeline-connectors">
+    <!-- 1. Ingress -> GPU Daemon Client -->
+    <path d="M 545 985 C 570 985, 580 345, 605 345" fill="none" stroke="#10b981" stroke-width="2.8" marker-end="url(#arrow-emerald)"/>
+    <rect x="555" y="650" width="85" height="22" rx="4" fill="#090d16" stroke="#10b981" stroke-width="1"/>
+    <text x="597" y="665" font-size="10" font-weight="700" fill="#10b981" text-anchor="middle">Image Paths</text>
+
+    <!-- 2. GPU Daemon Client -> GPU Worker Daemon (JSON-RPC) -->
+    <path d="M 845 440 L 845 460" fill="none" stroke="#a855f7" stroke-width="3" marker-end="url(#arrow-purple)"/>
+    <rect x="800" y="442" width="90" height="18" rx="4" fill="#1e102e" stroke="#a855f7" stroke-width="1"/>
+    <text x="845" y="455" font-size="9" font-weight="800" fill="#c084fc" text-anchor="middle">TCP 50051</text>
+
+    <!-- 3. GPU Worker Daemon -> OCR Engine & QR Unpack -->
+    <path d="M 845 680 L 845 700" fill="none" stroke="#a855f7" stroke-width="3" marker-end="url(#arrow-purple)"/>
+    <path d="M 845 925 L 845 945" fill="none" stroke="#a855f7" stroke-width="3" marker-end="url(#arrow-purple)"/>
+
+    <!-- 4. GPU Vision -> OCR Post-Processor (Column 2 to Column 3) -->
+    <path d="M 1085 810 C 1110 810, 1120 350, 1145 350" fill="none" stroke="#f59e0b" stroke-width="2.8" marker-end="url(#arrow-amber)"/>
+    <rect x="1090" y="565" width="85" height="22" rx="4" fill="#1c1917" stroke="#f59e0b" stroke-width="1"/>
+    <text x="1132" y="580" font-size="10" font-weight="700" fill="#fbbf24" text-anchor="middle">Raw OCR Text</text>
+
+    <!-- 5. QR Engine -> Dossier Synthesizer (Direct High-Precision Path) -->
+    <path d="M 1085 1065 L 1145 1065" fill="none" stroke="#a855f7" stroke-width="3.2" stroke-dasharray="6,4" marker-end="url(#arrow-purple)"/>
+    <rect x="1088" y="1035" width="88" height="22" rx="4" fill="#1e102e" stroke="#a855f7" stroke-width="1"/>
+    <text x="1132" y="1050" font-size="10" font-weight="800" fill="#c084fc" text-anchor="middle">100% Aadhaar QR</text>
+
+    <!-- 6. PostProcessor -> Classifier -> Entity Parser -> Dossier -->
+    <path d="M 1385 445 L 1385 465" fill="none" stroke="#f59e0b" stroke-width="2.8" marker-end="url(#arrow-amber)"/>
+    <path d="M 1385 715 L 1385 735" fill="none" stroke="#f59e0b" stroke-width="2.8" marker-end="url(#arrow-amber)"/>
+    <path d="M 1385 915 L 1385 935" fill="none" stroke="#f59e0b" stroke-width="2.8" marker-end="url(#arrow-amber)"/>
+    <path d="M 1385 1195 L 1385 1215" fill="none" stroke="#f59e0b" stroke-width="2.8" marker-end="url(#arrow-amber)"/>
+
+    <!-- 7. Unified Dossier -> Raylib Declaration Studio (Column 3 to Column 4) -->
+    <path d="M 1625 1395 C 1650 1395, 1660 380, 1685 380" fill="none" stroke="#ec4899" stroke-width="3" marker-end="url(#arrow-pink)"/>
+    <rect x="1632" y="870" width="105" height="24" rx="4" fill="#240c1d" stroke="#ec4899" stroke-width="1"/>
+    <text x="1684" y="886" font-size="10" font-weight="800" fill="#f472b6" text-anchor="middle">Dossier JSON</text>
+
+    <!-- 8. Raylib Studio -> LaTeX XeTeX Compiler -->
+    <path d="M 1930 505 L 1930 525" fill="none" stroke="#ec4899" stroke-width="2.8" marker-end="url(#arrow-pink)"/>
+    <path d="M 1930 715 L 1930 735" fill="none" stroke="#ec4899" stroke-width="2.8" marker-end="url(#arrow-pink)"/>
+    <path d="M 1930 985 L 1930 1005" fill="none" stroke="#ec4899" stroke-width="2.8" marker-end="url(#arrow-pink)"/>
+
+    <!-- 9. Dossier & Generated PDF -> Browser Portal Automation (Col 3/4 to Col 5) -->
+    <path d="M 2175 1125 C 2200 1125, 2210 935, 2235 935" fill="none" stroke="#38bdf8" stroke-width="3.2" marker-end="url(#arrow-blue)"/>
+    <rect x="2180" y="1015" width="115" height="24" rx="4" fill="#0c1e33" stroke="#38bdf8" stroke-width="1"/>
+    <text x="2237" y="1031" font-size="10" font-weight="800" fill="#38bdf8" text-anchor="middle">Dossier + Signed PDF</text>
+
+    <!-- 10. Playwright Browser -> Portal Action Tracker Telemetry -->
+    <path d="M 2480 1085 L 2480 1105" fill="none" stroke="#38bdf8" stroke-width="2.8" marker-end="url(#arrow-blue)"/>
+
+    <!-- 11. Feedback Loop: Telemetry & OCR Trainer Back to Dataset (Bottom Return Path) -->
+    <path d="M 1385 1580 L 1385 1630" fill="none" stroke="#eab308" stroke-width="2.8" stroke-dasharray="6,4" marker-end="url(#arrow-amber)"/>
+  </g>
+
+</svg>

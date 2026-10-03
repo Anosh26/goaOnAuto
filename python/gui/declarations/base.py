@@ -68,6 +68,7 @@ class BaseDeclaration(ABC):
         self.declaration_id = "base"
         self.title = "Declaration"
         self.service_id = ""
+        self.sig_scale = 1.0  # Dynamic scale factor (1.0 = 3.2cm x 1.1cm)
 
     def load_dossier(self) -> dict:
         """Loads client data from applicant_dossier.json if present."""
@@ -157,6 +158,7 @@ class BaseDeclaration(ABC):
         for f in self.fields:
             if f.key == key:
                 f.value = val
+                f.cursor_pos = len(val)
 
     def get_visible_fields(self) -> list[FormField]:
         """Returns fields currently visible based on active mode."""
@@ -169,8 +171,12 @@ class BaseDeclaration(ABC):
         """Resolves absolute path to template in templates/latex/."""
         return os.path.join(_PROJECT_ROOT, "templates", "latex", template_filename)
 
-    def inject_photo_and_sig(self, content: str, photo_path: str, sig_path: str) -> str:
+    def inject_photo_and_sig(self, content: str, photo_path: str, sig_path: str, sig_scale: float | None = None) -> str:
         """Replaces LaTeX placeholder boxes with photo and signature image includes."""
+        if sig_scale is None:
+            sig_scale = getattr(self, "sig_scale", 1.0)
+        sig_scale = max(0.4, min(3.0, float(sig_scale)))
+
         # 1. Photo replacement
         if photo_path and os.path.isfile(photo_path):
             clean_photo = os.path.abspath(photo_path).replace("\\", "/")
@@ -181,7 +187,10 @@ class BaseDeclaration(ABC):
         # 2. Signature replacement
         if sig_path and os.path.isfile(sig_path):
             clean_sig = os.path.abspath(sig_path).replace("\\", "/")
-            sig_snippet = f'\\includegraphics[width=3.2cm, height=1.1cm, keepaspectratio]{{"{clean_sig}"}} \\\\\n    \\rule{{4.5cm}}{{0.4pt}}'
+            w_cm = round(3.2 * sig_scale, 2)
+            h_cm = round(1.1 * sig_scale, 2)
+            rule_cm = round(4.5 * sig_scale, 2)
+            sig_snippet = f'\\includegraphics[width={w_cm}cm, height={h_cm}cm, keepaspectratio]{{"{clean_sig}"}} \\\\\n    \\rule{{{rule_cm}cm}}{{0.4pt}}'
             content = re.sub(r"\\rule\{6cm\}\{0\.4pt\}", lambda m: sig_snippet, content)
 
         return content

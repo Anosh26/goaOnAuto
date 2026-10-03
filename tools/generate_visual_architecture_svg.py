@@ -1,0 +1,836 @@
+"""
+GoaOnAuto Visual Architecture SVG Generator
+Generates a stunning, illustration-first, human-friendly visual architecture diagram
+with rich SVG vector artwork for every stage, minimal clean typography, and glowing data conduits.
+"""
+import os
+import xml.sax.saxutils as saxutils
+
+def escape_xml(s: str) -> str:
+    return saxutils.escape(str(s))
+
+def generate_visual_svg() -> str:
+    w = 2500
+    h = 1450
+
+    svg = []
+    svg.append(f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="100%" height="100%" style="background-color: #070a12; font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, Helvetica, Arial, sans-serif;">')
+
+    # Definitions: Gradients, Glows, Glass effects, Filters
+    svg.append('''
+  <defs>
+    <!-- Background Grid -->
+    <pattern id="bg-grid" width="50" height="50" patternUnits="userSpaceOnUse">
+      <path d="M 50 0 L 0 0 0 50" fill="none" stroke="#0e1726" stroke-width="1.2"/>
+      <circle cx="50" cy="50" r="1.5" fill="#1e293b"/>
+    </pattern>
+
+    <!-- Glowing Ambient Radial Gradients -->
+    <radialGradient id="glow-cyan" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow-purple" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#a855f7" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#a855f7" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow-pink" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ec4899" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#ec4899" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow-amber" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow-emerald" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#10b981" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow-blue" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Card Background Gradient -->
+    <linearGradient id="card-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#131b2e" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#0a0f1d" stop-opacity="0.95"/>
+    </linearGradient>
+
+    <!-- Glass Highlights -->
+    <linearGradient id="glass-specular" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.12"/>
+      <stop offset="40%" stop-color="#ffffff" stop-opacity="0.02"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.3"/>
+    </linearGradient>
+
+    <!-- Card Shadows -->
+    <filter id="soft-shadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#000000" flood-opacity="0.6"/>
+    </filter>
+    <filter id="neon-glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Line Markers -->
+    <marker id="arrow-emerald" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#10b981"/>
+    </marker>
+    <marker id="arrow-purple" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#c084fc"/>
+    </marker>
+    <marker id="arrow-amber" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#fbbf24"/>
+    </marker>
+    <marker id="arrow-pink" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#f472b6"/>
+    </marker>
+    <marker id="arrow-cyan" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#38bdf8"/>
+    </marker>
+  </defs>
+''')
+
+    # Ambient Glow Orbs in Background
+    svg.append(f'<rect width="{w}" height="{h}" fill="#070a12" />')
+    svg.append(f'<rect width="{w}" height="{h}" fill="url(#bg-grid)" />')
+
+    # Radial ambient lights
+    svg.append('<circle cx="350" cy="350" r="350" fill="url(#glow-emerald)"/>')
+    svg.append('<circle cx="1250" cy="350" r="380" fill="url(#glow-purple)"/>')
+    svg.append('<circle cx="2150" cy="350" r="350" fill="url(#glow-amber)"/>')
+    svg.append('<circle cx="350" cy="1000" r="350" fill="url(#glow-pink)"/>')
+    svg.append('<circle cx="1250" cy="1000" r="350" fill="url(#glow-cyan)"/>')
+    svg.append('<circle cx="2150" cy="1000" r="380" fill="url(#glow-blue)"/>')
+
+    # =========================================================================
+    # HEADER: SLEEK MINIMAL TITLE & METRICS
+    # =========================================================================
+    svg.append('''
+  <g id="header" transform="translate(100, 45)">
+    <!-- Title -->
+    <text x="0" y="38" font-size="34" font-weight="900" fill="#ffffff" letter-spacing="1">
+      GOA<tspan fill="#38bdf8">ON</tspan><tspan fill="#a855f7">AUTO</tspan>
+      <tspan font-size="20" font-weight="400" fill="#64748b" dx="15">SYSTEM PIPELINE &amp; FLOW MAP</tspan>
+    </text>
+    <text x="0" y="68" font-size="14" font-weight="500" fill="#94a3b8">
+      Visual end-to-end architecture: from citizen document drops to fully submitted government certificates.
+    </text>
+
+    <!-- Top Flow Badges -->
+    <g transform="translate(1420, 15)">
+      <rect x="0" y="0" width="130" height="34" rx="17" fill="#10b981" fill-opacity="0.12" stroke="#10b981" stroke-width="1.2"/>
+      <text x="65" y="21" font-size="12" font-weight="700" fill="#10b981" text-anchor="middle">1. INGESTION</text>
+
+      <path d="M 140 17 L 160 17" stroke="#475569" stroke-width="2" marker-end="url(#arrow-emerald)"/>
+
+      <rect x="170" y="0" width="140" height="34" rx="17" fill="#a855f7" fill-opacity="0.12" stroke="#a855f7" stroke-width="1.2"/>
+      <text x="240" y="21" font-size="12" font-weight="700" fill="#c084fc" text-anchor="middle">2. GPU VISION</text>
+
+      <path d="M 320 17 L 340 17" stroke="#475569" stroke-width="2" marker-end="url(#arrow-purple)"/>
+
+      <rect x="350" y="0" width="150" height="34" rx="17" fill="#f59e0b" fill-opacity="0.12" stroke="#f59e0b" stroke-width="1.2"/>
+      <text x="425" y="21" font-size="12" font-weight="700" fill="#fbbf24" text-anchor="middle">3. AI CLASSIFIER</text>
+
+      <path d="M 510 17 L 530 17" stroke="#475569" stroke-width="2" marker-end="url(#arrow-amber)"/>
+
+      <rect x="540" y="0" width="150" height="34" rx="17" fill="#ec4899" fill-opacity="0.12" stroke="#ec4899" stroke-width="1.2"/>
+      <text x="615" y="21" font-size="12" font-weight="700" fill="#f472b6" text-anchor="middle">4. RAYLIB GUI</text>
+
+      <path d="M 700 17 L 720 17" stroke="#475569" stroke-width="2" marker-end="url(#arrow-pink)"/>
+
+      <rect x="730" y="0" width="140" height="34" rx="17" fill="#38bdf8" fill-opacity="0.12" stroke="#38bdf8" stroke-width="1.2"/>
+      <text x="800" y="21" font-size="12" font-weight="700" fill="#38bdf8" text-anchor="middle">5. PORTAL BOT</text>
+    </g>
+  </g>
+''')
+
+    # =========================================================================
+    # STATION CARDS BUILDER (ILLUSTRATION-RICH)
+    # =========================================================================
+    card_w = 680
+    card_h = 490
+
+    # -------------------------------------------------------------------------
+    # STATION 1: INGESTION & WATCHDOG (Emerald #10b981)
+    # x: 100, y: 140
+    # -------------------------------------------------------------------------
+    s1_x, s1_y = 100, 140
+    svg.append(f'''
+  <!-- STATION 1: INGESTION -->
+  <g id="station-1" transform="translate({s1_x}, {s1_y})">
+    <!-- Outer Card Frame -->
+    <rect width="{card_w}" height="{card_h}" rx="24" fill="url(#card-grad)" stroke="#10b981" stroke-width="2" filter="url(#soft-shadow)"/>
+    <rect width="{card_w}" height="{card_h}" rx="24" fill="url(#glass-specular)"/>
+
+    <!-- Header Badge -->
+    <rect x="28" y="24" width="38" height="38" rx="12" fill="#10b981" fill-opacity="0.2"/>
+    <text x="47" y="49" font-size="20" font-weight="900" fill="#10b981" text-anchor="middle">1</text>
+    <text x="80" y="44" font-size="22" font-weight="800" fill="#ffffff">Document Ingestion &amp; Watcher</text>
+    <text x="80" y="64" font-size="13" font-weight="500" fill="#10b981">Zero-click desktop folder intake &amp; debounced pipeline trigger</text>
+
+    <!-- ILLUSTRATION: Scanner, Incoming Folders & Documents -->
+    <g transform="translate(40, 95)">
+      <!-- Desk Base / Surface -->
+      <rect x="0" y="190" width="600" height="12" rx="6" fill="#1e293b"/>
+      
+      <!-- Scanner Body -->
+      <rect x="40" y="100" width="280" height="90" rx="14" fill="#0f172a" stroke="#334155" stroke-width="2"/>
+      <rect x="55" y="110" width="250" height="50" rx="8" fill="#1e293b"/>
+      <!-- Glowing Scanner Glass Bed -->
+      <rect x="65" y="115" width="230" height="40" rx="4" fill="#064e3b" stroke="#10b981" stroke-width="1.5"/>
+      <!-- Scanning Laser Beam -->
+      <line x1="140" y1="115" x2="140" y2="155" stroke="#34d399" stroke-width="3" filter="url(#neon-glow)"/>
+      <rect x="135" y="113" width="10" height="44" rx="2" fill="#6ee7b7" fill-opacity="0.4"/>
+      <!-- Scanner Status Lights -->
+      <circle cx="280" cy="172" r="4" fill="#10b981"/>
+      <circle cx="265" cy="172" r="4" fill="#38bdf8"/>
+      
+      <!-- Floating Input Documents -->
+      <!-- Document 1: Aadhaar Card Graphic -->
+      <g transform="translate(190, 20) rotate(8)">
+        <rect width="130" height="85" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#soft-shadow)"/>
+        <!-- Tricolor Header Bar -->
+        <rect x="0" y="0" width="130" height="8" rx="8" fill="#f97316"/>
+        <rect x="0" y="6" width="130" height="4" fill="#ffffff"/>
+        <rect x="0" y="10" width="130" height="4" fill="#16a34a"/>
+        <!-- Photo Box -->
+        <rect x="12" y="24" width="28" height="34" rx="4" fill="#e2e8f0"/>
+        <circle cx="26" cy="36" r="7" fill="#94a3b8"/>
+        <path d="M 16 54 Q 26 46 36 54 Z" fill="#94a3b8"/>
+        <!-- Text Lines -->
+        <line x1="48" y1="28" x2="115" y2="28" stroke="#0f172a" stroke-width="3"/>
+        <line x1="48" y1="36" x2="95" y2="36" stroke="#64748b" stroke-width="2"/>
+        <line x1="48" y1="44" x2="105" y2="44" stroke="#64748b" stroke-width="2"/>
+        <!-- 12-Digit Redacted UID -->
+        <rect x="22" y="66" width="86" height="12" rx="3" fill="#f1f5f9"/>
+        <text x="65" y="75" font-size="8" font-weight="800" fill="#0f172a" text-anchor="middle">XXXX XXXX 1234</text>
+        <!-- Mini QR Code Graphic -->
+        <rect x="94" y="24" width="24" height="24" rx="2" fill="#0f172a"/>
+        <rect x="97" y="27" width="6" height="6" fill="#ffffff"/>
+        <rect x="109" y="27" width="6" height="6" fill="#ffffff"/>
+        <rect x="97" y="39" width="6" height="6" fill="#ffffff"/>
+      </g>
+
+      <!-- Document 2: Birth Certificate / Legal Scan -->
+      <g transform="translate(60, 40) rotate(-6)">
+        <rect width="115" height="110" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5" filter="url(#soft-shadow)"/>
+        <!-- Official Crest Emblem Placeholder -->
+        <circle cx="57" cy="18" r="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1"/>
+        <text x="57" y="21" font-size="7" font-weight="900" fill="#64748b" text-anchor="middle">GOA</text>
+        <!-- Certificate Lines -->
+        <line x1="20" y1="36" x2="95" y2="36" stroke="#334155" stroke-width="2.5"/>
+        <line x1="25" y1="45" x2="90" y2="45" stroke="#94a3b8" stroke-width="1.5"/>
+        <line x1="20" y1="55" x2="95" y2="55" stroke="#cbd5e1" stroke-width="1.5"/>
+        <line x1="20" y1="65" x2="95" y2="65" stroke="#cbd5e1" stroke-width="1.5"/>
+        <line x1="20" y1="75" x2="80" y2="75" stroke="#cbd5e1" stroke-width="1.5"/>
+        <!-- Red Stamp Seal -->
+        <circle cx="85" cy="88" r="14" fill="#ef4444" fill-opacity="0.15" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="3,2"/>
+        <text x="85" y="91" font-size="7" font-weight="800" fill="#ef4444" text-anchor="middle">SEALED</text>
+      </g>
+
+      <!-- Windows Context Menu Pop-out Illustration -->
+      <g transform="translate(360, 45)" filter="url(#soft-shadow)">
+        <rect width="210" height="135" rx="8" fill="#0f172a" stroke="#10b981" stroke-width="1.5"/>
+        <rect x="0" y="0" width="210" height="26" rx="8" fill="#1e293b"/>
+        <text x="12" y="17" font-size="11" font-weight="700" fill="#e2e8f0">📁 Windows Context Menu</text>
+        
+        <!-- Menu Items -->
+        <rect x="8" y="32" width="194" height="22" rx="4" fill="#10b981" fill-opacity="0.18"/>
+        <text x="16" y="47" font-size="10.5" font-weight="700" fill="#34d399">▶ Process Dossier &amp; Declarations</text>
+        
+        <text x="16" y="70" font-size="10.5" font-weight="500" fill="#94a3b8">📄 Residence Declaration</text>
+        <text x="16" y="90" font-size="10.5" font-weight="500" fill="#94a3b8">📜 OBC Caste Declaration</text>
+        <text x="16" y="110" font-size="10.5" font-weight="500" fill="#94a3b8">🪄 AI Photo BG Remover</text>
+        <text x="16" y="128" font-size="10.5" font-weight="500" fill="#94a3b8">🦁 Auto-Fill GoaOnline Portal</text>
+      </g>
+    </g>
+
+    <!-- Key Tech Badges Footer -->
+    <g transform="translate(32, 420)">
+      <rect x="0" y="0" width="170" height="34" rx="8" fill="#1e293b" stroke="#334155"/>
+      <text x="85" y="21" font-size="12" font-weight="600" fill="#e2e8f0" text-anchor="middle">⚡ Chokidar Watcher</text>
+
+      <rect x="185" y="0" width="160" height="34" rx="8" fill="#1e293b" stroke="#334155"/>
+      <text x="265" y="21" font-size="12" font-weight="600" fill="#e2e8f0" text-anchor="middle">⏱️ 800ms Debounce</text>
+
+      <rect x="360" y="0" width="170" height="34" rx="8" fill="#1e293b" stroke="#334155"/>
+      <text x="445" y="21" font-size="12" font-weight="600" fill="#e2e8f0" text-anchor="middle">🔄 DFS Folder Buffer</text>
+    </g>
+  </g>
+''')
+
+    # -------------------------------------------------------------------------
+    # STATION 2: GPU VISION & AI DAEMON (Purple #a855f7)
+    # x: 910, y: 140
+    # -------------------------------------------------------------------------
+    s2_x, s2_y = 910, 140
+    svg.append(f'''
+  <!-- STATION 2: GPU VISION & AI DAEMON -->
+  <g id="station-2" transform="translate({s2_x}, {s2_y})">
+    <rect width="{card_w}" height="{card_h}" rx="24" fill="url(#card-grad)" stroke="#a855f7" stroke-width="2" filter="url(#soft-shadow)"/>
+    <rect width="{card_w}" height="{card_h}" rx="24" fill="url(#glass-specular)"/>
+
+    <!-- Header Badge -->
+    <rect x="28" y="24" width="38" height="38" rx="12" fill="#a855f7" fill-opacity="0.2"/>
+    <text x="47" y="49" font-size="20" font-weight="900" fill="#a855f7" text-anchor="middle">2</text>
+    <text x="80" y="44" font-size="22" font-weight="800" fill="#ffffff">GPU Vision &amp; Neural Worker</text>
+    <text x="80" y="64" font-size="13" font-weight="500" fill="#c084fc">Persistent CUDA VRAM daemon: CRAFT OCR &amp; Aadhaar QR decompression</text>
+
+    <!-- ILLUSTRATION: Silicon Chip, Neural Connections, QR Unpack -->
+    <g transform="translate(40, 95)">
+      <!-- Motherboard / PCB Circuit Traces -->
+      <path d="M 40 100 L 140 100 L 170 130" stroke="#6b21a8" stroke-width="2" fill="none" stroke-dasharray="4,4"/>
+      <path d="M 460 100 L 360 100 L 330 130" stroke="#6b21a8" stroke-width="2" fill="none" stroke-dasharray="4,4"/>
+      <circle cx="40" cy="100" r="4" fill="#a855f7"/>
+      <circle cx="460" cy="100" r="4" fill="#a855f7"/>
+
+      <!-- Central NVIDIA GPU Die Package -->
+      <g transform="translate(170, 30)" filter="url(#soft-shadow)">
+        <!-- Outer Silicon Package -->
+        <rect width="160" height="160" rx="16" fill="#18112e" stroke="#a855f7" stroke-width="2.5"/>
+        <rect x="15" y="15" width="130" height="130" rx="10" fill="#0d081f" stroke="#c084fc" stroke-width="1.2"/>
+        
+        <!-- Glowing Core -->
+        <rect x="35" y="35" width="90" height="90" rx="8" fill="#3b0764" stroke="#e879f9" stroke-width="2" filter="url(#neon-glow)"/>
+        <text x="80" y="75" font-size="15" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="1">RTX 4060</text>
+        <text x="80" y="93" font-size="11" font-weight="800" fill="#34d399" text-anchor="middle">CUDA 12.4</text>
+        <text x="80" y="110" font-size="9" font-weight="600" fill="#e879f9" text-anchor="middle">PORT 50051</text>
+        
+        <!-- Gold Micro-Pins around chip -->
+        <line x1="20" y1="0" x2="20" y2="-10" stroke="#fbbf24" stroke-width="2"/>
+        <line x1="50" y1="0" x2="50" y2="-10" stroke="#fbbf24" stroke-width="2"/>
+        <line x1="80" y1="0" x2="80" y2="-10" stroke="#fbbf24" stroke-width="2"/>
+        <line x1="110" y1="0" x2="110" y2="-10" stroke="#fbbf24" stroke-width="2"/>
+        <line x1="140" y1="0" x2="140" y2="-10" stroke="#fbbf24" stroke-width="2"/>
+
+        <line x1="20" y1="160" x2="20" y2="170" stroke="#fbbf24" stroke-width="2"/>
+        <line x1="50" y1="160" x2="50" y2="170" stroke="#fbbf24" stroke-width="2"/>
+        <line x1="80" y1="160" x2="80" y2="170" stroke="#fbbf24" stroke-width="2"/>
+        <line x1="110" y1="160" x2="110" y2="170" stroke="#fbbf24" stroke-width="2"/>
+        <line x1="140" y1="160" x2="140" y2="170" stroke="#fbbf24" stroke-width="2"/>
+      </g>
+
+      <!-- Left Visual: CRAFT OCR Text Detection Mesh -->
+      <g transform="translate(10, 40)">
+        <rect width="135" height="140" rx="10" fill="#0f172a" stroke="#475569" stroke-width="1.2"/>
+        <text x="12" y="24" font-size="11" font-weight="700" fill="#c084fc">EasyOCR CRAFT</text>
+        
+        <!-- Bounding Box Annotations over text -->
+        <rect x="12" y="38" width="65" height="18" rx="2" fill="#a855f7" fill-opacity="0.15" stroke="#a855f7" stroke-width="1.2"/>
+        <text x="16" y="51" font-size="9" font-family="monospace" fill="#e2e8f0">NAME: AMIT</text>
+
+        <rect x="12" y="64" width="85" height="18" rx="2" fill="#a855f7" fill-opacity="0.15" stroke="#a855f7" stroke-width="1.2"/>
+        <text x="16" y="77" font-size="9" font-family="monospace" fill="#e2e8f0">DOB: 14/05/1996</text>
+
+        <rect x="12" y="90" width="110" height="18" rx="2" fill="#a855f7" fill-opacity="0.15" stroke="#a855f7" stroke-width="1.2"/>
+        <text x="16" y="103" font-size="9" font-family="monospace" fill="#e2e8f0">TALUKA: BARDEZ</text>
+
+        <!-- Confidence Pill -->
+        <rect x="12" y="116" width="70" height="14" rx="4" fill="#059669"/>
+        <text x="47" y="127" font-size="8.5" font-weight="800" fill="#ffffff" text-anchor="middle">98.4% CONF</text>
+      </g>
+
+      <!-- Right Visual: Aadhaar QR Zlib BigInt Decompressor -->
+      <g transform="translate(365, 40)">
+        <rect width="185" height="140" rx="10" fill="#0f172a" stroke="#475569" stroke-width="1.2"/>
+        <text x="12" y="24" font-size="11" font-weight="700" fill="#38bdf8">Aadhaar QR Decoder</text>
+        
+        <!-- Pyzbar Decode -> Zlib -->
+        <g transform="translate(12, 36)">
+          <rect width="36" height="36" rx="4" fill="#ffffff"/>
+          <!-- Barcode matrix -->
+          <rect x="4" y="4" width="8" height="8" fill="#000000"/>
+          <rect x="24" y="4" width="8" height="8" fill="#000000"/>
+          <rect x="4" y="24" width="8" height="8" fill="#000000"/>
+          <rect x="14" y="14" width="8" height="8" fill="#000000"/>
+
+          <path d="M 44 18 L 65 18" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrow-cyan)"/>
+          
+          <rect x="75" y="0" width="85" height="36" rx="4" fill="#1e293b" stroke="#38bdf8" stroke-width="1"/>
+          <text x="117" y="15" font-size="8.5" font-weight="700" fill="#38bdf8" text-anchor="middle">ZLIB DECODE</text>
+          <text x="117" y="28" font-size="7.5" font-weight="600" fill="#94a3b8" text-anchor="middle">BigInt BitStream</text>
+        </g>
+
+        <!-- Zero-Error Extracted Fields -->
+        <rect x="12" y="82" width="160" height="48" rx="4" fill="#022c22" stroke="#10b981" stroke-width="1"/>
+        <text x="18" y="97" font-size="9" font-weight="800" fill="#34d399">✓ 100% Deterministic Extraction</text>
+        <text x="18" y="110" font-size="8.5" font-weight="500" fill="#cbd5e1">Name, DOB, Gender, CareOf, Addr</text>
+        <text x="18" y="123" font-size="8" font-weight="600" fill="#a7f3d0">Verhoeff Mod-10 Checksum: VALID</text>
+      </g>
+    </g>
+
+    <!-- Key Tech Badges Footer -->
+    <g transform="translate(32, 420)">
+      <rect x="0" y="0" width="180" height="34" rx="8" fill="#1e293b" stroke="#334155"/>
+      <text x="90" y="21" font-size="12" font-weight="600" fill="#e2e8f0" text-anchor="middle">⚡ Zero Cold-Start VRAM</text>
+
+      <rect x="195" y="0" width="180" height="34" rx="8" fill="#1e293b" stroke="#334155"/>
+      <text x="285" y="21" font-size="12" font-weight="600" fill="#e2e8f0" text-anchor="middle">🔍 Haar &amp; Sig Detectors</text>
+
+      <rect x="390" y="0" width="170" height="34" rx="8" fill="#1e293b" stroke="#334155"/>
+      <text x="475" y="21" font-size="12" font-weight="600" fill="#e2e8f0" text-anchor="middle">🪄 U2-Net Matting</text>
+    </g>
+  </g>
+''')
+
+    # -------------------------------------------------------------------------
+    # STATION 3: CLASSIFIER & DOSSIER SYNTHESIS (Amber #f59e0b)
+    # x: 1720, y: 140
+    # -------------------------------------------------------------------------
+    s3_x, s3_y = 1720, 140
+    svg.append(f'''
+  <!-- STATION 3: CLASSIFIER & DOSSIER -->
+  <g id="station-3" transform="translate({s3_x}, {s3_y})">
+    <rect width="{card_w}" height="{card_h}" rx="24" fill="url(#card-grad)" stroke="#f59e0b" stroke-width="2" filter="url(#soft-shadow)"/>
+    <rect width="{card_w}" height="{card_h}" rx="24" fill="url(#glass-specular)"/>
+
+    <!-- Header Badge -->
+    <rect x="28" y="24" width="38" height="38" rx="12" fill="#f59e0b" fill-opacity="0.2"/>
+    <text x="47" y="49" font-size="20" font-weight="900" fill="#f59e0b" text-anchor="middle">3</text>
+    <text x="80" y="44" font-size="22" font-weight="800" fill="#ffffff">Document Classifier &amp; Dossier</text>
+    <text x="80" y="64" font-size="13" font-weight="500" fill="#fbbf24">15+ certificate rules &amp; unified Single Source of Truth</text>
+
+    <!-- ILLUSTRATION: Classification Sorter & Golden Dossier Card -->
+    <g transform="translate(40, 95)">
+      <!-- Left: Multi-Category Sorting Trays -->
+      <g transform="translate(10, 20)">
+        <rect width="180" height="180" rx="12" fill="#0f172a" stroke="#334155" stroke-width="1.2"/>
+        <text x="16" y="26" font-size="12" font-weight="700" fill="#fbbf24">Classified Document Store</text>
+
+        <!-- Category Item 1 -->
+        <g transform="translate(12, 38)">
+          <rect width="156" height="24" rx="4" fill="#1e293b"/>
+          <text x="8" y="16" font-size="10" font-weight="700" fill="#10b981">🆔 Aadhaar Card</text>
+          <text x="146" y="16" font-size="9" font-weight="600" fill="#64748b" text-anchor="end">.pdf</text>
+        </g>
+        <!-- Category Item 2 -->
+        <g transform="translate(12, 66)">
+          <rect width="156" height="24" rx="4" fill="#1e293b"/>
+          <text x="8" y="16" font-size="10" font-weight="700" fill="#38bdf8">👶 Birth Certificate</text>
+          <text x="146" y="16" font-size="9" font-weight="600" fill="#64748b" text-anchor="end">.jpg</text>
+        </g>
+        <!-- Category Item 3 -->
+        <g transform="translate(12, 94)">
+          <rect width="156" height="24" rx="4" fill="#1e293b"/>
+          <text x="8" y="16" font-size="10" font-weight="700" fill="#f59e0b">🏛️ Talathi Residence</text>
+          <text x="146" y="16" font-size="9" font-weight="600" fill="#64748b" text-anchor="end">.pdf</text>
+        </g>
+        <!-- Category Item 4 -->
+        <g transform="translate(12, 122)">
+          <rect width="156" height="24" rx="4" fill="#1e293b"/>
+          <text x="8" y="16" font-size="10" font-weight="700" fill="#c084fc">🎓 School Leaving / 15Y</text>
+          <text x="146" y="16" font-size="9" font-weight="600" fill="#64748b" text-anchor="end">.pdf</text>
+        </g>
+        <!-- Category Item 5 -->
+        <g transform="translate(12, 150)">
+          <rect width="156" height="22" rx="4" fill="#1e293b"/>
+          <text x="8" y="15" font-size="9.5" font-weight="700" fill="#ec4899">💡 Electricity / Water Bills</text>
+        </g>
+      </g>
+
+      <!-- Center Flow Arrow -->
+      <g transform="translate(205, 100)">
+        <path d="M 0 0 L 35 0" stroke="#f59e0b" stroke-width="3" marker-end="url(#arrow-amber)"/>
+        <text x="18" y="-8" font-size="9" font-weight="800" fill="#fbbf24" text-anchor="middle">SYNTHESIZE</text>
+      </g>
+
+      <!-- Right: Master Citizen Dossier Card (Golden Highlight) -->
+      <g transform="translate(260, 10)" filter="url(#soft-shadow)">
+        <rect width="320" height="200" rx="14" fill="#1c1917" stroke="#f59e0b" stroke-width="2"/>
+        <rect width="320" height="34" rx="14" fill="#f59e0b" fill-opacity="0.18"/>
+        
+        <!-- Header -->
+        <text x="16" y="23" font-size="13" font-weight="800" fill="#fef3c7">applicant_dossier.json</text>
+        <rect x="230" y="8" width="76" height="18" rx="9" fill="#059669"/>
+        <text x="268" y="21" font-size="9" font-weight="800" fill="#ffffff" text-anchor="middle">VERIFIED ✓</text>
+
+        <!-- Dossier Fields Breakdown -->
+        <g transform="translate(16, 46)">
+          <text x="0" y="14" font-size="10.5" font-weight="700" fill="#fbbf24">Applicant:</text>
+          <text x="75" y="14" font-size="10.5" font-weight="500" fill="#f8fafc">Amit S. Naik (Age 28, Male)</text>
+
+          <text x="0" y="34" font-size="10.5" font-weight="700" fill="#fbbf24">UID Valid:</text>
+          <text x="75" y="34" font-size="10.5" font-weight="500" fill="#34d399">12-Digit Verhoeff Validated</text>
+
+          <text x="0" y="54" font-size="10.5" font-weight="700" fill="#fbbf24">Residence:</text>
+          <text x="75" y="54" font-size="10.5" font-weight="500" fill="#f8fafc">H.No 120/A, Bardez, Goa</text>
+
+          <text x="0" y="74" font-size="10.5" font-weight="700" fill="#fbbf24">Stay Years:</text>
+          <text x="75" y="74" font-size="10.5" font-weight="500" fill="#f8fafc">15+ Years (Continuous)</text>
+
+          <text x="0" y="94" font-size="10.5" font-weight="700" fill="#fbbf24">Assets:</text>
+          <text x="75" y="94" font-size="10.5" font-weight="500" fill="#93c5fd">photo.jpg, signature.png</text>
+
+          <text x="0" y="114" font-size="10.5" font-weight="700" fill="#fbbf24">Mode:</text>
+          <text x="75" y="114" font-size="10.5" font-weight="500" fill="#f472b6">Self &amp; Child Supported</text>
+        </g>
+      </g>
+    </g>
+
+    <!-- Key Tech Badges Footer -->
+    <g transform="translate(32, 420)">
+      <rect x="0" y="0" width="170" height="34" rx="8" fill="#1e293b" stroke="#334155"/>
+      <text x="85" y="21" font-size="12" font-weight="600" fill="#e2e8f0" text-anchor="middle">📊 Lexical Normalizer</text>
+
+      <rect x="185" y="0" width="180" height="34" rx="8" fill="#1e293b" stroke="#334155"/>
+      <text x="275" y="21" font-size="12" font-weight="600" fill="#e2e8f0" text-anchor="middle">⚖️ Weighted Scoring</text>
+
+      <rect x="380" y="0" width="180" height="34" rx="8" fill="#1e293b" stroke="#334155"/>
+      <text x="470" y="21" font-size="12" font-weight="600" fill="#e2e8f0" text-anchor="middle">🛡️ Verhoeff Mod-10</text>
+    </g>
+  </g>
+''')
+
+    # -------------------------------------------------------------------------
+    # STATION 4: RAYLIB DESKTOP STUDIO (Pink #ec4899)
+    # x: 100, y: 730
+    # -------------------------------------------------------------------------
+    s4_x, s4_y = 100, 730
+    svg.append(f'''
+  <!-- STATION 4: RAYLIB STUDIO -->
+  <g id="station-4" transform="translate({s4_x}, {s4_y})">
+    <rect width="{card_w}" height="{card_h}" rx="24" fill="url(#card-grad)" stroke="#ec4899" stroke-width="2" filter="url(#soft-shadow)"/>
+    <rect width="{card_w}" height="{card_h}" rx="24" fill="url(#glass-specular)"/>
+
+    <!-- Header Badge -->
+    <rect x="28" y="24" width="38" height="38" rx="12" fill="#ec4899" fill-opacity="0.2"/>
+    <text x="47" y="49" font-size="20" font-weight="900" fill="#ec4899" text-anchor="middle">4</text>
+    <text x="80" y="44" font-size="22" font-weight="800" fill="#ffffff">Raylib High-DPI Desktop Studio</text>
+    <text x="80" y="64" font-size="13" font-weight="500" fill="#f472b6">Hardware GUI, live signature size modifier &amp; XeLaTeX legal declarations</text>
+
+    <!-- ILLUSTRATION: Desktop Window, Live Signature Scaler, Dracula UI -->
+    <g transform="translate(40, 95)">
+      <!-- Raylib Window Frame -->
+      <g filter="url(#soft-shadow)">
+        <rect width="520" height="210" rx="12" fill="#282a36" stroke="#6272a4" stroke-width="1.5"/>
+        <!-- Window Titlebar -->
+        <rect width="520" height="30" rx="12" fill="#21222c"/>
+        <circle cx="20" cy="15" r="5" fill="#ff5555"/>
+        <circle cx="36" cy="15" r="5" fill="#f1fa8c"/>
+        <circle cx="52" cy="15" r="5" fill="#50fa7b"/>
+        <text x="80" y="20" font-size="11" font-weight="700" fill="#bd93f9">🏛️ Residence Declaration Studio (60 FPS Native)</text>
+        
+        <!-- Left Side: Form Input Fields -->
+        <g transform="translate(20, 45)">
+          <text x="0" y="14" font-size="10.5" font-weight="700" fill="#bd93f9">Full Name:</text>
+          <rect x="75" y="0" width="180" height="24" rx="4" fill="#44475a" stroke="#8be9fd" stroke-width="1.2"/>
+          <text x="85" y="16" font-size="11" font-family="monospace" fill="#f8f8f2">Amit S. Naik|</text>
+
+          <text x="0" y="44" font-size="10.5" font-weight="700" fill="#bd93f9">DOB / Age:</text>
+          <rect x="75" y="30" width="180" height="24" rx="4" fill="#44475a" stroke="#6272a4" stroke-width="1"/>
+          <text x="85" y="46" font-size="11" font-family="monospace" fill="#f8f8f2">14/05/1996 (Age: 28)</text>
+
+          <text x="0" y="74" font-size="10.5" font-weight="700" fill="#bd93f9">Taluka:</text>
+          <rect x="75" y="60" width="180" height="24" rx="4" fill="#44475a" stroke="#6272a4" stroke-width="1"/>
+          <text x="85" y="76" font-size="11" font-family="monospace" fill="#f8f8f2">Bardez</text>
+
+          <!-- Big Action Button -->
+          <rect x="0" y="105" width="255" height="34" rx="6" fill="#bd93f9"/>
+          <text x="127" y="127" font-size="12" font-weight="800" fill="#282a36" text-anchor="middle">⚡ COMPILE &amp; SYNC PDF</text>
+        </g>
+
+        <!-- Right Side: Signature Scaler & Photo Preview Card -->
+        <g transform="translate(300, 42)">
+          <!-- Photo Card -->
+          <rect width="60" height="75" rx="4" fill="#44475a" stroke="#6272a4"/>
+          <circle cx="30" cy="28" r="14" fill="#6272a4"/>
+          <path d="M 12 65 Q 30 48 48 65 Z" fill="#6272a4"/>
+          <text x="30" y="85" font-size="8.5" font-weight="700" fill="#f8f8f2" text-anchor="middle">Photo</text>
+
+          <!-- Signature Card with Dynamic Live Scaler -->
+          <g transform="translate(75, 0)">
+            <rect width="125" height="55" rx="4" fill="#1e1f29" stroke="#50fa7b" stroke-width="1.2"/>
+            <!-- Waveform / Signature Ink Line -->
+            <path d="M 15 36 Q 30 15, 45 32 T 75 22 T 95 35 T 115 28" fill="none" stroke="#8be9fd" stroke-width="2"/>
+            <text x="62" y="68" font-size="8.5" font-weight="700" fill="#50fa7b" text-anchor="middle">Signature Asset</text>
+
+            <!-- Signature Size Modifier Bar -->
+            <g transform="translate(-10, 80)">
+              <text x="0" y="14" font-size="10" font-weight="700" fill="#f8f8f2">Size:</text>
+              <rect x="30" y="0" width="20" height="18" rx="3" fill="#44475a"/>
+              <text x="40" y="13" font-size="11" font-weight="800" fill="#8be9fd" text-anchor="middle">−</text>
+
+              <text x="68" y="13" font-size="10" font-weight="800" fill="#8be9fd" text-anchor="middle">100%</text>
+
+              <rect x="85" y="0" width="20" height="18" rx="3" fill="#44475a"/>
+              <text x="95" y="13" font-size="11" font-weight="800" fill="#50fa7b" text-anchor="middle">+</text>
+
+              <rect x="110" y="0" width="24" height="18" rx="3" fill="#44475a"/>
+              <text x="122" y="13" font-size="10" font-weight="700" fill="#f1fa8c" text-anchor="middle">↺</text>
+            </g>
+          </g>
+        </g>
+      </g>
+    </g>
+
+    <!-- Key Tech Badges Footer -->
+    <g transform="translate(32, 420)">
+      <rect x="0" y="0" width="170" height="34" rx="8" fill="#1e293b" stroke="#334155"/>
+      <text x="85" y="21" font-size="12" font-weight="600" fill="#e2e8f0" text-anchor="middle">🎨 Dracula System</text>
+
+      <rect x="185" y="0" width="180" height="34" rx="8" fill="#1e293b" stroke="#334155"/>
+      <text x="275" y="21" font-size="12" font-weight="600" fill="#e2e8f0" text-anchor="middle">⌨️ Ctrl+Arrow Jumping</text>
+
+      <rect x="380" y="0" width="180" height="34" rx="8" fill="#1e293b" stroke="#334155"/>
+      <text x="470" y="21" font-size="12" font-weight="600" fill="#e2e8f0" text-anchor="middle">📐 50%-240% Sizing</text>
+    </g>
+  </g>
+''')
+
+    # -------------------------------------------------------------------------
+    # STATION 5: XELATEX LEGAL COMPILATION PIPELINE (Emerald / Cyan #06b6d4)
+    # x: 910, y: 730
+    # -------------------------------------------------------------------------
+    s5_x, s5_y = 910, 730
+    svg.append(f'''
+  <!-- STATION 5: LATEX LEGAL PIPELINE -->
+  <g id="station-5" transform="translate({s5_x}, {s5_y})">
+    <rect width="{card_w}" height="{card_h}" rx="24" fill="url(#card-grad)" stroke="#06b6d4" stroke-width="2" filter="url(#soft-shadow)"/>
+    <rect width="{card_w}" height="{card_h}" rx="24" fill="url(#glass-specular)"/>
+
+    <!-- Header Badge -->
+    <rect x="28" y="24" width="38" height="38" rx="12" fill="#06b6d4" fill-opacity="0.2"/>
+    <text x="47" y="49" font-size="20" font-weight="900" fill="#06b6d4" text-anchor="middle">5</text>
+    <text x="80" y="44" font-size="22" font-weight="800" fill="#ffffff">XeLaTeX Legal Synthesis</text>
+    <text x="80" y="64" font-size="13" font-weight="500" fill="#38bdf8">Publication-grade PDF compilation with embedded biometric assets</text>
+
+    <!-- ILLUSTRATION: Typesetting Engine & Signed Declaration Document -->
+    <g transform="translate(40, 95)">
+      <!-- Left: TeX Source Synthesis Engine -->
+      <g transform="translate(10, 20)">
+        <rect width="210" height="180" rx="12" fill="#0f172a" stroke="#334155" stroke-width="1.2"/>
+        <rect x="0" y="0" width="210" height="28" rx="12" fill="#1e293b"/>
+        <text x="14" y="19" font-size="11" font-weight="700" fill="#38bdf8">residence_declaration.tex</text>
+
+        <!-- Syntax lines -->
+        <g transform="translate(14, 40)">
+          <text x="0" y="14" font-size="9.5" font-family="monospace" fill="#c084fc">\\documentclass&#123;article&#125;</text>
+          <text x="0" y="32" font-size="9.5" font-family="monospace" fill="#38bdf8">\\usepackage&#123;graphicx&#125;</text>
+          <text x="0" y="52" font-size="9.5" font-family="monospace" fill="#facc15">\\begin&#123;document&#125;</text>
+          <text x="0" y="70" font-size="9.5" font-family="monospace" fill="#94a3b8">\\textbf&#123;FORM 1: RESIDENCE&#125;</text>
+          <text x="0" y="90" font-size="9.5" font-family="monospace" fill="#10b981">\\includegraphics[w=3.2cm]&#123;sig&#125;</text>
+          <text x="0" y="110" font-size="9.5" font-family="monospace" fill="#facc15">\\end&#123;document&#125;</text>
+        </g>
+      </g>
+
+      <!-- Center Compiler Pipe -->
+      <g transform="translate(235, 95)">
+        <rect width="65" height="34" rx="6" fill="#0284c7" stroke="#38bdf8"/>
+        <text x="32" y="17" font-size="9" font-weight="800" fill="#ffffff" text-anchor="middle">XELATEX</text>
+        <text x="32" y="28" font-size="8" font-weight="600" fill="#e0f2fe" text-anchor="middle">1.2s Build</text>
+        <path d="M 68 17 L 85 17" stroke="#38bdf8" stroke-width="2.5" marker-end="url(#arrow-cyan)"/>
+      </g>
+
+      <!-- Right: Official Sealed Legal PDF Certificate Output -->
+      <g transform="translate(345, 10)" filter="url(#soft-shadow)">
+        <rect width="180" height="210" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+        
+        <!-- Header Emblem -->
+        <circle cx="90" cy="22" r="10" fill="#f1f5f9" stroke="#64748b" stroke-width="1"/>
+        <text x="90" y="25" font-size="8" font-weight="900" fill="#334155" text-anchor="middle">GOA</text>
+        <text x="90" y="44" font-size="9" font-weight="900" fill="#0f172a" text-anchor="middle">GOVERNMENT OF GOA</text>
+        <text x="90" y="55" font-size="7.5" font-weight="600" fill="#475569" text-anchor="middle">SELF RESIDENCE DECLARATION</text>
+
+        <!-- Passport Photo Slot in PDF -->
+        <rect x="130" y="20" width="36" height="46" rx="2" fill="#e2e8f0" stroke="#000000" stroke-width="0.8"/>
+        <circle cx="148" cy="38" r="8" fill="#94a3b8"/>
+
+        <!-- Text Lines -->
+        <line x1="20" y1="72" x2="160" y2="72" stroke="#64748b" stroke-width="1.5"/>
+        <line x1="20" y1="84" x2="160" y2="84" stroke="#94a3b8" stroke-width="1"/>
+        <line x1="20" y1="96" x2="160" y2="96" stroke="#94a3b8" stroke-width="1"/>
+        <line x1="20" y1="108" x2="140" y2="108" stroke="#94a3b8" stroke-width="1"/>
+
+        <!-- Scaled Signature Placement in PDF -->
+        <g transform="translate(100, 130)">
+          <path d="M 5 20 Q 20 8, 30 18 T 50 14 T 65 22" fill="none" stroke="#0f172a" stroke-width="1.8"/>
+          <line x1="0" y1="26" x2="70" y2="26" stroke="#000000" stroke-width="1"/>
+          <text x="35" y="36" font-size="7" font-weight="700" fill="#0f172a" text-anchor="middle">Applicant Signature</text>
+        </g>
+
+        <!-- Official Red Wax Seal & Ribbon Graphic -->
+        <g transform="translate(30, 150)">
+          <!-- Ribbon tails -->
+          <polygon points="12,18 20,38 12,34 4,38" fill="#dc2626"/>
+          <polygon points="24,18 32,38 24,34 16,38" fill="#b91c1c"/>
+          <!-- Seal Circle -->
+          <circle cx="18" cy="16" r="14" fill="#dc2626" stroke="#991b1b" stroke-width="1.5"/>
+          <circle cx="18" cy="16" r="10" fill="none" stroke="#fca5a5" stroke-width="0.8" stroke-dasharray="2,2"/>
+          <text x="18" y="19" font-size="6.5" font-weight="900" fill="#ffffff" text-anchor="middle">LEGAL</text>
+        </g>
+      </g>
+    </g>
+
+    <!-- Key Tech Badges Footer -->
+    <g transform="translate(32, 420)">
+      <rect x="0" y="0" width="170" height="34" rx="8" fill="#1e293b" stroke="#334155"/>
+      <text x="85" y="21" font-size="12" font-weight="600" fill="#e2e8f0" text-anchor="middle">📄 XeLaTeX / pdfTeX</text>
+
+      <rect x="185" y="0" width="180" height="34" rx="8" fill="#1e293b" stroke="#334155"/>
+      <text x="275" y="21" font-size="12" font-weight="600" fill="#e2e8f0" text-anchor="middle">🔏 Special Char Escape</text>
+
+      <rect x="380" y="0" width="180" height="34" rx="8" fill="#1e293b" stroke="#334155"/>
+      <text x="470" y="21" font-size="12" font-weight="600" fill="#e2e8f0" text-anchor="middle">🖨️ Print-Ready 300 DPI</text>
+    </g>
+  </g>
+''')
+
+    # -------------------------------------------------------------------------
+    # STATION 6: BRAVE & PLAYWRIGHT BROWSER BOT (Blue #3b82f6)
+    # x: 1720, y: 730
+    # -------------------------------------------------------------------------
+    s6_x, s6_y = 1720, 730
+    svg.append(f'''
+  <!-- STATION 6: BRAVE PORTAL BOT -->
+  <g id="station-6" transform="translate({s6_x}, {s6_y})">
+    <rect width="{card_w}" height="{card_h}" rx="24" fill="url(#card-grad)" stroke="#3b82f6" stroke-width="2" filter="url(#soft-shadow)"/>
+    <rect width="{card_w}" height="{card_h}" rx="24" fill="url(#glass-specular)"/>
+
+    <!-- Header Badge -->
+    <rect x="28" y="24" width="38" height="38" rx="12" fill="#3b82f6" fill-opacity="0.2"/>
+    <text x="47" y="49" font-size="20" font-weight="900" fill="#3b82f6" text-anchor="middle">6</text>
+    <text x="80" y="44" font-size="22" font-weight="800" fill="#ffffff">Brave &amp; Playwright Portal Bot</text>
+    <text x="80" y="64" font-size="13" font-weight="500" fill="#60a5fa">WebForms __doPostBack bridge &amp; 59-control Screen 1-2 auto-filler</text>
+
+    <!-- ILLUSTRATION: Browser Window with Auto-Filled Government Portal Form -->
+    <g transform="translate(40, 95)">
+      <!-- Browser Window Frame -->
+      <g filter="url(#soft-shadow)">
+        <rect width="520" height="210" rx="12" fill="#0f172a" stroke="#2563eb" stroke-width="1.8"/>
+        <!-- Browser Top Bar -->
+        <rect width="520" height="36" rx="12" fill="#1e293b"/>
+        <circle cx="20" cy="18" r="5" fill="#ef4444"/>
+        <circle cx="36" cy="18" r="5" fill="#eab308"/>
+        <circle cx="52" cy="18" r="5" fill="#22c55e"/>
+
+        <!-- URL Address Bar -->
+        <rect x="75" y="8" width="380" height="20" rx="10" fill="#090d16" stroke="#475569" stroke-width="1"/>
+        <text x="90" y="22" font-size="10" font-family="monospace" fill="#38bdf8">🔒 services.goaonline.gov.in/GS/REV05</text>
+        <!-- Sandboxed Badge -->
+        <rect x="465" y="8" width="45" height="20" rx="4" fill="#059669"/>
+        <text x="487" y="21" font-size="8.5" font-weight="800" fill="#ffffff" text-anchor="middle">SANDBOX</text>
+
+        <!-- WebForms Content Area -->
+        <g transform="translate(20, 50)">
+          <!-- Citizen Greeting Bar -->
+          <rect width="480" height="22" rx="4" fill="#1e293b"/>
+          <text x="12" y="15" font-size="10" font-weight="700" fill="#facc15">🏛️ Citizen Services: Revenue Department (REV05 - Residence Certificate)</text>
+
+          <!-- Form Fields Simulation Grid -->
+          <g transform="translate(0, 32)">
+            <!-- Field 1: Mode Selectors -->
+            <circle cx="10" cy="10" r="5" fill="#3b82f6"/>
+            <text x="22" y="14" font-size="10" font-weight="700" fill="#e2e8f0">Self Application (#id6a)</text>
+            <circle cx="160" cy="10" r="5" fill="none" stroke="#64748b"/>
+            <text x="172" y="14" font-size="10" font-weight="500" fill="#94a3b8">Child / Relative (#id6b)</text>
+
+            <!-- Field 2: Aadhaar Number with Verhoeff validation -->
+            <rect x="0" y="28" width="225" height="26" rx="4" fill="#1e293b" stroke="#10b981" stroke-width="1.2"/>
+            <text x="10" y="45" font-size="10" font-family="monospace" fill="#ffffff">UID: 5482 1928 3041 ✓</text>
+
+            <!-- Field 3: Cascading AJAX Dropdowns -->
+            <rect x="240" y="28" width="240" height="26" rx="4" fill="#1e293b" stroke="#3b82f6" stroke-width="1.2"/>
+            <text x="250" y="45" font-size="10" font-family="monospace" fill="#93c5fd">Taluka: Bardez (AJAX OK)</text>
+
+            <!-- Field 4: Address Modal Trigger & Confirmation -->
+            <rect x="0" y="65" width="225" height="28" rx="4" fill="#1e1b4b" stroke="#818cf8" stroke-width="1"/>
+            <text x="112" y="83" font-size="10" font-weight="700" fill="#c7d2fe" text-anchor="middle">🏡 Address Modal Synced (#id4f)</text>
+
+            <!-- Playwright Lightning Auto-Fill Cursor -->
+            <g transform="translate(240, 65)">
+              <rect width="240" height="28" rx="4" fill="#047857"/>
+              <text x="120" y="83" font-size="10.5" font-weight="800" fill="#ffffff" text-anchor="middle">⚡ PLAYWRIGHT DISPATCHED</text>
+            </g>
+          </g>
+        </g>
+      </g>
+    </g>
+
+    <!-- Key Tech Badges Footer -->
+    <g transform="translate(32, 420)">
+      <rect x="0" y="0" width="170" height="34" rx="8" fill="#1e293b" stroke="#334155"/>
+      <text x="85" y="21" font-size="12" font-weight="600" fill="#e2e8f0" text-anchor="middle">🦁 Persistent Profile</text>
+
+      <rect x="185" y="0" width="180" height="34" rx="8" fill="#1e293b" stroke="#334155"/>
+      <text x="275" y="21" font-size="12" font-weight="600" fill="#e2e8f0" text-anchor="middle">⚡ ASP.NET PostBack</text>
+
+      <rect x="380" y="0" width="180" height="34" rx="8" fill="#1e293b" stroke="#334155"/>
+      <text x="470" y="21" font-size="12" font-weight="600" fill="#e2e8f0" text-anchor="middle">👁️ Safe Operator Review</text>
+    </g>
+  </g>
+''')
+
+    # =========================================================================
+    # GLOWING CENTRAL DATA HIGHWAYS & FLOW CONDUITS
+    # =========================================================================
+    svg.append('''
+  <!-- Glowing Data Conduits & Flow Bridges -->
+  <g id="flow-conduits">
+    <!-- Pipe 1 -> 2 (Ingestion to GPU Daemon) -->
+    <path d="M 780 385 L 910 385" stroke="#10b981" stroke-width="4" stroke-dasharray="8,4" fill="none" marker-end="url(#arrow-emerald)"/>
+    <circle cx="845" cy="385" r="14" fill="#090d16" stroke="#10b981" stroke-width="2"/>
+    <text x="845" y="389" font-size="10" font-weight="900" fill="#10b981" text-anchor="middle">JPG</text>
+
+    <!-- Pipe 2 -> 3 (GPU Vision to Classifier) -->
+    <path d="M 1590 385 L 1720 385" stroke="#a855f7" stroke-width="4" stroke-dasharray="8,4" fill="none" marker-end="url(#arrow-purple)"/>
+    <circle cx="1655" cy="385" r="14" fill="#090d16" stroke="#a855f7" stroke-width="2"/>
+    <text x="1655" y="389" font-size="10" font-weight="900" fill="#c084fc" text-anchor="middle">OCR</text>
+
+    <!-- Pipe 3 -> 4 (Dossier JSON to Raylib GUI: S-Curve downward) -->
+    <path d="M 2060 630 C 2060 690, 440 670, 440 730" stroke="#f59e0b" stroke-width="4" stroke-dasharray="8,6" fill="none" marker-end="url(#arrow-amber)"/>
+    <g transform="translate(1200, 665)">
+      <rect x="-80" y="-14" width="160" height="28" rx="14" fill="#1c1917" stroke="#f59e0b" stroke-width="1.8"/>
+      <text x="0" y="5" font-size="11" font-weight="800" fill="#fbbf24" text-anchor="middle">📦 applicant_dossier.json</text>
+    </g>
+
+    <!-- Pipe 4 -> 5 (Raylib Studio to XeLaTeX Engine) -->
+    <path d="M 780 975 L 910 975" stroke="#ec4899" stroke-width="4" stroke-dasharray="8,4" fill="none" marker-end="url(#arrow-pink)"/>
+    <circle cx="845" cy="975" r="14" fill="#090d16" stroke="#ec4899" stroke-width="2"/>
+    <text x="845" y="979" font-size="10" font-weight="900" fill="#f472b6" text-anchor="middle">TEX</text>
+
+    <!-- Pipe 5 -> 6 (Signed PDF to Portal Bot) -->
+    <path d="M 1590 975 L 1720 975" stroke="#06b6d4" stroke-width="4" stroke-dasharray="8,4" fill="none" marker-end="url(#arrow-cyan)"/>
+    <circle cx="1655" cy="975" r="14" fill="#090d16" stroke="#06b6d4" stroke-width="2"/>
+    <text x="1655" y="979" font-size="10" font-weight="900" fill="#38bdf8" text-anchor="middle">PDF</text>
+  </g>
+''')
+
+    # =========================================================================
+    # CENTER HUB: CONTINUOUS LEARNING & RETRAINING LOOP ORBIT
+    # =========================================================================
+    svg.append('''
+  <!-- Center Satellite: Continuous Feedback Loop -->
+  <g id="continuous-learning-satellite" transform="translate(1005, 620)">
+    <rect width="490" height="85" rx="18" fill="#111827" stroke="#eab308" stroke-width="2" filter="url(#soft-shadow)"/>
+    <circle cx="36" cy="42" r="18" fill="#fef08a" fill-opacity="0.15"/>
+    <text x="36" y="48" font-size="18" text-anchor="middle">🔄</text>
+
+    <text x="68" y="34" font-size="14" font-weight="800" fill="#facc15">Continuous Learning &amp; Retraining Loop</text>
+    <text x="68" y="52" font-size="11.5" font-weight="500" fill="#94a3b8">Interactive OCR rating (⭐⭐⭐⭐⭐) &amp; automated classifier weight re-tuning</text>
+    <text x="68" y="68" font-size="10" font-weight="700" fill="#fbbf24">dataset/spell_corrections.json • rules_learned.json • GPU benchmark tests</text>
+  </g>
+''')
+
+    # Close SVG
+    svg.append('</svg>')
+    return "\n".join(svg)
+
+def main():
+    target_dir = os.path.join(os.path.dirname(__file__), "..", "docs", "architecture")
+    os.makedirs(target_dir, exist_ok=True)
+    target_file = os.path.abspath(os.path.join(target_dir, "goaonauto_visual_architecture.svg"))
+
+    svg_content = generate_visual_svg()
+    with open(target_file, "w", encoding="utf-8") as f:
+        f.write(svg_content)
+
+    print(f"✅ Visual Architecture SVG generated at:\n   {target_file}")
+    print(f"   Size: {len(svg_content):,} bytes")
+
+if __name__ == "__main__":
+    main()

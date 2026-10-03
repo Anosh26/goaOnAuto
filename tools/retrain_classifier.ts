@@ -56,6 +56,42 @@ function readCorrections(): CorrectionEntry[] {
   return entries;
 }
 
+function readOcrReviews(): { total: number; avgRating: number; spellCount: number } {
+  const ocrPath = path.resolve('./dataset/ocr_corrections.jsonl');
+  const spellPath = path.resolve('./dataset/ocr_spell_corrections.json');
+  let total = 0;
+  let ratingSum = 0;
+  let spellCount = 0;
+
+  if (fs.existsSync(ocrPath)) {
+    const lines = fs.readFileSync(ocrPath, 'utf-8').split('\n').filter(Boolean);
+    for (const l of lines) {
+      try {
+        const item = JSON.parse(l);
+        total++;
+        if (typeof item.rating === 'number') {
+          ratingSum += item.rating;
+        }
+      } catch {}
+    }
+  }
+
+  if (fs.existsSync(spellPath)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(spellPath, 'utf-8'));
+      if (data && data.words) {
+        spellCount = Object.keys(data.words).length;
+      }
+    } catch {}
+  }
+
+  return {
+    total,
+    avgRating: total > 0 ? parseFloat((ratingSum / total).toFixed(1)) : 0,
+    spellCount
+  };
+}
+
 function countDatasetFiles(): Record<string, number> {
   const counts: Record<string, number> = {};
   const datasetRawDir = path.resolve('./dataset/raw');
@@ -260,11 +296,18 @@ async function retrain() {
   console.log(`✅ Learned weights saved to: ${weightsPath}\n`);
 
   // 5. Print summary
+  const ocrStats = readOcrReviews();
   console.log('=============================================================');
-  console.log('📈 RETRAINING SUMMARY');
+  console.log('📈 RETRAINING & OCR QUALITY SUMMARY');
   console.log('=============================================================');
-  console.log(`  🎯 Overall AI Accuracy:    ${learnedWeights.overall_ai_accuracy}%`);
-  console.log(`  📊 Total Actions Analysed: ${learnedWeights.total_corrections_analysed}`);
+  console.log(`  🎯 Classifier Accuracy:    ${learnedWeights.overall_ai_accuracy}%`);
+  console.log(`  📊 Classifier Corrections: ${learnedWeights.total_corrections_analysed}`);
+  if (ocrStats.total > 0) {
+    console.log(`  ⭐ Avg OCR Quality Score:  ${ocrStats.avgRating} / 5.0 (${ocrStats.total} reviews)`);
+  }
+  if (ocrStats.spellCount > 0) {
+    console.log(`  🔤 Learned Spell Rules:    ${ocrStats.spellCount} active word replacements`);
+  }
   console.log('');
 
   // Print per-category details

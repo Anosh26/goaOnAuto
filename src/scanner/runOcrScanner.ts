@@ -15,6 +15,7 @@ import { processDocumentImagesBatch, BatchScanResult } from './documentScanner';
 import { GpuDaemonClient, AadhaarQrResult } from './gpuDaemonClient';
 import { synthesizeDossier, ExtractedDocument, calculateAgeFromDob } from '../classifier/dossierExtractor';
 import { ResidenceCertificateFormPage } from '../automation/pages/residenceFormPage';
+import { applyOcrPostProcessing } from './ocrPostProcessor';
 
 const NORTH_GOA_TALUKAS = ['bardez', 'pernem', 'tiswadi', 'bicholim', 'sattari'];
 const SOUTH_GOA_TALUKAS = ['salcete', 'mormugao', 'ponda', 'quepem', 'sanguem', 'dharbandora', 'canacona'];
@@ -189,7 +190,7 @@ export async function runOcrScanner(): Promise<void> {
   const extractedDocs: ExtractedDocument[] = batchResults.map((res) => ({
     docType: res.classification.docType,
     docTypeName: res.classification.docTypeName,
-    rawText: res.rawText || '',
+    rawText: applyOcrPostProcessing(res.rawText || ''),
     filePath: res.newPath || res.imagePath,
     extractedName: res.classification.extractedName
   }));

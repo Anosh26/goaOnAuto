@@ -23,6 +23,8 @@ class FormField:
         self.is_required = is_required
         self.rect = rl.Rectangle(0, 0, 0, 0)
         self.btn_rect = rl.Rectangle(0, 0, 0, 0)
+        self.cursor_pos = len(default_val)
+        self.scroll_offset = 0
 
 def draw_button(
     text: str,
@@ -73,6 +75,7 @@ def draw_input_row(
 ) -> tuple[bool, bool]:
     """
     Renders a form field row: label, input box, blinking cursor, and browse button if path.
+    Supports point-and-click cursor placement and automatic horizontal scrolling.
     Returns (clicked_row, value_changed_via_dialog).
     """
     is_invalid_path = field.is_path and field.value and not os.path.isfile(field.value)
@@ -84,18 +87,78 @@ def draw_input_row(
     label_col = DRACULA_ORANGE if (is_invalid_path or is_empty_required) else DRACULA_FG
     draw_text_clean(font_bold, field.label, lbl_x, curr_y + (inp_h - label_size) / 2, label_size, label_col)
 
-    # 2. Input Box
+    # 2. Input Box State & Geometry
     clicked_box = False
     val_changed = False
     is_in_clip = (clip_min_y <= mouse_pos.y <= clip_max_y)
 
+    pad_left = int(10 * scale)
+    pad_right = int(10 * scale)
+    text_start_x = inp_x + pad_left
+    avail_w = max(20.0, inp_w - pad_left - pad_right)
+    text = field.value or ""
+
+    # Ensure cursor_pos and scroll_offset are valid
+    if not hasattr(field, "cursor_pos"):
+        field.cursor_pos = len(text)
+    field.cursor_pos = max(0, min(len(text), field.cursor_pos))
+
+    if not hasattr(field, "scroll_offset"):
+        field.scroll_offset = 0
+    field.scroll_offset = max(0, min(len(text), field.scroll_offset))
+
+    # Adjust horizontal scrolling to keep cursor in view
+    if field.cursor_pos < field.scroll_offset:
+        field.scroll_offset = field.cursor_pos
+
+    while field.scroll_offset < field.cursor_pos:
+        sub = text[field.scroll_offset : field.cursor_pos]
+        if measure_text_clean(font_regular, sub, input_size) > avail_w - int(14 * scale):
+            field.scroll_offset += 1
+        else:
+            break
+
+    while field.scroll_offset > 0:
+        sub = text[field.scroll_offset - 1 : field.cursor_pos]
+        if measure_text_clean(font_regular, sub, input_size) <= avail_w - int(14 * scale):
+            field.scroll_offset -= 1
+        else:
+            break
+
+    # Determine visible slice of text that fits within avail_w
+    sub_text = text[field.scroll_offset:]
+    vis_len = len(sub_text)
+    vis_cursor = field.cursor_pos - field.scroll_offset
+
+    while vis_len > vis_cursor and measure_text_clean(font_regular, sub_text[:vis_len], input_size) > avail_w:
+        vis_len -= 1
+    vis_text = sub_text[:vis_len]
+
+    # Mouse Click Handling inside input box
     if is_mouse_down and is_in_clip and rl.check_collision_point_rec(mouse_pos, field.rect):
         clicked_box = True
         if field.is_path and (is_invalid_path or not field.value):
             picked = open_file_dialog(f"Path not correct. Select {field.label}")
             if picked:
                 field.value = picked
+                field.cursor_pos = len(picked)
+                field.scroll_offset = 0
                 val_changed = True
+        else:
+            # Place cursor at clicked character location
+            click_rel_x = mouse_pos.x - text_start_x
+            if click_rel_x <= 0:
+                field.cursor_pos = field.scroll_offset
+            else:
+                best_k = len(vis_text)
+                min_dist = float('inf')
+                for k in range(len(vis_text) + 1):
+                    prefix_w = measure_text_clean(font_regular, vis_text[:k], input_size)
+                    dist = abs(prefix_w - click_rel_x)
+                    if dist < min_dist:
+                        min_dist = dist
+                        best_k = k
+                field.cursor_pos = min(len(text), field.scroll_offset + best_k)
 
     box_bg = DRACULA_CURRENT_LINE if is_focused else DRACULA_BG
     if is_invalid_path or is_empty_required:
@@ -108,23 +171,22 @@ def draw_input_row(
     rl.draw_rectangle_rounded(field.rect, 0.25, 6, box_bg)
     rl.draw_rectangle_rounded_lines(field.rect, 0.25, 6, border_color)
 
-    # Text rendering with left overflow clipping if value is too wide
-    display_val = field.value
-    char_w = max(6.0, measure_text_clean(font_regular, "W", input_size))
-    max_char_len = max(10, int((inp_w - 20) / (char_w * 0.75)))
-    if len(display_val) > max_char_len:
-        display_val = "..." + display_val[-(max_char_len - 3):]
-
     text_y = curr_y + (inp_h - input_size) / 2
-    draw_text_clean(font_regular, display_val, inp_x + int(10 * scale), text_y, input_size, DRACULA_FG)
+    draw_text_clean(font_regular, vis_text, text_start_x, text_y, input_size, DRACULA_FG)
 
-    # Blinking cursor
+    # Blinking cursor with precise positioning at cursor_pos
     if is_focused and (int(cursor_timer * 2.5) % 2 == 0):
-        tw = measure_text_clean(font_regular, display_val, input_size)
-        cursor_x = inp_x + int(10 * scale) + tw + 2
-        cursor_top = curr_y + int(4 * scale_y)
-        cursor_bot = curr_y + inp_h - int(4 * scale_y)
-        rl.draw_line(int(cursor_x), int(cursor_top), int(cursor_x), int(cursor_bot), DRACULA_CYAN)
+        c_sub = vis_text[:max(0, min(len(vis_text), field.cursor_pos - field.scroll_offset))]
+        tw = measure_text_clean(font_regular, c_sub, input_size)
+        cursor_x = text_start_x + tw
+        cursor_top = curr_y + int(6 * scale_y)
+        cursor_bot = curr_y + inp_h - int(6 * scale_y)
+        rl.draw_line_ex(
+            rl.Vector2(cursor_x, cursor_top),
+            rl.Vector2(cursor_x, cursor_bot),
+            2.0,
+            DRACULA_CYAN
+        )
 
     # 3. File Browse Button for path fields
     if field.is_path:
@@ -140,7 +202,7 @@ def draw_input_row(
         rl.draw_rectangle_rounded_lines(field.btn_rect, 0.25, 6, DRACULA_COMMENT)
 
         browse_label = "Browse" if not (is_invalid_path or is_empty_required) else "Fix Path"
-        draw_text_clean(font_bold, browse_label, btn_x + int(10 * scale), text_y, max(10, int(12 * scale)), btn_fg)
+        draw_text_clean(font_bold, browse_label, btn_x + int(10 * scale), text_y, max(12, int(14 * scale)), btn_fg)
 
         if is_mouse_down and btn_hover:
             prompt = f"Select {field.label}" if not is_invalid_path else f"File not found. Please select {field.label}"
@@ -161,10 +223,12 @@ def draw_image_preview_card(
     font_regular: rl.Font | None,
     mouse_pos: rl.Vector2,
     is_mouse_down: bool,
-    missing_msg: str = "⚠️ Missing\nClick to Browse"
+    missing_msg: str = "⚠️ Missing\nClick to Browse",
+    img_scale: float = 1.0
 ) -> bool:
     """
     Renders an image preview card (e.g. Passport Photo or Signature).
+    Supports dynamic proportional scaling via img_scale.
     Returns True if user clicked the card to browse a new file.
     """
     has_tex = (texture is not None and texture.id > 0)
@@ -175,13 +239,22 @@ def draw_image_preview_card(
 
     if has_tex:
         src_rect = rl.Rectangle(0, 0, texture.width, texture.height)
-        dst_rect = rl.Rectangle(rect.x + 2, rect.y + 2, rect.width - 4, rect.height - 4)
+        # Keep aspect ratio and center inside card, proportionally scaled
+        max_inner_w = rect.width - 6
+        max_inner_h = rect.height - 6
+        base_s = min(max_inner_w / texture.width, max_inner_h / texture.height)
+        eff_s = base_s * max(0.4, min(1.8, img_scale))
+        dw = texture.width * eff_s
+        dh = texture.height * eff_s
+        dx = rect.x + (rect.width - dw) / 2
+        dy = rect.y + (rect.height - dh) / 2
+        dst_rect = rl.Rectangle(dx, dy, dw, dh)
         rl.draw_texture_pro(texture, src_rect, dst_rect, rl.Vector2(0, 0), 0.0, rl.WHITE)
     else:
-        draw_text_clean(font_regular, missing_msg, rect.x + int(14 * scale), rect.y + rect.height / 2 - int(14 * scale_y), int(12 * scale), DRACULA_RED)
+        draw_text_clean(font_regular, missing_msg, rect.x + int(14 * scale), rect.y + rect.height / 2 - int(14 * scale_y), int(14 * scale), DRACULA_RED)
 
-    # Subtitle under card
-    draw_text_clean(font_bold, title, rect.x + int(12 * scale), rect.y + rect.height + int(6 * scale_y), int(13 * scale), DRACULA_FG)
+    # Subtitle under card (+2 pt)
+    draw_text_clean(font_bold, title, rect.x + int(12 * scale), rect.y + rect.height + int(6 * scale_y), int(15 * scale), DRACULA_FG)
 
     clicked = is_mouse_down and rl.check_collision_point_rec(mouse_pos, rect)
     return clicked

@@ -84,7 +84,8 @@ export async function launchBravePortalContext(sessionConfig: PortalSessionConfi
     executablePath: bravePath,
     headless: sessionConfig.headless ?? false,
     viewport: null, // Maximized / user native window size
-    ignoreDefaultArgs: ['--enable-automation'],
+    chromiumSandbox: true,
+    ignoreDefaultArgs: ['--enable-automation', '--no-sandbox'],
     args: [
       '--start-maximized',
       '--disable-blink-features=AutomationControlled',

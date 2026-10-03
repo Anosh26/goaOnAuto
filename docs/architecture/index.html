@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GoaOnAuto — Interactive Architecture & Infinite Zoom Explorer</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: #070913;
+      color: #f8fafc;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+    }
+    header {
+      background: #0b1120;
+      border-bottom: 1px solid #1e293b;
+      padding: 10px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 50;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+    .title-group h1 {
+      font-size: 18px;
+      font-weight: 900;
+      background: linear-gradient(90deg, #38bdf8, #a855f7, #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 0.5px;
+    }
+    .title-group p {
+      font-size: 11.5px;
+      color: #94a3b8;
+      margin-top: 2px;
+    }
+
+    /* Subsystem View Switcher */
+    .view-tabs {
+      display: flex;
+      background: #111827;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 3px;
+      gap: 4px;
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      padding: 6px 14px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .tab-btn:hover {
+      color: #ffffff;
+      background: #1e293b;
+    }
+    .tab-btn.active {
+      background: #38bdf8;
+      color: #070913;
+      font-weight: 800;
+      box-shadow: 0 2px 10px rgba(56, 189, 248, 0.4);
+    }
+    .tab-btn.active-purple {
+      background: #c084fc;
+      color: #070913;
+      font-weight: 800;
+      box-shadow: 0 2px 10px rgba(192, 132, 252, 0.4);
+    }
+    .tab-btn.active-blue {
+      background: #60a5fa;
+      color: #070913;
+      font-weight: 800;
+      box-shadow: 0 2px 10px rgba(96, 165, 250, 0.4);
+    }
+    .tab-btn.active-slate {
+      background: #94a3b8;
+      color: #070913;
+      font-weight: 800;
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .zoom-badge {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #38bdf8;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 12px;
+      font-weight: 700;
+      min-width: 58px;
+      text-align: center;
+    }
+    button.tool-btn {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #f8fafc;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    button.tool-btn:hover {
+      background: #334155;
+      border-color: #475569;
+    }
+    a.download-btn button {
+      background: #10b981;
+      color: #ffffff;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    a.download-btn button:hover {
+      background: #059669;
+    }
+
+    /* Infinite Canvas Viewport */
+    #viewport {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      cursor: grab;
+      background: radial-gradient(circle at 50% 50%, #111927 0%, #060913 100%);
+    }
+    #viewport.dragging {
+      cursor: grabbing;
+    }
+    #canvas-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      transform-origin: 0 0;
+      will-change: transform;
+    }
+    #svg-obj {
+      display: block;
+      pointer-events: none;
+      box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.9);
+      border-radius: 20px;
+    }
+
+    /* Interactive Click-to-Dive Hotspots on Macro Map */
+    .dive-overlay {
+      position: absolute;
+      border-radius: 20px;
+      border: 2px dashed rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.03);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+      padding-bottom: 24px;
+      transition: all 0.2s ease;
+      z-index: 10;
+    }
+    .dive-overlay:hover {
+      background: rgba(192, 132, 252, 0.12);
+      border-color: #c084fc;
+      box-shadow: 0 0 30px rgba(192, 132, 252, 0.3);
+    }
+    .dive-btn-pill {
+      background: #0f172a;
+      border: 1px solid #c084fc;
+      color: #ffffff;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 800;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+      pointer-events: none;
+      transition: transform 0.15s ease;
+    }
+    .dive-overlay:hover .dive-btn-pill {
+      transform: scale(1.08);
+      background: #c084fc;
+      color: #070913;
+    }
+
+    /* Floating Breadcrumbs / Navigation HUD */
+    .hud-banner {
+      position: absolute;
+      bottom: 24px;
+      left: 24px;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 10px 18px;
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      font-size: 12px;
+      color: #cbd5e1;
+      z-index: 40;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .hud-banner strong {
+      color: #38bdf8;
+    }
+    .hud-key {
+      background: #1e293b;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 11px;
+      color: #94a3b8;
+      border: 1px solid #475569;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title-group">
+      <h1>GOAONAUTO — ARCHITECTURE &amp; DEEP-DIVE EXPLORER</h1>
+      <p id="sub-title">Interactive vector engine: infinite zoom, drag-to-pan, and internal exploded-view cutaways.</p>
+    </div>
+
+    <!-- Multi-Level Model Selector Tabs -->
+    <div class="view-tabs">
+      <button id="tab-macro" class="tab-btn active" onclick="loadView('macro')">
+        🌐 Macro Pipeline
+      </button>
+      <button id="tab-gpu" class="tab-btn" onclick="loadView('gpu')">
+        ⚡ Inside: GPU Vision
+      </button>
+      <button id="tab-portal" class="tab-btn" onclick="loadView('portal')">
+        🦁 Inside: WebForms Bot
+      </button>
+      <button id="tab-tech" class="tab-btn" onclick="loadView('tech')">
+        📋 Deep Tech Spec
+      </button>
+    </div>
+
+    <!-- Zoom & Canvas Controls -->
+    <div class="controls">
+      <button class="tool-btn" onclick="zoomStep(-0.2)">−</button>
+      <span id="zoom-text" class="zoom-badge">62%</span>
+      <button class="tool-btn" onclick="zoomStep(+0.2)">+</button>
+      <button class="tool-btn" onclick="fitView()">Fit</button>
+      <button class="tool-btn" onclick="resetZoom()">100%</button>
+      <a id="download-anchor" class="download-btn" href="goaonauto_visual_architecture.svg" download="goaonauto_visual_architecture.svg">
+        <button>⬇ SVG</button>
+      </a>
+    </div>
+  </header>
+
+  <!-- Pan & Infinite Zoom Viewport -->
+  <div id="viewport">
+    <div id="canvas-container">
+      <object id="svg-obj" data="goaonauto_visual_architecture.svg" type="image/svg+xml"></object>
+
+      <!-- Click-to-Dive Hotspot Overlays on Macro Pipeline -->
+      <div id="hotspot-gpu" class="dive-overlay" style="left: 910px; top: 140px; width: 680px; height: 490px;" onclick="loadView('gpu')">
+        <div class="dive-btn-pill">🔍 DIVE INSIDE: GPU Vision Anatomy ➔</div>
+      </div>
+      <div id="hotspot-portal" class="dive-overlay" style="left: 1720px; top: 730px; width: 680px; height: 490px;" onclick="loadView('portal')">
+        <div class="dive-btn-pill" style="border-color: #60a5fa;">🔍 DIVE INSIDE: WebForms Bot Anatomy ➔</div>
+      </div>
+    </div>
+
+    <!-- HUD Navigation Info -->
+    <div class="hud-banner">
+      <div>🖱️ <strong>Mouse Wheel</strong>: Infinite Zoom (15% to 5,000%)</div>
+      <div>✋ <strong>Click &amp; Drag</strong>: Pan Canvas</div>
+      <div><span class="hud-key">Double Click</span>: Reset View</div>
+      <div id="view-indicator" style="color: #a855f7; font-weight: 700;">Active: Macro Flow</div>
+    </div>
+  </div>
+
+  <script>
+    const VIEWS = {
+      macro: {
+        file: 'goaonauto_visual_architecture.svg',
+        width: 2500,
+        height: 1450,
+        title: 'Macro Pipeline: Visual flow map from document drop to government certificate.',
+        activeClass: 'active',
+        indicator: 'Active: Macro Pipeline Flow',
+        showHotspots: true
+      },
+      gpu: {
+        file: 'inside_gpu_vision.svg',
+        width: 2600,
+        height: 1600,
+        title: 'Exploded Cutaway: Inside GPU Worker Daemon, CRAFT Heatmaps, BiLSTM & Aadhaar QR Zlib.',
+        activeClass: 'active-purple',
+        indicator: 'Active: Inside GPU Vision Anatomy',
+        showHotspots: false
+      },
+      portal: {
+        file: 'inside_portal_bot.svg',
+        width: 2600,
+        height: 1600,
+        title: 'Exploded Cutaway: Inside ASP.NET WebForms __doPostBack Bridge, AJAX Cascades & Address Modal.',
+        activeClass: 'active-blue',
+        indicator: 'Active: Inside WebForms Bot Anatomy',
+        showHotspots: false
+      },
+      tech: {
+        file: 'goaonauto_architecture.svg',
+        width: 2800,
+        height: 2100,
+        title: 'Deep Technical Blueprint: Complete module inventory, protocols, classes & data paths.',
+        activeClass: 'active-slate',
+        indicator: 'Active: Deep Engineering Specification',
+        showHotspots: false
+      }
+    };
+
+    let currentViewKey = 'macro';
+    let scale = 0.62;
+    let panX = 40;
+    let panY = 20;
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
+
+    const viewport = document.getElementById('viewport');
+    const container = document.getElementById('canvas-container');
+    const svgObj = document.getElementById('svg-obj');
+    const zoomText = document.getElementById('zoom-text');
+    const subTitle = document.getElementById('sub-title');
+    const downloadAnchor = document.getElementById('download-anchor');
+    const viewIndicator = document.getElementById('view-indicator');
+    const hotspotGpu = document.getElementById('hotspot-gpu');
+    const hotspotPortal = document.getElementById('hotspot-portal');
+
+    function updateTransform() {
+      container.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+      zoomText.textContent = `${Math.round(scale * 100)}%`;
+    }
+
+    function fitView() {
+      const cfg = VIEWS[currentViewKey];
+      const vpW = viewport.clientWidth;
+      const vpH = viewport.clientHeight;
+      const scaleX = (vpW - 80) / cfg.width;
+      const scaleY = (vpH - 80) / cfg.height;
+      scale = Math.min(scaleX, scaleY);
+      panX = (vpW - (cfg.width * scale)) / 2;
+      panY = (vpH - (cfg.height * scale)) / 2;
+      updateTransform();
+    }
+
+    function resetZoom() {
+      scale = 1.0;
+      panX = (viewport.clientWidth - VIEWS[currentViewKey].width) / 2;
+      panY = (viewport.clientHeight - VIEWS[currentViewKey].height) / 2;
+      updateTransform();
+    }
+
+    function zoomStep(delta) {
+      const oldScale = scale;
+      scale = Math.max(0.15, Math.min(50.0, scale + delta));
+      // Zoom centered on viewport center
+      const centerX = viewport.clientWidth / 2;
+      const centerY = viewport.clientHeight / 2;
+      panX = centerX - (centerX - panX) * (scale / oldScale);
+      panY = centerY - (centerY - panY) * (scale / oldScale);
+      updateTransform();
+    }
+
+    // Smooth Cursor-Centric Infinite Mouse Wheel Zoom
+    viewport.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const zoomFactor = e.deltaY < 0 ? 1.15 : 0.87;
+      const oldScale = scale;
+      scale = Math.max(0.15, Math.min(50.0, scale * zoomFactor));
+
+      const rect = viewport.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      panX = mouseX - (mouseX - panX) * (scale / oldScale);
+      panY = mouseY - (mouseY - panY) * (scale / oldScale);
+      updateTransform();
+    }, { passive: false });
+
+    // Drag-to-Pan Handlers
+    viewport.addEventListener('mousedown', (e) => {
+      if (e.target.closest('.dive-overlay')) return;
+      isDragging = true;
+      viewport.classList.add('dragging');
+      startX = e.clientX - panX;
+      startY = e.clientY - panY;
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      panX = e.clientX - startX;
+      panY = e.clientY - startY;
+      updateTransform();
+    });
+
+    window.addEventListener('mouseup', () => {
+      isDragging = false;
+      viewport.classList.remove('dragging');
+    });
+
+    viewport.addEventListener('dblclick', (e) => {
+      if (e.target.closest('.dive-overlay')) return;
+      fitView();
+    });
+
+    // Subsystem Switcher
+    function loadView(key) {
+      currentViewKey = key;
+      const cfg = VIEWS[key];
+
+      // Update Tab Styles
+      ['macro', 'gpu', 'portal', 'tech'].forEach(k => {
+        const btn = document.getElementById(`tab-${k}`);
+        btn.className = 'tab-btn' + (k === key ? ` ${cfg.activeClass}` : '');
+      });
+
+      // Update Canvas SVG & Dimensions
+      svgObj.data = cfg.file;
+      svgObj.style.width = `${cfg.width}px`;
+      svgObj.style.height = `${cfg.height}px`;
+
+      // Update Header Text & Download Link
+      subTitle.textContent = cfg.title;
+      downloadAnchor.href = cfg.file;
+      downloadAnchor.download = cfg.file;
+      viewIndicator.textContent = cfg.indicator;
+
+      // Toggle Macro Hotspots
+      hotspotGpu.style.display = cfg.showHotspots ? 'flex' : 'none';
+      hotspotPortal.style.display = cfg.showHotspots ? 'flex' : 'none';
+
+      // Fit View nicely on change
+      setTimeout(fitView, 50);
+    }
+
+    // Initialize on Macro Pipeline
+    window.addEventListener('resize', fitView);
+    loadView('macro');
+  </script>
+</body>
+</html>

@@ -42,6 +42,52 @@ except (ImportError, ValueError):
     from python.gui.declarations import get_declaration, BaseDeclaration
     from python.gui.declarations.base import calculate_age_from_dob
 
+class KeyRepeatTracker:
+    """Handles smooth key press and hold-to-repeat timing for text editing."""
+    def __init__(self, initial_delay: float = 0.38, repeat_rate: float = 0.035):
+        self.initial_delay = initial_delay
+        self.repeat_rate = repeat_rate
+        self.timer = 0.0
+
+    def update(self, is_pressed: bool, is_down: bool, dt: float) -> bool:
+        if is_pressed:
+            self.timer = 0.0
+            return True
+        if is_down:
+            self.timer += dt
+            if self.timer >= self.initial_delay:
+                self.timer -= self.repeat_rate
+                return True
+        else:
+            self.timer = 0.0
+        return False
+
+
+def find_prev_word_boundary(text: str, pos: int) -> int:
+    """Finds index of the start of the previous word."""
+    if pos <= 0:
+        return 0
+    i = pos - 1
+    while i > 0 and text[i].isspace():
+        i -= 1
+    while i > 0 and not text[i - 1].isspace():
+        i -= 1
+    return i
+
+
+def find_next_word_boundary(text: str, pos: int) -> int:
+    """Finds index of the start of the next word."""
+    length = len(text)
+    if pos >= length:
+        return length
+    i = pos
+    while i < length and not text[i].isspace():
+        i += 1
+    while i < length and text[i].isspace():
+        i += 1
+    return i
+
+
 class DeclarationAppState:
     """Manages application-level UI state for the General Window."""
 
@@ -51,7 +97,10 @@ class DeclarationAppState:
         self.status_msg = f"Ready to customize and generate {declaration.declaration_id.upper()} declaration"
         self.status_color = DRACULA_CYAN
         self.cursor_timer = 0.0
-        self.backspace_timer = 0.0
+        self.repeat_backspace = KeyRepeatTracker(0.38, 0.035)
+        self.repeat_delete = KeyRepeatTracker(0.38, 0.035)
+        self.repeat_left = KeyRepeatTracker(0.38, 0.030)
+        self.repeat_right = KeyRepeatTracker(0.38, 0.030)
         self.tex_dirty = True
         self.last_sync_time = "Not synced yet"
         self.is_compiled = False
@@ -184,14 +233,14 @@ def run_app(declaration_type: str = "residence", target_dir: str = "", no_prompt
         h = rl.get_screen_height()
         is_narrow = (w < 960)
 
-        # Scale typography comfortably: NEVER shrink below readable thresholds
+        # Scale typography comfortably: NEVER shrink below readable thresholds (+2 pt increased)
         scale = max(0.95, min(1.35, w / 1260.0))
         scale_y = max(0.90, min(1.25, h / 820.0))
 
-        title_size = max(20, min(26, int(22 * scale)))
-        label_size = max(16, min(20, int(17 * scale)))
-        input_size = max(16, min(20, int(17 * scale)))
-        btn_size = max(14, min(17, int(15 * scale)))
+        title_size = max(22, min(28, int(24 * scale)))
+        label_size = max(18, min(22, int(19 * scale)))
+        input_size = max(18, min(22, int(19 * scale)))
+        btn_size = max(16, min(19, int(17 * scale)))
 
         mouse_pos = rl.get_mouse_position()
         is_mouse_down = rl.is_mouse_button_pressed(rl.MOUSE_BUTTON_LEFT)
@@ -207,12 +256,16 @@ def run_app(declaration_type: str = "residence", target_dir: str = "", no_prompt
         view_h = max(100, h - content_y - footer_h - 6)
 
         # Keyboard Navigation: Tab / Shift+Tab with automatic viewport scrolling
-        row_h = 60
+        row_h = 66
         if rl.is_key_pressed(rl.KEY_TAB):
             if rl.is_key_down(rl.KEY_LEFT_SHIFT) or rl.is_key_down(rl.KEY_RIGHT_SHIFT):
                 app_state.active_field_idx = (app_state.active_field_idx - 1) % len(visible_fields)
             else:
                 app_state.active_field_idx = (app_state.active_field_idx + 1) % len(visible_fields)
+
+            new_f = visible_fields[app_state.active_field_idx]
+            new_f.cursor_pos = len(new_f.value)
+            app_state.cursor_timer = 0.0
 
             # Auto-scroll active field into view
             field_top = app_state.active_field_idx * row_h
@@ -221,25 +274,67 @@ def run_app(declaration_type: str = "residence", target_dir: str = "", no_prompt
             elif field_top + row_h > app_state.target_scroll_y + view_h:
                 app_state.target_scroll_y = float(field_top + row_h - view_h + 20)
 
-        # Text input & Backspace (Fixed: single tap deletes exactly 1 char, hold repeats smoothly)
+        # Text input & Cursor Navigation (Supports Left/Right/Home/End/Backspace/Delete/Ctrl+V/Typing)
         if active_f:
-            backspace_triggered = False
-            if rl.is_key_pressed(rl.KEY_BACKSPACE):
-                backspace_triggered = True
-                app_state.backspace_timer = 0.0
-            elif rl.is_key_down(rl.KEY_BACKSPACE):
-                app_state.backspace_timer += dt
-                if app_state.backspace_timer > 0.45:
-                    backspace_triggered = True
-                    app_state.backspace_timer = 0.40
-            else:
-                app_state.backspace_timer = 0.0
+            if not hasattr(active_f, "cursor_pos"):
+                active_f.cursor_pos = len(active_f.value)
+            active_f.cursor_pos = max(0, min(len(active_f.value), active_f.cursor_pos))
 
-            if backspace_triggered and len(active_f.value) > 0:
-                active_f.value = active_f.value[:-1]
-                app_state.tex_dirty = True
+            ctrl_down = rl.is_key_down(rl.KEY_LEFT_CONTROL) or rl.is_key_down(rl.KEY_RIGHT_CONTROL)
 
-            if (rl.is_key_down(rl.KEY_LEFT_CONTROL) or rl.is_key_down(rl.KEY_RIGHT_CONTROL)) and rl.is_key_pressed(rl.KEY_V):
+            # 1. Left Arrow: move cursor left (jump word if Ctrl is held)
+            if app_state.repeat_left.update(rl.is_key_pressed(rl.KEY_LEFT), rl.is_key_down(rl.KEY_LEFT), dt):
+                if ctrl_down:
+                    active_f.cursor_pos = find_prev_word_boundary(active_f.value, active_f.cursor_pos)
+                else:
+                    active_f.cursor_pos = max(0, active_f.cursor_pos - 1)
+                app_state.cursor_timer = 0.0
+
+            # 2. Right Arrow: move cursor right (jump word if Ctrl is held)
+            if app_state.repeat_right.update(rl.is_key_pressed(rl.KEY_RIGHT), rl.is_key_down(rl.KEY_RIGHT), dt):
+                if ctrl_down:
+                    active_f.cursor_pos = find_next_word_boundary(active_f.value, active_f.cursor_pos)
+                else:
+                    active_f.cursor_pos = min(len(active_f.value), active_f.cursor_pos + 1)
+                app_state.cursor_timer = 0.0
+
+            # 3. Home / End keys: jump to beginning or end of text
+            if rl.is_key_pressed(rl.KEY_HOME):
+                active_f.cursor_pos = 0
+                app_state.cursor_timer = 0.0
+
+            if rl.is_key_pressed(rl.KEY_END):
+                active_f.cursor_pos = len(active_f.value)
+                app_state.cursor_timer = 0.0
+
+            # 4. Backspace: delete character before cursor (or word if Ctrl is held)
+            if app_state.repeat_backspace.update(rl.is_key_pressed(rl.KEY_BACKSPACE), rl.is_key_down(rl.KEY_BACKSPACE), dt):
+                if active_f.cursor_pos > 0:
+                    pos = active_f.cursor_pos
+                    if ctrl_down:
+                        new_pos = find_prev_word_boundary(active_f.value, pos)
+                        active_f.value = active_f.value[:new_pos] + active_f.value[pos:]
+                        active_f.cursor_pos = new_pos
+                    else:
+                        active_f.value = active_f.value[:pos - 1] + active_f.value[pos:]
+                        active_f.cursor_pos = pos - 1
+                    app_state.tex_dirty = True
+                    app_state.cursor_timer = 0.0
+
+            # 5. Delete: delete character at cursor (or word if Ctrl is held)
+            if app_state.repeat_delete.update(rl.is_key_pressed(rl.KEY_DELETE), rl.is_key_down(rl.KEY_DELETE), dt):
+                if active_f.cursor_pos < len(active_f.value):
+                    pos = active_f.cursor_pos
+                    if ctrl_down:
+                        next_pos = find_next_word_boundary(active_f.value, pos)
+                        active_f.value = active_f.value[:pos] + active_f.value[next_pos:]
+                    else:
+                        active_f.value = active_f.value[:pos] + active_f.value[pos + 1:]
+                    app_state.tex_dirty = True
+                    app_state.cursor_timer = 0.0
+
+            # 6. Paste (Ctrl+V): insert clipboard at cursor position
+            if ctrl_down and rl.is_key_pressed(rl.KEY_V):
                 try:
                     import tkinter as tk
                     root = tk.Tk()
@@ -247,16 +342,25 @@ def run_app(declaration_type: str = "residence", target_dir: str = "", no_prompt
                     clipboard = root.clipboard_get()
                     root.destroy()
                     if clipboard:
-                        active_f.value += clipboard.replace("\n", " ").replace("\r", "")
+                        clean_clip = clipboard.replace("\n", " ").replace("\r", "")
+                        pos = active_f.cursor_pos
+                        active_f.value = active_f.value[:pos] + clean_clip + active_f.value[pos:]
+                        active_f.cursor_pos = pos + len(clean_clip)
                         app_state.tex_dirty = True
+                        app_state.cursor_timer = 0.0
                 except Exception:
                     pass
 
+            # 7. Printable Character Input: insert at cursor position
             char_code = rl.get_char_pressed()
             while char_code > 0:
                 if 32 <= char_code <= 126:
-                    active_f.value += chr(char_code)
+                    pos = active_f.cursor_pos
+                    ch = chr(char_code)
+                    active_f.value = active_f.value[:pos] + ch + active_f.value[pos:]
+                    active_f.cursor_pos = pos + 1
                     app_state.tex_dirty = True
+                    app_state.cursor_timer = 0.0
                 char_code = rl.get_char_pressed()
 
             # Dynamic age recalculation if typing in DOB field
@@ -384,7 +488,7 @@ def run_app(declaration_type: str = "residence", target_dir: str = "", no_prompt
                     inp_x=inp_x,
                     inp_w=inp_w,
                     curr_y=curr_y,
-                    inp_h=40,
+                    inp_h=44,
                     scale=scale,
                     scale_y=scale_y,
                     label_size=label_size,
@@ -400,6 +504,7 @@ def run_app(declaration_type: str = "residence", target_dir: str = "", no_prompt
 
                 if clicked_box:
                     app_state.active_field_idx = i
+                    app_state.cursor_timer = 0.0
                 if val_changed:
                     app_state.tex_dirty = True
 
@@ -416,7 +521,7 @@ def run_app(declaration_type: str = "residence", target_dir: str = "", no_prompt
             rl.draw_rectangle_rounded(preview_box, 0.04, 8, DRACULA_CURRENT_LINE)
             rl.draw_rectangle_rounded_lines(preview_box, 0.04, 8, DRACULA_COMMENT)
 
-            draw_text_clean(font_bold, "📄 Live Preview & Document Assets", right_x + 18, content_y + 18, int(15 * scale), DRACULA_CYAN)
+            draw_text_clean(font_bold, "📄 Live Preview & Document Assets", right_x + 18, content_y + 18, int(17 * scale), DRACULA_CYAN)
 
             # Photo Preview Card
             photo_box_w = min(140, int(right_w * 0.42))
@@ -442,11 +547,11 @@ def run_app(declaration_type: str = "residence", target_dir: str = "", no_prompt
                     declaration.set_field_val("photo_path", picked)
                     app_state.tex_dirty = True
 
-            # Signature Preview Card
+            # Signature Preview Card with Dynamic Size Scaling
             sig_box_x = photo_box_x + photo_box_w + 16
             sig_box_w = right_w - photo_box_w - 56
-            sig_box_h = int(photo_box_h * 0.65)
-            sig_box_y = photo_box_y + int((photo_box_h - sig_box_h) / 2)
+            sig_box_h = int(photo_box_h * 0.62)
+            sig_box_y = photo_box_y + 4
             sig_rect = rl.Rectangle(sig_box_x, sig_box_y, sig_box_w, sig_box_h)
 
             if draw_image_preview_card(
@@ -459,30 +564,58 @@ def run_app(declaration_type: str = "residence", target_dir: str = "", no_prompt
                 font_regular=font_regular,
                 mouse_pos=mouse_pos,
                 is_mouse_down=is_mouse_down,
-                missing_msg="Signature Optional\nClick to Pick"
+                missing_msg="Signature Optional\nClick to Pick",
+                img_scale=declaration.sig_scale
             ):
                 picked = open_file_dialog("Select Signature Image for Applicant")
                 if picked:
                     declaration.set_field_val("sig_path", picked)
                     app_state.tex_dirty = True
 
-            # Status Badges
+            # Signature Size Modifier Bar
+            ctrl_y = sig_box_y + sig_box_h + int(14 * scale_y)
+            draw_text_clean(font_bold, "Size:", sig_box_x, ctrl_y + 4, 15, DRACULA_FG)
+
+            btn_minus = rl.Rectangle(sig_box_x + 48, ctrl_y, 30, 26)
+            if draw_button("−", btn_minus, DRACULA_BG, DRACULA_CYAN, font_bold, 17, mouse_pos, is_mouse_down):
+                if declaration.sig_scale > 0.45:
+                    declaration.sig_scale = round(declaration.sig_scale - 0.1, 2)
+                    app_state.tex_dirty = True
+
+            pct_str = f"{int(declaration.sig_scale * 100)}%"
+            draw_text_clean(font_bold, pct_str, sig_box_x + 88, ctrl_y + 4, 15, DRACULA_CYAN)
+
+            btn_plus = rl.Rectangle(sig_box_x + 138, ctrl_y, 30, 26)
+            if draw_button("+", btn_plus, DRACULA_BG, DRACULA_GREEN, font_bold, 17, mouse_pos, is_mouse_down):
+                if declaration.sig_scale < 2.45:
+                    declaration.sig_scale = round(declaration.sig_scale + 0.1, 2)
+                    app_state.tex_dirty = True
+
+            btn_reset = rl.Rectangle(sig_box_x + 178, ctrl_y, 40, 26)
+            if draw_button("↺", btn_reset, DRACULA_BG, DRACULA_COMMENT, font_bold, 15, mouse_pos, is_mouse_down):
+                declaration.sig_scale = 1.0
+                app_state.tex_dirty = True
+
+            dims_str = f"({round(3.2 * declaration.sig_scale, 1)}×{round(1.1 * declaration.sig_scale, 1)}cm)"
+            draw_text_clean(font_regular, dims_str, sig_box_x + 228, ctrl_y + 5, 13, DRACULA_COMMENT)
+
+            # Status Badges (+2 pt)
             sync_y = photo_box_y + photo_box_h + 30
-            draw_text_clean(font_bold, f"🟢 {os.path.basename(declaration.get_output_tex_path())} (Live in Sync)", right_x + 20, sync_y, 13, DRACULA_GREEN)
-            draw_text_clean(font_regular, f"Last update: {app_state.last_sync_time}", right_x + 20, sync_y + 18, 11, DRACULA_COMMENT)
+            draw_text_clean(font_bold, f"🟢 {os.path.basename(declaration.get_output_tex_path())} (Live in Sync)", right_x + 20, sync_y, 15, DRACULA_GREEN)
+            draw_text_clean(font_regular, f"Last update: {app_state.last_sync_time}", right_x + 20, sync_y + 20, 13, DRACULA_COMMENT)
 
-            save_y = sync_y + 44
-            draw_text_clean(font_bold, "💾 Form Data & Dossier (Auto-Saved)", right_x + 20, save_y, 13, DRACULA_CYAN)
-            draw_text_clean(font_regular, "Ready for GoaOnline Portal Automation", right_x + 20, save_y + 18, 11, DRACULA_COMMENT)
+            save_y = sync_y + 48
+            draw_text_clean(font_bold, "💾 Form Data & Dossier (Auto-Saved)", right_x + 20, save_y, 15, DRACULA_CYAN)
+            draw_text_clean(font_regular, "Ready for GoaOnline Portal Automation", right_x + 20, save_y + 20, 13, DRACULA_COMMENT)
 
-            # Primary Compile PDF Button
+            # Primary Compile PDF Button (+2 pt)
             btn_w = right_w - 40
-            btn_h = 46
+            btn_h = 48
             btn_x = right_x + 20
             btn_y = preview_box.y + preview_box.height - btn_h - 18
             action_rect = rl.Rectangle(btn_x, btn_y, btn_w, btn_h)
 
-            if draw_button("⚡ GENERATE & COMPILE PDF", action_rect, DRACULA_PURPLE, DRACULA_BG, font_bold, 14, mouse_pos, is_mouse_down):
+            if draw_button("⚡ GENERATE & COMPILE PDF", action_rect, DRACULA_PURPLE, DRACULA_BG, font_bold, 16, mouse_pos, is_mouse_down):
                 ok, res_path = app_state.compile_pdf()
                 if ok:
                     app_state.status_msg = f"Compiled successfully: {os.path.basename(res_path)}"
@@ -525,7 +658,7 @@ def run_app(declaration_type: str = "residence", target_dir: str = "", no_prompt
                         inp_x=inp_x,
                         inp_w=inp_w,
                         curr_y=curr_y,
-                        inp_h=40,
+                        inp_h=44,
                         scale=scale,
                         scale_y=scale_y,
                         label_size=label_size,
@@ -541,6 +674,7 @@ def run_app(declaration_type: str = "residence", target_dir: str = "", no_prompt
 
                     if clicked_box:
                         app_state.active_field_idx = i
+                        app_state.cursor_timer = 0.0
                     if val_changed:
                         app_state.tex_dirty = True
 
@@ -554,7 +688,7 @@ def run_app(declaration_type: str = "residence", target_dir: str = "", no_prompt
 
             else:
                 # Tab: Assets & PDF Compilation View (Reoriented)
-                total_assets_h = 420
+                total_assets_h = 460
                 max_scroll = max(0.0, float(total_assets_h - view_h))
                 app_state.target_scroll_y = max(0.0, min(max_scroll, app_state.target_scroll_y))
                 app_state.scroll_y += (app_state.target_scroll_y - app_state.scroll_y) * min(1.0, dt * 16.0)
@@ -598,27 +732,53 @@ def run_app(declaration_type: str = "residence", target_dir: str = "", no_prompt
                     font_regular=font_regular,
                     mouse_pos=mouse_pos,
                     is_mouse_down=is_mouse_down,
-                    missing_msg="Signature Optional\nClick to Pick"
+                    missing_msg="Signature Optional\nClick to Pick",
+                    img_scale=declaration.sig_scale
                 ):
                     picked = open_file_dialog("Select Signature Image for Applicant")
                     if picked:
                         declaration.set_field_val("sig_path", picked)
                         app_state.tex_dirty = True
 
-                # Badges
-                badge_y = asset_y + 195
-                draw_text_clean(font_bold, f"🟢 {os.path.basename(declaration.get_output_tex_path())} (Live in Sync)", container_x, badge_y, 13, DRACULA_GREEN)
-                draw_text_clean(font_regular, f"Last update: {app_state.last_sync_time}", container_x, badge_y + 18, 11, DRACULA_COMMENT)
+                # Signature Size Modifier Bar (Narrow Mode)
+                ctrl_y = asset_y + 168
+                sig_ctrl_x = container_x + card_w + 20
+                draw_text_clean(font_bold, "Size:", sig_ctrl_x, ctrl_y + 4, 15, DRACULA_FG)
 
-                save_y = badge_y + 44
-                draw_text_clean(font_bold, "💾 Form Data & Dossier Auto-Saved", container_x, save_y, 13, DRACULA_CYAN)
+                btn_minus = rl.Rectangle(sig_ctrl_x + 44, ctrl_y, 28, 26)
+                if draw_button("−", btn_minus, DRACULA_BG, DRACULA_CYAN, font_bold, 17, mouse_pos, is_mouse_down):
+                    if declaration.sig_scale > 0.45:
+                        declaration.sig_scale = round(declaration.sig_scale - 0.1, 2)
+                        app_state.tex_dirty = True
+
+                pct_str = f"{int(declaration.sig_scale * 100)}%"
+                draw_text_clean(font_bold, pct_str, sig_ctrl_x + 78, ctrl_y + 4, 14, DRACULA_CYAN)
+
+                btn_plus = rl.Rectangle(sig_ctrl_x + 120, ctrl_y, 28, 26)
+                if draw_button("+", btn_plus, DRACULA_BG, DRACULA_GREEN, font_bold, 17, mouse_pos, is_mouse_down):
+                    if declaration.sig_scale < 2.45:
+                        declaration.sig_scale = round(declaration.sig_scale + 0.1, 2)
+                        app_state.tex_dirty = True
+
+                btn_reset = rl.Rectangle(sig_ctrl_x + 154, ctrl_y, 34, 26)
+                if draw_button("↺", btn_reset, DRACULA_BG, DRACULA_COMMENT, font_bold, 15, mouse_pos, is_mouse_down):
+                    declaration.sig_scale = 1.0
+                    app_state.tex_dirty = True
+
+                # Badges
+                badge_y = asset_y + 208
+                draw_text_clean(font_bold, f"🟢 {os.path.basename(declaration.get_output_tex_path())} (Live in Sync)", container_x, badge_y, 15, DRACULA_GREEN)
+                draw_text_clean(font_regular, f"Last update: {app_state.last_sync_time}", container_x, badge_y + 20, 13, DRACULA_COMMENT)
+
+                save_y = badge_y + 48
+                draw_text_clean(font_bold, "💾 Form Data & Dossier Auto-Saved", container_x, save_y, 15, DRACULA_CYAN)
 
                 # Big Compile PDF Button
                 btn_w = container_w
                 btn_h = 48
-                action_rect = rl.Rectangle(container_x, save_y + 36, btn_w, btn_h)
+                action_rect = rl.Rectangle(container_x, save_y + 38, btn_w, btn_h)
 
-                if draw_button("⚡ GENERATE & COMPILE PDF", action_rect, DRACULA_PURPLE, DRACULA_BG, font_bold, 14, mouse_pos, is_mouse_down):
+                if draw_button("⚡ GENERATE & COMPILE PDF", action_rect, DRACULA_PURPLE, DRACULA_BG, font_bold, 16, mouse_pos, is_mouse_down):
                     ok, res_path = app_state.compile_pdf()
                     if ok:
                         app_state.status_msg = f"Compiled successfully: {os.path.basename(res_path)}"
@@ -640,23 +800,23 @@ def run_app(declaration_type: str = "residence", target_dir: str = "", no_prompt
         rl.draw_rectangle(0, footer_y, w, footer_h, DRACULA_CURRENT_LINE)
         rl.draw_line(0, footer_y, w, footer_y, DRACULA_COMMENT)
 
-        # Status indicator
-        draw_text_clean(font_bold, "Status:", 20, footer_y + 18, 13, DRACULA_COMMENT)
+        # Status indicator (+2 pt font)
+        draw_text_clean(font_bold, "Status:", 20, footer_y + 17, 15, DRACULA_COMMENT)
         status_disp = app_state.status_msg
-        max_status_len = max(20, int((w - 360) / 8.5))
+        max_status_len = max(20, int((w - 380) / 9.5))
         if len(status_disp) > max_status_len:
             status_disp = status_disp[:max_status_len - 3] + "..."
-        draw_text_clean(font_bold, status_disp, 80, footer_y + 18, 13, app_state.status_color)
+        draw_text_clean(font_bold, status_disp, 85, footer_y + 17, 15, app_state.status_color)
 
         btn_right_x = w - 20
 
         # "Open PDF" Button if compiled
         if app_state.is_compiled and os.path.exists(app_state.compiled_pdf):
-            open_btn_w = 120
+            open_btn_w = 130
             btn_right_x -= open_btn_w
-            open_rect = rl.Rectangle(btn_right_x, footer_y + 10, open_btn_w, 36)
+            open_rect = rl.Rectangle(btn_right_x, footer_y + 8, open_btn_w, 38)
 
-            if draw_button("📂 Open PDF", open_rect, DRACULA_GREEN, DRACULA_BG, font_bold, 13, mouse_pos, is_mouse_down):
+            if draw_button("📂 Open PDF", open_rect, DRACULA_GREEN, DRACULA_BG, font_bold, 15, mouse_pos, is_mouse_down):
                 try:
                     os.startfile(app_state.compiled_pdf)
                 except Exception as e:
@@ -665,11 +825,11 @@ def run_app(declaration_type: str = "residence", target_dir: str = "", no_prompt
 
         # In Narrow Mode, when on Form Tab: Provide Quick "⚡ Compile" button in footer
         if is_narrow and app_state.active_tab == "form":
-            quick_compile_w = 135
+            quick_compile_w = 145
             btn_right_x -= quick_compile_w
-            quick_rect = rl.Rectangle(btn_right_x, footer_y + 10, quick_compile_w, 36)
+            quick_rect = rl.Rectangle(btn_right_x, footer_y + 8, quick_compile_w, 38)
 
-            if draw_button("⚡ Compile PDF", quick_rect, DRACULA_PURPLE, DRACULA_BG, font_bold, 13, mouse_pos, is_mouse_down):
+            if draw_button("⚡ Compile PDF", quick_rect, DRACULA_PURPLE, DRACULA_BG, font_bold, 15, mouse_pos, is_mouse_down):
                 ok, res_path = app_state.compile_pdf()
                 if ok:
                     app_state.status_msg = f"Compiled successfully: {os.path.basename(res_path)}"

@@ -95,16 +95,18 @@ export async function launchBrave(options: BraveLaunchOptions = {}): Promise<Lau
       executablePath: braveBin,
       headless,
       viewport: null, // Let Brave use the maximized window dimensions
+      chromiumSandbox: true,
       args: commonArgs,
-      ignoreDefaultArgs: ['--enable-automation']
+      ignoreDefaultArgs: ['--enable-automation', '--no-sandbox']
     });
   } catch (err: any) {
     console.warn(`⚠️  Persistent context launch failed (${err.message}). Retrying with fresh browser instance...`);
     const browser = await chromium.launch({
       executablePath: braveBin,
       headless,
+      chromiumSandbox: true,
       args: commonArgs,
-      ignoreDefaultArgs: ['--enable-automation']
+      ignoreDefaultArgs: ['--enable-automation', '--no-sandbox']
     });
     context = await browser.newContext({
       viewport: null

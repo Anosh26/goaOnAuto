@@ -1,0 +1,658 @@
+"""
+GoaOnAuto Inside Portal Bot Architecture SVG Generator
+Generates an exploded-view cutaway SVG diagram of the internal ASP.NET WebForms
+state machine, the Phase 1 __doPostBack navigation breakthrough, persistent Brave profile,
+cascading AJAX dropdown interceptors, and modal address injection.
+"""
+import os
+import xml.sax.saxutils as saxutils
+
+def escape_xml(s: str) -> str:
+    return saxutils.escape(str(s))
+
+def generate_inside_portal_svg() -> str:
+    w = 2600
+    h = 1600
+
+    svg = []
+    svg.append(f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="100%" height="100%" style="background-color: #070913; font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, Helvetica, Arial, sans-serif;">')
+
+    # Definitions
+    svg.append('''
+  <defs>
+    <pattern id="grid-bot" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#121829" stroke-width="1"/>
+      <circle cx="40" cy="40" r="1.2" fill="#1e293b"/>
+    </pattern>
+
+    <radialGradient id="glow-blue-lg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow-emerald-lg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#10b981" stop-opacity="0"/>
+    </radialGradient>
+
+    <linearGradient id="card-inner-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#111827" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#0a0f1d" stop-opacity="0.98"/>
+    </linearGradient>
+
+    <filter id="shadow-deep" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="16" stdDeviation="24" flood-color="#000000" flood-opacity="0.8"/>
+    </filter>
+    <filter id="neon-glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <marker id="arrow-blue" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#38bdf8"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#34d399"/>
+    </marker>
+    <marker id="arrow-amber" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#fbbf24"/>
+    </marker>
+  </defs>
+''')
+
+    # Background
+    svg.append(f'<rect width="{w}" height="{h}" fill="#070913" />')
+    svg.append(f'<rect width="{w}" height="{h}" fill="url(#grid-bot)" />')
+    svg.append('<circle cx="600" cy="500" r="500" fill="url(#glow-blue-lg)"/>')
+    svg.append('<circle cx="1900" cy="900" r="600" fill="url(#glow-emerald-lg)"/>')
+
+    # Header
+    svg.append('''
+  <g id="header" transform="translate(80, 45)">
+    <rect x="0" y="0" width="2440" height="90" rx="16" fill="#0f172a" stroke="#3b82f6" stroke-width="1.8" filter="url(#shadow-deep)"/>
+    <text x="32" y="42" font-size="28" font-weight="900" fill="#ffffff" letter-spacing="1">
+      INSIDE STATION 6: <tspan fill="#38bdf8">ASP.NET WEBFORMS &amp; PLAYWRIGHT PORTAL BOT</tspan>
+      <tspan font-size="16" font-weight="500" fill="#94a3b8" dx="15">— EXPLODED ANATOMY &amp; REVERSE-ENGINEERED DOM ENGINE</tspan>
+    </text>
+    <text x="32" y="70" font-size="13" font-weight="500" fill="#cbd5e1">
+      src/automation/services/portalSessionManager.ts • src/automation/pages/residenceFormPage.ts • tools/surveyScreen1.ts • REV05 Service
+    </text>
+
+    <g transform="translate(1980, 26)">
+      <rect x="0" y="0" width="130" height="38" rx="8" fill="#1e1b4b" stroke="#38bdf8" stroke-width="1.2"/>
+      <text x="65" y="24" font-size="12" font-weight="800" fill="#38bdf8" text-anchor="middle">CDP WS :9222</text>
+      <rect x="145" y="0" width="140" height="38" rx="8" fill="#022c22" stroke="#34d399" stroke-width="1.2"/>
+      <text x="215" y="24" font-size="12" font-weight="800" fill="#34d399" text-anchor="middle">59 DOM CONTROLS</text>
+      <rect x="300" y="0" width="140" height="38" rx="8" fill="#1e102e" stroke="#c084fc" stroke-width="1.2"/>
+      <text x="370" y="24" font-size="12" font-weight="800" fill="#c084fc" text-anchor="middle">__doPostBack OK</text>
+    </g>
+  </g>
+''')
+
+    # =========================================================================
+    # SECTION 1: PERSISTENT PROFILE & CDP TRANSPORT (Top Left, x: 80, y: 160)
+    # =========================================================================
+    svg.append('''
+  <!-- LAYER A: BRAVE PERSISTENT PROFILE & CDP TRANSPORT -->
+  <g transform="translate(80, 160)">
+    <rect width="700" height="660" rx="20" fill="url(#card-inner-grad)" stroke="#3b82f6" stroke-width="2" filter="url(#shadow-deep)"/>
+    
+    <!-- Titlebar -->
+    <rect width="700" height="50" rx="20" fill="#3b82f6" fill-opacity="0.12"/>
+    <text x="24" y="32" font-size="16" font-weight="800" fill="#ffffff">A. Persistent Citizen Profile &amp; CDP Protocol</text>
+    <rect x="540" y="12" width="135" height="26" rx="6" fill="#082f49" stroke="#38bdf8" stroke-width="1"/>
+    <text x="607" y="29" font-size="11" font-weight="800" fill="#38bdf8" text-anchor="middle">PERSISTENT CONTEXT</text>
+
+    <g transform="translate(24, 70)">
+      <!-- Box 1: Directory Lockfile & Sandboxing -->
+      <rect width="652" height="240" rx="12" fill="#090d16" stroke="#334155"/>
+      <text x="20" y="28" font-size="13.5" font-weight="800" fill="#38bdf8">1. Profile Isolation &amp; Stale Lockfile Purge</text>
+
+      <g transform="translate(20, 48)">
+        <!-- Folder Graphic -->
+        <rect width="180" height="110" rx="8" fill="#1e293b"/>
+        <text x="90" y="24" font-size="10.5" font-weight="700" fill="#ffffff" text-anchor="middle">.brave_automation_profile</text>
+        
+        <rect x="15" y="38" width="150" height="22" rx="4" fill="#0f172a"/>
+        <text x="25" y="53" font-size="9" font-family="monospace" fill="#34d399">Cookies &amp; JWT Tokens</text>
+
+        <rect x="15" y="66" width="150" height="22" rx="4" fill="#0f172a"/>
+        <text x="25" y="81" font-size="9" font-family="monospace" fill="#34d399">Saved Site Permissions</text>
+
+        <!-- Stale Lock Purge Arrow -->
+        <path d="M 190 70 L 230 70" stroke="#ef4444" stroke-width="2.5" marker-end="url(#arrow-amber)"/>
+
+        <!-- Lock Purge Action -->
+        <g transform="translate(240, 0)">
+          <rect width="370" height="110" rx="8" fill="#2d0607" stroke="#ef4444" stroke-width="1.2"/>
+          <text x="16" y="24" font-size="11" font-weight="800" fill="#fca5a5">Pre-Launch Lock Cleanup Loop:</text>
+          
+          <g transform="translate(16, 38)">
+            <text x="0" y="14" font-size="9" font-family="monospace" fill="#ffffff">for lock in ['SingletonLock', 'lockfile']:</text>
+            <text x="15" y="30" font-size="9" font-family="monospace" fill="#fca5a5">if os.path.exists(lock): os.unlink(lock)</text>
+            <text x="0" y="52" font-size="9" font-weight="600" fill="#34d399">
+              Prevents fatal "Profile already in use by another instance" crashes.
+            </text>
+          </g>
+        </g>
+      </g>
+
+      <!-- Sandbox Security Configuration -->
+      <g transform="translate(20, 175)">
+        <rect width="612" height="48" rx="6" fill="#022c22" stroke="#10b981"/>
+        <text x="16" y="20" font-size="10" font-weight="800" fill="#34d399">Chromium Sandbox Security Flags:</text>
+        <text x="16" y="36" font-size="9.5" font-family="monospace" fill="#a7f3d0">
+          chromiumSandbox: true • ignoreDefaultArgs: ['--no-sandbox', '--enable-automation']
+        </text>
+      </g>
+      <text x="20" y="235" font-size="10.5" font-weight="500" fill="#94a3b8">
+        • Eliminates the top yellow unsupported command-line flag warning in Brave.
+      </text>
+
+      <!-- Box 2: CDP WebSocket Transport Layer -->
+      <g transform="translate(0, 260)">
+        <rect width="652" height="300" rx="12" fill="#0d111d" stroke="#334155"/>
+        <text x="20" y="28" font-size="13.5" font-weight="800" fill="#c084fc">2. Chrome DevTools Protocol (CDP) WebSocket Engine</text>
+
+        <!-- CDP Protocol Flow Diagram -->
+        <g transform="translate(20, 50)">
+          <!-- Node 1: Playwright Driver -->
+          <rect width="170" height="110" rx="8" fill="#1e1b4b" stroke="#818cf8"/>
+          <text x="85" y="25" font-size="11" font-weight="800" fill="#c7d2fe" text-anchor="middle">Playwright Driver</text>
+          <text x="85" y="44" font-size="9" font-weight="500" fill="#a5b4fc" text-anchor="middle">TypeScript (Node/Bun)</text>
+          
+          <rect x="15" y="58" width="140" height="38" rx="4" fill="#0f172a"/>
+          <text x="85" y="75" font-size="9" font-family="monospace" fill="#38bdf8" text-anchor="middle">page.evaluate()</text>
+          <text x="85" y="90" font-size="8.5" font-family="monospace" fill="#34d399" text-anchor="middle">locator.selectOption()</text>
+
+          <!-- WebSocket Pipe -->
+          <g transform="translate(178, 40)">
+            <path d="M 0 15 L 80 15" stroke="#38bdf8" stroke-width="2.5" marker-end="url(#arrow-blue)"/>
+            <path d="M 80 30 L 0 30" stroke="#c084fc" stroke-width="2.5" marker-end="url(#arrow-purple)"/>
+            <text x="40" y="8" font-size="8.5" font-family="monospace" fill="#facc15" text-anchor="middle">ws://127.0.0.1</text>
+          </g>
+
+          <!-- Node 2: Brave Chromium Core -->
+          <g transform="translate(268, 0)">
+            <rect width="344" height="110" rx="8" fill="#1e293b"/>
+            <text x="172" y="25" font-size="11" font-weight="800" fill="#ffffff" text-anchor="middle">Brave Browser (Headless / Headed)</text>
+            <text x="172" y="44" font-size="9" font-weight="500" fill="#94a3b8" text-anchor="middle">Blink / V8 JavaScript Engine</text>
+
+            <g transform="translate(15, 55)">
+              <rect width="150" height="42" rx="4" fill="#0f172a"/>
+              <text x="75" y="20" font-size="9" font-weight="700" fill="#38bdf8" text-anchor="middle">DOM Tree Manipulation</text>
+              <text x="75" y="34" font-size="8" font-family="monospace" fill="#94a3b8" text-anchor="middle">Runtime.evaluate</text>
+
+              <rect x="165" width="150" height="42" rx="4" fill="#0f172a"/>
+              <text x="240" y="20" font-size="9" font-weight="700" fill="#34d399" text-anchor="middle">Dialog Auto-Accept</text>
+              <text x="240" y="34" font-size="8" font-family="monospace" fill="#94a3b8" text-anchor="middle">Page.javascriptDialogOpening</text>
+            </g>
+          </g>
+        </g>
+
+        <!-- Alert / Confirm Auto-Accept Logic -->
+        <g transform="translate(20, 180)">
+          <rect width="612" height="95" rx="8" fill="#1e293b"/>
+          <text x="16" y="24" font-size="11" font-weight="800" fill="#facc15">Autonomous Dialog Interceptor (context.on('dialog'))</text>
+          <text x="16" y="44" font-size="9.5" font-family="monospace" fill="#e2e8f0">
+            context.on('dialog', async (dialog) =&gt; &#123;
+          </text>
+          <text x="35" y="60" font-size="9.5" font-family="monospace" fill="#34d399">
+            console.log(`Auto-accepting $&#123;dialog.type()&#125;: "$&#123;dialog.message()&#125;"`);
+          </text>
+          <text x="35" y="76" font-size="9.5" font-family="monospace" fill="#38bdf8">
+            await dialog.accept();  // Prevents bot freeze on GoaOnline alert prompts
+          </text>
+          <text x="16" y="92" font-size="9.5" font-family="monospace" fill="#e2e8f0">&#125;);</text>
+        </g>
+      </g>
+    </g>
+  </g>
+''')
+
+    # =========================================================================
+    # SECTION 2: THE PHASE 1 __doPostBack BREAKTHROUGH (Center, x: 810, y: 160)
+    # =========================================================================
+    svg.append('''
+  <!-- LAYER B: THE PHASE 1 __doPostBack BREAKTHROUGH -->
+  <g transform="translate(810, 160)">
+    <rect width="900" height="660" rx="20" fill="url(#card-inner-grad)" stroke="#f59e0b" stroke-width="2" filter="url(#shadow-deep)"/>
+    
+    <!-- Titlebar -->
+    <rect width="900" height="50" rx="20" fill="#f59e0b" fill-opacity="0.12"/>
+    <text x="24" y="32" font-size="16" font-weight="800" fill="#ffffff">B. The Phase 1 Breakthrough: ASP.NET WebForms __doPostBack Bridge</text>
+    <rect x="740" y="12" width="135" height="26" rx="6" fill="#1c1917" stroke="#f59e0b" stroke-width="1"/>
+    <text x="807" y="29" font-size="11" font-weight="800" fill="#fbbf24" text-anchor="middle">WEBFORMS FIX</text>
+
+    <g transform="translate(24, 70)">
+      <!-- The Problem Box -->
+      <rect width="852" height="250" rx="14" fill="#090d16" stroke="#ef4444" stroke-width="1.5"/>
+      <text x="20" y="28" font-size="14" font-weight="800" fill="#ef4444">1. The Problem: Synthetic CDP Mouse Clicks Silently Fail on ASP.NET Anchors</text>
+
+      <g transform="translate(20, 48)">
+        <!-- Inspection of the Real DOM Anchor Tag -->
+        <rect width="400" height="115" rx="8" fill="#1e293b"/>
+        <text x="16" y="22" font-size="11" font-weight="700" fill="#fca5a5">Target DOM Element (Proceed to Apply Button):</text>
+        <rect x="15" y="34" width="370" height="68" rx="4" fill="#0f172a"/>
+        <text x="25" y="52" font-size="9" font-family="monospace" fill="#ffffff">&lt;a id="cphBody_gvService_lnkProceedApply_0"</text>
+        <text x="25" y="68" font-size="9" font-family="monospace" fill="#fbbf24">   href="javascript:__doPostBack("ctl00$cphBody$gvService$ctl02$lnkProceedApply","")"&gt;</text>
+        <text x="25" y="86" font-size="9" font-family="monospace" fill="#38bdf8">   Proceed to Apply &lt;/a&gt;</text>
+
+        <!-- Failure Explanation -->
+        <g transform="translate(420, 0)">
+          <rect width="392" height="115" rx="8" fill="#2d0607" stroke="#ef4444" stroke-width="1"/>
+          <text x="16" y="22" font-size="11" font-weight="800" fill="#ef4444">Why locator.click() Failed:</text>
+          
+          <g transform="translate(16, 38)">
+            <text x="0" y="14" font-size="9.5" font-weight="500" fill="#cbd5e1">• Playwright sends low-level Input.dispatchMouseEvent to Chromium.</text>
+            <text x="0" y="32" font-size="9.5" font-weight="500" fill="#cbd5e1">• Chromium does not evaluate synthetic clicks as trusted navigation</text>
+            <text x="0" y="48" font-size="9.5" font-weight="500" fill="#cbd5e1">  gestures for "javascript:" pseudoprotocol URLs.</text>
+            <text x="0" y="68" font-size="10" font-weight="800" fill="#fca5a5">Result: Page remained frozen on overview with ZERO error thrown!</text>
+          </g>
+        </g>
+      </g>
+
+      <text x="20" y="195" font-size="11" font-weight="500" fill="#94a3b8">
+        • ASP.NET WebForms does not use standard HTML form submission. It relies on a global JavaScript function `__doPostBack(eventTarget, eventArgument)` that dynamically populates hidden input values.
+      </text>
+
+      <!-- The Solution Box -->
+      <g transform="translate(0, 270)">
+        <rect width="852" height="295" rx="14" fill="#090d16" stroke="#10b981" stroke-width="1.8"/>
+        <text x="20" y="28" font-size="14" font-weight="800" fill="#34d399">2. The Engineering Fix: Direct In-Page __doPostBack Injection</text>
+
+        <!-- Solution Code Graphic -->
+        <g transform="translate(20, 50)">
+          <rect width="812" height="140" rx="8" fill="#022c22" stroke="#10b981"/>
+          
+          <g transform="translate(20, 25)">
+            <text x="0" y="16" font-size="10.5" font-family="monospace" fill="#ffffff">await page.evaluate(() =&gt; &#123;</text>
+            <text x="25" y="38" font-size="10.5" font-family="monospace" fill="#a7f3d0">const btn = document.querySelector('#cphBody_gvService_lnkProceedApply_0');</text>
+            <text x="25" y="60" font-size="10.5" font-family="monospace" fill="#a7f3d0">if (btn) btn.click();  // Triggers native browser event listener</text>
+            <text x="25" y="82" font-size="10.5" font-family="monospace" fill="#facc15">// Direct invocation bypassing gesture restrictions:</text>
+            <text x="25" y="104" font-size="11" font-family="monospace" font-weight="900" fill="#38bdf8">window.__doPostBack('ctl00$cphBody$gvService$ctl02$lnkProceedApply', '');</text>
+            <text x="0" y="124" font-size="10.5" font-family="monospace" fill="#ffffff">&#125;);</text>
+          </g>
+        </g>
+
+        <!-- Verification Polling Sequence -->
+        <g transform="translate(20, 205)">
+          <rect width="812" height="70" rx="8" fill="#1e293b"/>
+          <text x="16" y="24" font-size="11" font-weight="800" fill="#38bdf8">Strict URL Transition Polling Assertion:</text>
+          <text x="16" y="44" font-size="9.5" font-family="monospace" fill="#cbd5e1">
+            await page.waitForURL(url =&gt; url.href.includes('/GS/') &amp;&amp; !url.href.includes('deptServices'), &#123; timeout: 20000 &#125;);
+          </text>
+          <text x="16" y="60" font-size="9" font-weight="600" fill="#34d399">
+            ✓ Confirms successful server-side state transition into REV05 Residence Certificate application.
+          </text>
+        </g>
+      </g>
+    </g>
+  </g>
+''')
+
+    # =========================================================================
+    # SECTION 3: DOM INVENTORY & CASCADING AJAX ENGINE (Bottom, x: 80, y: 840)
+    # =========================================================================
+    svg.append('''
+  <!-- LAYER C: 59-CONTROL DOM INVENTORY & CASCADING AJAX WORKFLOW -->
+  <g transform="translate(80, 840)">
+    <rect width="1630" height="680" rx="20" fill="url(#card-inner-grad)" stroke="#10b981" stroke-width="2" filter="url(#shadow-deep)"/>
+    
+    <!-- Titlebar -->
+    <rect width="1630" height="50" rx="20" fill="#10b981" fill-opacity="0.12"/>
+    <text x="24" y="32" font-size="16" font-weight="800" fill="#ffffff">C. 59-Control DOM Page Object Model &amp; Cascading AJAX Address Engine</text>
+    <rect x="1460" y="12" width="145" height="26" rx="6" fill="#022c22" stroke="#10b981" stroke-width="1"/>
+    <text x="1532" y="29" font-size="11" font-weight="800" fill="#34d399" text-anchor="middle">SCREEN 1 POM</text>
+
+    <g transform="translate(24, 70)">
+      <!-- Left: DOM Field Classification Inventory -->
+      <g>
+        <rect width="780" height="580" rx="14" fill="#090d16" stroke="#334155"/>
+        <text x="20" y="28" font-size="14" font-weight="800" fill="#34d399">1. Reverse-Engineered 59-Control DOM Map (recordings/screen1_survey_latest.md)</text>
+
+        <!-- Category Grid -->
+        <g transform="translate(20, 48)">
+          <!-- Group 1: Mode & Personal -->
+          <g>
+            <rect width="360" height="150" rx="8" fill="#1e293b"/>
+            <text x="16" y="22" font-size="11.5" font-weight="800" fill="#38bdf8">Application Mode &amp; Personal Info</text>
+            <g transform="translate(16, 36)">
+              <text x="0" y="14" font-size="9" font-family="monospace" fill="#cbd5e1">#id6a / #id6b: Self vs Child Mode</text>
+              <text x="0" y="30" font-size="9" font-family="monospace" fill="#cbd5e1">#id2f, #id30: Title &amp; Full Name</text>
+              <text x="0" y="46" font-size="9" font-family="monospace" fill="#cbd5e1">#DOB, #idb2: DOB &amp; Chronological Age</text>
+              <text x="0" y="62" font-size="9" font-family="monospace" fill="#cbd5e1">#id32, #id33: Gender &amp; Marital Status</text>
+              <text x="0" y="78" font-size="9" font-family="monospace" fill="#cbd5e1">#id36, #id37: Mobile &amp; Citizen Email</text>
+              <text x="0" y="94" font-size="9" font-family="monospace" fill="#cbd5e1">#id38: Occupation Dropdown</text>
+            </g>
+          </g>
+
+          <!-- Group 2: Relative / Child Supported Fields -->
+          <g transform="translate(380, 0)">
+            <rect width="360" height="150" rx="8" fill="#1e293b"/>
+            <text x="16" y="22" font-size="11.5" font-weight="800" fill="#c084fc">Relative &amp; Child Conditional Controls</text>
+            <g transform="translate(16, 36)">
+              <text x="0" y="14" font-size="9" font-family="monospace" fill="#cbd5e1">#idaf: Relationship to Applicant</text>
+              <text x="0" y="30" font-size="9" font-family="monospace" fill="#cbd5e1">#idb0: Relative Full Name Input</text>
+              <text x="0" y="46" font-size="9" font-family="monospace" fill="#cbd5e1">#id34, #id35: Father / Mother Name</text>
+              <text x="0" y="62" font-size="9" font-family="monospace" fill="#cbd5e1">#id2a: Place of Birth in Goa</text>
+              <text x="0" y="78" font-size="9" font-family="monospace" fill="#cbd5e1">#id3f, #idc3: Prev Cert Number</text>
+              <text x="0" y="94" font-size="9" font-family="monospace" fill="#cbd5e1">#issuedate, #idc4: Cert Authority</text>
+            </g>
+          </g>
+
+          <!-- Group 3: Purpose & Stay Duration -->
+          <g transform="translate(0, 165)">
+            <rect width="360" height="135" rx="8" fill="#1e293b"/>
+            <text x="16" y="22" font-size="11.5" font-weight="800" fill="#facc15">Purpose &amp; Stay Duration Rules</text>
+            <g transform="translate(16, 36)">
+              <text x="0" y="14" font-size="9" font-family="monospace" fill="#cbd5e1">#id2b: Purpose of Certificate Dropdown</text>
+              <text x="0" y="30" font-size="9" font-family="monospace" fill="#cbd5e1">#id2d: Period Duration Type</text>
+              <text x="0" y="46" font-size="9" font-family="monospace" fill="#cbd5e1">#year: Minimum Stay Duration (15 Years)</text>
+              <text x="0" y="62" font-size="9" font-family="monospace" fill="#cbd5e1">#id2e: Specific Purpose Details</text>
+              <text x="0" y="78" font-size="9" font-family="monospace" fill="#cbd5e1">#id41: Self-Declaration Checkbox</text>
+            </g>
+          </g>
+
+          <!-- Group 4: Aadhaar & Identity Proof -->
+          <g transform="translate(380, 165)">
+            <rect width="360" height="135" rx="8" fill="#022c22" stroke="#10b981"/>
+            <text x="16" y="22" font-size="11.5" font-weight="800" fill="#34d399">Aadhaar Card Verhoeff Validation</text>
+            <g transform="translate(16, 36)">
+              <text x="0" y="14" font-size="9" font-family="monospace" fill="#ffffff">#id3d: Document Type (Aadhaar Card)</text>
+              <text x="0" y="30" font-size="9" font-family="monospace" fill="#ffffff">#id3e: 12-Digit Verhoeff Validated UID</text>
+              <text x="0" y="50" font-size="9" font-weight="600" fill="#a7f3d0">
+                • Bot asserts Verhoeff validity BEFORE typing to prevent portal validation locks.
+              </text>
+            </g>
+          </g>
+
+          <!-- Group 5: Autonomous Retry & Locator Fallbacks -->
+          <g transform="translate(0, 315)">
+            <rect width="740" height="195" rx="8" fill="#18112e" stroke="#c084fc"/>
+            <text x="16" y="22" font-size="11.5" font-weight="800" fill="#e879f9">Locator Fallback &amp; Dynamic ID Disambiguation</text>
+            
+            <g transform="translate(16, 40)">
+              <text x="0" y="14" font-size="9.5" font-weight="500" fill="#cbd5e1">
+                ASP.NET dynamically changes control IDs across sessions (e.g. `#id30` vs `input[name*="txtName"]`).
+              </text>
+              <text x="0" y="34" font-size="9.5" font-weight="500" fill="#cbd5e1">
+                The Page Object Model uses a multi-tier resilient fallback hierarchy:
+              </text>
+              
+              <rect x="0" y="48" width="708" height="85" rx="4" fill="#0f172a"/>
+              <text x="16" y="68" font-size="9" font-family="monospace" fill="#38bdf8">1. Primary Target: '#id30' (Exact survey control key)</text>
+              <text x="16" y="86" font-size="9" font-family="monospace" fill="#38bdf8">2. Resilient Name: 'input[name$="txtFullName"], input[id*="txtFullName"]'</text>
+              <text x="16" y="104" font-size="9" font-family="monospace" fill="#38bdf8">3. Label Traversal: 'label:has-text("Full Name") ~ input'</text>
+              <text x="16" y="122" font-size="9" font-family="monospace" fill="#34d399">✓ Guarantees 100% locator resilience against portal ASP.NET re-compilations.</text>
+            </g>
+          </g>
+        </g>
+      </g>
+
+      <!-- Right: Cascading AJAX Dropdowns & Address Modal Workflow -->
+      <g transform="translate(810, 0)">
+        <rect width="770" height="580" rx="14" fill="#090d16" stroke="#38bdf8"/>
+        <text x="20" y="28" font-size="14" font-weight="800" fill="#38bdf8">2. Cascading AJAX Address Modal Execution Loop</text>
+
+        <!-- Step-by-Step AJAX Interception Diagram -->
+        <g transform="translate(20, 50)">
+          <!-- Step 1: Open Modal -->
+          <rect width="730" height="85" rx="8" fill="#1e293b"/>
+          <text x="16" y="24" font-size="11" font-weight="800" fill="#ffffff">Step 1: Modal Trigger &amp; Visibility Wait</text>
+          <text x="16" y="44" font-size="9.5" font-family="monospace" fill="#38bdf8">await page.click('#btnaddnew');</text>
+          <text x="16" y="60" font-size="9.5" font-family="monospace" fill="#cbd5e1">await page.waitForSelector('#id42', &#123; state: 'visible', timeout: 5000 &#125;);</text>
+          <text x="16" y="76" font-size="9" font-weight="600" fill="#34d399">Waits for Bootstrap overlay backdrop to complete transition.</text>
+
+          <!-- Step 2: Cascading Selectors Loop -->
+          <g transform="translate(0, 100)">
+            <rect width="730" height="235" rx="8" fill="#0d111d" stroke="#f59e0b" stroke-width="1.2"/>
+            <text x="16" y="24" font-size="11" font-weight="800" fill="#fbbf24">Step 2: Cascading AJAX Dropdown Chain</text>
+
+            <g transform="translate(16, 40)">
+              <!-- District -->
+              <rect width="215" height="100" rx="6" fill="#1e293b"/>
+              <text x="107" y="22" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">Select District (#id47)</text>
+              <text x="107" y="40" font-size="9" font-family="monospace" fill="#38bdf8" text-anchor="middle">"NORTH GOA"</text>
+              <text x="107" y="62" font-size="8" font-weight="600" fill="#facc15" text-anchor="middle">Triggers __doPostBack</text>
+              <text x="107" y="78" font-size="8" font-weight="600" fill="#facc15" text-anchor="middle">ScriptManager.asmx</text>
+
+              <path d="M 220 50 L 245 50" stroke="#f59e0b" stroke-width="2.5" marker-end="url(#arrow-amber)"/>
+
+              <!-- Taluka Wait & Select -->
+              <g transform="translate(255, 0)">
+                <rect width="215" height="100" rx="6" fill="#1e293b"/>
+                <text x="107" y="22" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">Wait Taluka AJAX (#id48)</text>
+                <text x="107" y="40" font-size="9" font-family="monospace" fill="#38bdf8" text-anchor="middle">"BARDEZ"</text>
+                <text x="107" y="62" font-size="8" font-weight="600" fill="#facc15" text-anchor="middle">Waits for &gt; 1 options</text>
+                <text x="107" y="78" font-size="8" font-weight="600" fill="#34d399" text-anchor="middle">Dynamic Injection OK</text>
+              </g>
+
+              <path d="M 475 50 L 500 50" stroke="#f59e0b" stroke-width="2.5" marker-end="url(#arrow-amber)"/>
+
+              <!-- Village Wait & Select -->
+              <g transform="translate(510, 0)">
+                <rect width="190" height="100" rx="6" fill="#1e293b"/>
+                <text x="95" y="22" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">Wait Village AJAX (#id49)</text>
+                <text x="95" y="40" font-size="9" font-family="monospace" fill="#38bdf8" text-anchor="middle">"MAPUSA"</text>
+                <text x="95" y="62" font-size="8" font-weight="600" fill="#facc15" text-anchor="middle">Waits for &gt; 1 options</text>
+                <text x="95" y="78" font-size="8" font-weight="600" fill="#34d399" text-anchor="middle">Dynamic Injection OK</text>
+              </g>
+            </g>
+
+            <!-- Code snippet of the AJAX waiter -->
+            <g transform="translate(16, 155)">
+              <rect width="698" height="65" rx="4" fill="#090d16"/>
+              <text x="16" y="20" font-size="9" font-family="monospace" fill="#a5b4fc">
+                await page.waitForFunction((id) =&gt; document.querySelector(id)?.options?.length &gt; 1, '#id48');
+              </text>
+              <text x="16" y="38" font-size="9" font-family="monospace" fill="#a5b4fc">
+                await page.selectOption('#id48', &#123; label: 'Bardez' &#125;);
+              </text>
+              <text x="16" y="54" font-size="9" font-weight="600" fill="#34d399">
+                ✓ Eliminates race condition where selecting Taluka before AJAX finishes clears the field!
+              </text>
+            </g>
+          </g>
+
+          <!-- Step 3: Modal Save, Confirm & Backdrop Disposal -->
+          <g transform="translate(0, 350)">
+            <rect width="730" height="160" rx="8" fill="#1e293b"/>
+            <text x="16" y="24" font-size="11" font-weight="800" fill="#ffffff">Step 3: Detail Update &amp; Two-Tier Confirmation Dialog</text>
+            
+            <g transform="translate(16, 40)">
+              <rect width="215" height="45" rx="4" fill="#0f172a"/>
+              <text x="107" y="20" font-size="9" font-weight="700" fill="#ffffff" text-anchor="middle">1. Dispatch Update</text>
+              <text x="107" y="34" font-size="8.5" font-family="monospace" fill="#38bdf8" text-anchor="middle">#id4f (:confirmButton)</text>
+
+              <path d="M 220 22 L 245 22" stroke="#34d399" stroke-width="2" marker-end="url(#arrow-green)"/>
+
+              <g transform="translate(255, 0)">
+                <rect width="215" height="45" rx="4" fill="#0f172a"/>
+                <text x="107" y="20" font-size="9" font-weight="700" fill="#ffffff" text-anchor="middle">2. Confirm Modal</text>
+                <text x="107" y="34" font-size="8.5" font-family="monospace" fill="#34d399" text-anchor="middle">#id4d (:yesButton)</text>
+              </g>
+
+              <path d="M 475 22 L 500 22" stroke="#34d399" stroke-width="2" marker-end="url(#arrow-green)"/>
+
+              <g transform="translate(510, 0)">
+                <rect width="190" height="45" rx="4" fill="#0f172a"/>
+                <text x="95" y="20" font-size="9" font-weight="700" fill="#ffffff" text-anchor="middle">3. Backdrop Disposal</text>
+                <text x="95" y="34" font-size="8.5" font-family="monospace" fill="#facc15" text-anchor="middle">.modal-backdrop.remove()</text>
+              </g>
+            </g>
+
+            <rect x="16" y="98" width="698" height="48" rx="4" fill="#022c22" stroke="#10b981"/>
+            <text x="25" y="118" font-size="9.5" font-weight="800" fill="#34d399">Safe Review Mode Guarantee:</text>
+            <text x="25" y="134" font-size="9" font-weight="500" fill="#ffffff">
+              Bot pauses and leaves browser window live for operator to review all 59 fields before final submission.
+            </text>
+          </g>
+        </g>
+      </g>
+    </g>
+  </g>
+''')
+
+    # =========================================================================
+    # SECTION 4: PHASE 3 ATTACHMENT UPLOADER & ARCHITECTURE (Right, x: 1740, y: 160)
+    # =========================================================================
+    svg.append('''
+  <!-- LAYER D: PHASE 3 ATTACHMENTS & TELEMETRY -->
+  <g transform="translate(1740, 160)">
+    <rect width="780" height="1360" rx="20" fill="url(#card-inner-grad)" stroke="#c084fc" stroke-width="2" filter="url(#shadow-deep)"/>
+    
+    <!-- Titlebar -->
+    <rect width="780" height="50" rx="20" fill="#c084fc" fill-opacity="0.12"/>
+    <text x="24" y="32" font-size="16" font-weight="800" fill="#ffffff">D. Phase 3 Document Upload &amp; Telemetry Suite</text>
+    <rect x="620" y="12" width="135" height="26" rx="6" fill="#1e102e" stroke="#c084fc" stroke-width="1"/>
+    <text x="687" y="29" font-size="11" font-weight="800" fill="#c084fc" text-anchor="middle">SCREEN 2 ATTACH</text>
+
+    <g transform="translate(24, 70)">
+      <!-- Box 1: Screen 2 Attachment Slot Mapping -->
+      <rect width="732" height="480" rx="14" fill="#090d16" stroke="#334155"/>
+      <text x="20" y="28" font-size="14" font-weight="800" fill="#c084fc">1. Document Slot Mapping &amp; Strict Portal Constraints</text>
+
+      <g transform="translate(20, 50)">
+        <!-- Slot 1: Photo -->
+        <g>
+          <rect width="692" height="65" rx="6" fill="#1e293b"/>
+          <text x="16" y="24" font-size="11" font-weight="800" fill="#ffffff">Slot 1: Applicant Passport Photo</text>
+          <text x="16" y="44" font-size="9.5" font-family="monospace" fill="#34d399">Path: applicant_dir/photo_processed.jpg</text>
+          <rect x="540" y="16" width="135" height="32" rx="4" fill="#022c22" stroke="#10b981"/>
+          <text x="607" y="36" font-size="9.5" font-weight="800" fill="#34d399" text-anchor="middle">&lt; 50KB • White BG</text>
+        </g>
+
+        <!-- Slot 2: Declaration PDF -->
+        <g transform="translate(0, 80)">
+          <rect width="692" height="65" rx="6" fill="#1e293b"/>
+          <text x="16" y="24" font-size="11" font-weight="800" fill="#ffffff">Slot 2: Self Residence Declaration PDF</text>
+          <text x="16" y="44" font-size="9.5" font-family="monospace" fill="#38bdf8">Path: applicant_dir/residence_declaration.pdf</text>
+          <rect x="540" y="16" width="135" height="32" rx="4" fill="#082f49" stroke="#38bdf8"/>
+          <text x="607" y="36" font-size="9.5" font-weight="800" fill="#38bdf8" text-anchor="middle">Signed XeLaTeX PDF</text>
+        </g>
+
+        <!-- Slot 3: Identity Proof -->
+        <g transform="translate(0, 160)">
+          <rect width="692" height="65" rx="6" fill="#1e293b"/>
+          <text x="16" y="24" font-size="11" font-weight="800" fill="#ffffff">Slot 3: Identity Proof (Aadhaar / Voter ID)</text>
+          <text x="16" y="44" font-size="9.5" font-family="monospace" fill="#facc15">Path: dossier.classifiedFiles.aadhaarCard</text>
+          <rect x="540" y="16" width="135" height="32" rx="4" fill="#1e102e" stroke="#c084fc"/>
+          <text x="607" y="36" font-size="9.5" font-weight="800" fill="#c084fc" text-anchor="middle">Classified Identity</text>
+        </g>
+
+        <!-- Slot 4: Age Proof -->
+        <g transform="translate(0, 240)">
+          <rect width="692" height="65" rx="6" fill="#1e293b"/>
+          <text x="16" y="24" font-size="11" font-weight="800" fill="#ffffff">Slot 4: Age Proof (Birth Certificate)</text>
+          <text x="16" y="44" font-size="9.5" font-family="monospace" fill="#facc15">Path: dossier.classifiedFiles.birthCertificate</text>
+          <rect x="540" y="16" width="135" height="32" rx="4" fill="#1e102e" stroke="#c084fc"/>
+          <text x="607" y="36" font-size="9.5" font-weight="800" fill="#c084fc" text-anchor="middle">DOB Corroborated</text>
+        </g>
+
+        <!-- Slot 5: 15-Year Residence Proofs -->
+        <g transform="translate(0, 320)">
+          <rect width="692" height="65" rx="6" fill="#1e293b"/>
+          <text x="16" y="24" font-size="11" font-weight="800" fill="#ffffff">Slot 5: Residence Proofs (Electricity / Ration / Talathi)</text>
+          <text x="16" y="44" font-size="9.5" font-family="monospace" fill="#facc15">Path: dossier.classifiedFiles.residenceProofs (Array)</text>
+          <rect x="540" y="16" width="135" height="32" rx="4" fill="#1c1917" stroke="#f59e0b"/>
+          <text x="607" y="36" font-size="9.5" font-weight="800" fill="#fbbf24" text-anchor="middle">15+ Years Proved</text>
+        </g>
+
+        <rect x="0" y="395" width="692" height="28" rx="4" fill="#0f172a"/>
+        <text x="16" y="414" font-size="10" font-weight="600" fill="#94a3b8">
+          Upload dispatch method: `await fileChooser.setFiles(resolvedPath)` bypassing synthetic OS dialogs.
+        </text>
+      </g>
+      <text x="20" y="465" font-size="11" font-weight="500" fill="#94a3b8">
+        • Direct headless file injection ensures the Windows native file picker window never interrupts automation.
+      </text>
+
+      <!-- Box 2: Reverse-Engineering Telemetry & Simulation Suite -->
+      <g transform="translate(0, 510)">
+        <rect width="732" height="420" rx="14" fill="#0d111d" stroke="#334155"/>
+        <text x="20" y="28" font-size="14" font-weight="800" fill="#38bdf8">2. Live DOM Survey &amp; Human Simulation Tracker</text>
+
+        <!-- Survey Tool Graphic -->
+        <g transform="translate(20, 50)">
+          <rect width="692" height="150" rx="8" fill="#1e293b"/>
+          <text x="20" y="25" font-size="12" font-weight="800" fill="#ffffff">surveyScreen1.ts: Live DOM Inspector</text>
+          
+          <g transform="translate(20, 42)">
+            <text x="0" y="14" font-size="9.5" font-weight="500" fill="#cbd5e1">• Recursively walks GoaOnline DOM tree extracting all input, select, textarea, button tags.</text>
+            <text x="0" y="32" font-size="9.5" font-weight="500" fill="#cbd5e1">• Captures exact client IDs, name attributes, control types, and default options.</text>
+            <text x="0" y="50" font-size="9.5" font-weight="500" fill="#cbd5e1">• Emits `recordings/screen1_survey_latest.md` with complete 59-control inventory.</text>
+            <rect x="0" y="65" width="650" height="28" rx="4" fill="#0f172a"/>
+            <text x="12" y="83" font-size="9.5" font-family="monospace" fill="#34d399">bun run portal:survey  # Automatically discovers portal DOM changes</text>
+          </g>
+        </g>
+
+        <!-- Action Tracker Graphic -->
+        <g transform="translate(20, 220)">
+          <rect width="692" height="175" rx="8" fill="#1e1b4b" stroke="#818cf8"/>
+          <text x="20" y="25" font-size="12" font-weight="800" fill="#c7d2fe">portalActionTracker.ts: Human Action Interceptor</text>
+          
+          <g transform="translate(20, 42)">
+            <text x="0" y="14" font-size="9.5" font-weight="500" fill="#cbd5e1">• Injects in-page visual floating HUD overlay into the citizen's browser session.</text>
+            <text x="0" y="32" font-size="9.5" font-weight="500" fill="#cbd5e1">• Captures user clicks, keystrokes, dropdown changes, and ASP.NET postback timestamps.</text>
+            <text x="0" y="50" font-size="9.5" font-weight="500" fill="#cbd5e1">• Emits `recordings/screen1_simulation_latest.md` (291-step gold simulation blueprint).</text>
+            <rect x="0" y="65" width="650" height="50" rx="4" fill="#0f172a"/>
+            <text x="12" y="83" font-size="9.5" font-family="monospace" fill="#facc15">bun run portal:track  # Records operator actions into code blueprint</text>
+            <text x="12" y="103" font-size="9" font-weight="600" fill="#34d399">Enables 1:1 reproduction of tricky government portal workflows.</text>
+          </g>
+        </g>
+      </g>
+
+      <!-- Box 3: Safe Review Mode & Submission Safeguards -->
+      <g transform="translate(0, 950)">
+        <rect width="732" height="290" rx="14" fill="#022c22" stroke="#10b981" stroke-width="1.8"/>
+        <text x="20" y="28" font-size="14" font-weight="900" fill="#34d399">3. Operator Review Safeguards &amp; Submission Policy</text>
+
+        <g transform="translate(20, 48)">
+          <rect width="692" height="100" rx="8" fill="#064e3b"/>
+          <text x="20" y="24" font-size="11.5" font-weight="800" fill="#ffffff">Why the Bot Stops Before Final Submit:</text>
+          <text x="20" y="45" font-size="9.5" font-weight="500" fill="#ffffff">
+            • Revenue Department certificates carry legal accountability under the Goa State Administration Act.
+          </text>
+          <text x="20" y="65" font-size="9.5" font-weight="500" fill="#ffffff">
+            • Safe Review Mode leaves the browser headed window active so the human operator can double-check
+          </text>
+          <text x="20" y="83" font-size="9.5" font-weight="500" fill="#ffffff">
+            all names, dates, address lines, and uploaded documents before clicking "Final Submit".
+          </text>
+
+          <g transform="translate(0, 115)">
+            <rect width="692" height="95" rx="8" fill="#0f172a"/>
+            <text x="20" y="24" font-size="11" font-weight="800" fill="#38bdf8">Portal Auto-Fill CLI Command:</text>
+            <rect x="20" y="36" width="650" height="30" rx="4" fill="#1e293b"/>
+            <text x="32" y="55" font-size="11" font-family="monospace" fill="#34d399">bun run portal:fill [client_folder_path]</text>
+            <text x="20" y="82" font-size="9.5" font-weight="600" fill="#cbd5e1">
+              Loads `applicant_dossier.json`, fills Screen 1, coordinates Screen 2, and awaits final sign-off.
+            </text>
+          </g>
+        </g>
+      </g>
+    </g>
+  </g>
+''')
+
+    # Close SVG
+    svg.append('</svg>')
+    return "\n".join(svg)
+
+def main():
+    target_dir = os.path.join(os.path.dirname(__file__), "..", "docs", "architecture")
+    os.makedirs(target_dir, exist_ok=True)
+    target_file = os.path.abspath(os.path.join(target_dir, "inside_portal_bot.svg"))
+
+    svg_content = generate_inside_portal_svg()
+    with open(target_file, "w", encoding="utf-8") as f:
+        f.write(svg_content)
+
+    print(f"✅ Inside Portal Bot SVG generated at:\n   {target_file}")
+    print(f"   Size: {len(svg_content):,} bytes")
+
+if __name__ == "__main__":
+    main()

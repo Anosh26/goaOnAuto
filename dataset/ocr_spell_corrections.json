@@ -1,0 +1,32 @@
+{
+  "words": {
+    "mamltdar": "mamlatdar",
+    "calangut": "calangute",
+    "mapc": "mapusa",
+    "panjim": "panaji",
+    "panaj": "panaji",
+    "bardezz": "bardez",
+    "salcet": "salcete",
+    "bicholim": "bicholim",
+    "pernem": "pernem",
+    "tiswadi": "tiswadi",
+    "mormugao": "mormugao",
+    "ponda": "ponda",
+    "quepem": "quepem",
+    "sanguem": "sanguem",
+    "canacona": "canacona"
+  },
+  "patterns": [
+    {
+      "regex": "\\bO(\\d{1,2}[/\\-\\.]\\d{1,2}[/\\-\\.]\\d{4})\\b",
+      "replace": "0$1",
+      "flags": "gi"
+    },
+    {
+      "regex": "\\b([2-9]\\d{3})\\s*O(\\d{3})\\s*(\\d{4})\\b",
+      "replace": "$1 0$2 $3",
+      "flags": "g"
+    }
+  ],
+  "last_updated": "2026-10-03T15:22:00.000Z"
+}
