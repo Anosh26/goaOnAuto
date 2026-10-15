@@ -33,6 +33,10 @@ GoaOnAuto is an end-to-end intelligent automation system designed to eliminate m
 
 > 📖 **Complete API Reference & Function Catalog**: Open [`docs/API_REFERENCE.md`](file:///c:/Users/Anosh/Documents/Notes/Projects/goaOnAuto/docs/API_REFERENCE.md) for full function signatures, parameters (`@param`), return types (`@returns`), and module breakdowns.
 > 
+> 🧠 **Deep Code Logic & Algorithmic Blueprint**: Open [`docs/CODE_LOGIC.md`](file:///c:/Users/Anosh/Documents/Notes/Projects/goaOnAuto/docs/CODE_LOGIC.md) for step-by-step mathematical and algorithmic explanations (Trie change buffer, BigInt Gzip QR decoding, Verhoeff checksums, and ASP.NET postback handling).
+> 
+> 🎨 **UI Components & Design System Architecture**: Open [`docs/UI_COMPONENTS.md`](file:///c:/Users/Anosh/Documents/Notes/Projects/goaOnAuto/docs/UI_COMPONENTS.md) for detailed breakdowns of Raylib desktop immediate-mode widgets (fonts, buttons, dynamic signature scaler, window-in-window layout) and web automation DOM HUDs.
+> 
 > 🌟 **Interactive Architecture & Infinite Zoom Explorer**: Open [`docs/architecture/index.html`](file:///c:/Users/Anosh/Documents/Notes/Projects/goaOnAuto/docs/architecture/index.html) in your browser for a dynamic vector blueprint with deep exploded cutaways into the GPU Vision Core and WebForms Bot!
 
 ```mermaid

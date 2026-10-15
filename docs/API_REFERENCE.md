@@ -2,6 +2,11 @@
 
 > **Exhaustive Repository Catalog, Function Specifications, Class Contracts & Dataflows**  
 > Covers every directory, source module, Python vision daemon, Raylib GUI app, automation script, and tool across the codebase.
+>
+> 🔗 **Related Documentation**:
+> * 🧠 [Deep Code Logic & Algorithmic Blueprint](file:///c:/Users/Anosh/Documents/Notes/Projects/goaOnAuto/docs/CODE_LOGIC.md)
+> * 🎨 [UI Components & Design System Architecture](file:///c:/Users/Anosh/Documents/Notes/Projects/goaOnAuto/docs/UI_COMPONENTS.md)
+> * 🌟 [Interactive Vector Architecture Explorer](file:///c:/Users/Anosh/Documents/Notes/Projects/goaOnAuto/docs/architecture/index.html)
 
 ---
 
