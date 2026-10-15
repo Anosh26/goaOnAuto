@@ -1,5 +1,6 @@
 import { ApplicantDossier, DossierField } from './types';
 import { AadhaarQrResult } from '../scanner/gpuDaemonClient';
+import { validateVerhoeff } from './verhoeff';
 
 export interface ExtractedDocument {
   docType: string;
@@ -213,11 +214,12 @@ function deduceAadhaarNumber(
     if (labeledMatch && labeledMatch[1]) {
       const clean = labeledMatch[1].replace(/\D/g, '');
       if (clean.length === 12 && clean[0] !== '0' && clean[0] !== '1') {
+        const isVerhoeff = validateVerhoeff(clean);
         return {
           value: clean,
-          confidence: 0.95,
+          confidence: isVerhoeff ? 1.0 : 0.75,
           sourceDoc: doc.filePath,
-          evidenceText: labeledMatch[0]
+          evidenceText: `${labeledMatch[0]}${isVerhoeff ? ' [Verhoeff: Valid]' : ' [Verhoeff: Unverified]'}`
         };
       }
     }
@@ -226,11 +228,12 @@ function deduceAadhaarNumber(
     const groupMatch = text.match(/\b([2-9]\d{3})\s+(\d{4})\s+(\d{4})\b/);
     if (groupMatch && groupMatch[1] && groupMatch[2] && groupMatch[3]) {
       const clean = `${groupMatch[1]}${groupMatch[2]}${groupMatch[3]}`;
+      const isVerhoeff = validateVerhoeff(clean);
       return {
         value: clean,
-        confidence: 0.9,
+        confidence: isVerhoeff ? 0.95 : 0.7,
         sourceDoc: doc.filePath,
-        evidenceText: groupMatch[0]
+        evidenceText: `${groupMatch[0]}${isVerhoeff ? ' [Verhoeff: Valid]' : ' [Verhoeff: Unverified]'}`
       };
     }
 
