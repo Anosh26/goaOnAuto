@@ -717,21 +717,118 @@ The human-in-the-loop design keeps the operator responsible for authentication.
 
 ---
 
-## 12. Testing & Quality Assurance Questions
+## 12. Testing & Quality Assurance Questions (QA / SDET Focus)
 
-### Q: What testing strategies do you use?
-**A:**
-1. **Unit tests**: Trie change accumulation, DFS traversal, Verhoeff validation, System Governor thresholds
-2. **Integration tests**: Phase 1 (browser launch + login + navigation) and Phase 2 (Screen 1 auto-fill on live portal)
-3. **GPU benchmarks**: RTX 4060 inference speed target: <1.2s per multi-page document
-4. **Dataset evaluation**: Precision/recall metrics on verified document classification samples
-5. **QR code test suite**: Synthetic Aadhaar QR generation + decode verification
-6. **Visual verification**: Headed browser mode with Visual Simulation Tracker for operator inspection
+### Q: What testing strategies and test levels did you use in this project?
+**A:** I applied a multi-tier testing strategy adhering to the testing pyramid:
+1. **Unit Testing:**
+   - Algorithmic correctness: Verhoeff checksum algorithm for Aadhaar validation (verifying transposition errors and single-digit corruptions).
+   - Data structures: Trie-based change buffer (insertion, prefix search, change accumulation, DFS traversal).
+   - Resource thresholds: System Governor heuristics (RAM/VRAM/CPU boundary checks).
+2. **Integration & Contract Testing:**
+   - JSON-RPC over TCP IPC: Testing message serialization, malformed payloads, handshake verification, and daemon disconnect/reconnect handling.
+   - Vision & Classification Pipeline: Testing end-to-end flow from scanned document ingestion → OCR extraction → synthesis into `applicant_dossier.json`.
+3. **End-to-End (E2E) Browser Automation Testing:**
+   - Built with Playwright: Automating navigation, 59-control form entry, dynamic dropdown cascading, and validation error detection on the live portal.
+4. **Performance & Stress Testing:**
+   - GPU daemon batch benchmarks: Measuring processing latency (<1.2s per doc target on RTX 4060) and monitoring for VRAM memory leaks.
+   - File watcher debounce stress tests: Verifying rapid concurrent file drops don't trigger partial-write race conditions.
+5. **Visual & Exploratory Testing:**
+   - Headed browser runs and Safe Review Mode: Providing real-time visual tracking of field population for manual QA inspection.
 
 ---
 
-### Q: How do you test the portal automation without affecting production data?
-**A:** "Safe Review Mode" — the bot populates all Screen 1 fields and leaves the browser open for operator review before any submission. No data is submitted without explicit human confirmation.
+### Q: How do you apply Test Design Techniques (Equivalence Partitioning & Boundary Value Analysis) to this project?
+**A:**
+- **Example 1: Residence Certificate Eligibility (Goa 15-Year Rule):**
+  - **Equivalence Classes:**
+    - Valid Class: Residency $\ge 15$ years (Eligible).
+    - Invalid Class: Residency $< 15$ years (Ineligible / Rejected).
+  - **Boundary Values (BVA):**
+    - $14$ years (Boundary: Just below threshold $\rightarrow$ Must trigger rejection or manual review flag).
+    - $15$ years (Boundary: Exact threshold $\rightarrow$ Valid, passes check).
+    - $16$ years (Boundary: Just above threshold $\rightarrow$ Valid, passes check).
+    - Extreme/Negative inputs: $0$, $-1$, $>100$, non-numeric values.
+- **Example 2: Aadhaar 12-Digit Input:**
+  - **Equivalence Classes:** Exactly 12 numeric digits with valid Verhoeff checksum vs non-12 digits vs invalid checksum.
+  - **Boundaries:** 11 digits (fail), 12 digits (pass), 13 digits (fail), empty string.
+
+---
+
+### Q: What negative test cases and edge cases did you consider?
+**A:**
+1. **Corrupted or Partial File Writes:** A user uploads a multi-megabyte PDF over a slow disk write $\rightarrow$ Debounce ($800\text{ ms}$) and stability check ($300\text{ ms}$) ensure incomplete files aren't picked up before they finish writing.
+2. **Unreadable / Degraded Documents:** Low-DPI scans, extreme rotations, blurred signatures $\rightarrow$ System flags confidence scores $<0.7$ for manual operator review instead of failing silently.
+3. **Tampered / Fake Aadhaar:** Aadhaar number with one flipped digit or swapped adjacent digits $\rightarrow$ Caught instantly by the Verhoeff dihedral group $D_5$ algorithm before hitting the portal.
+4. **Cascading Dropdown Failures in ASP.NET:** Selecting "Taluka" triggers an async PostBack to populate "Village". If the village dropdown is clicked before the AJAX call resolves, tests fail $\rightarrow$ Handled using explicit DOM response checks rather than hardcoded timers.
+5. **Daemon Crash / IPC Disconnect:** If Python daemon runs out of VRAM or crashes mid-batch $\rightarrow$ TypeScript orchestrator detects EOF/socket reset, emits a health alert, and triggers an automatic restart.
+
+---
+
+### Q: Why did you use the Page Object Model (POM) for browser automation?
+**A:**
+- The GoaOnline portal contains **59 distinct controls** across applicant details, address blocks, parentage, and declarations.
+- Without POM, locator strings like `input#ctl00_ContentPlaceHolder1_txtApplicantName` would be duplicated across dozens of scripts. If the portal developers change an ID or structure, every script breaks.
+- With POM:
+  - **Centralized Locators:** All 59 controls are mapped in a dedicated `GoaOnlineFormPage` class.
+  - **Maintainability:** A portal markup change requires updating exactly one line in the POM.
+  - **Readability & Reusability:** Test scripts read like high-level actions (`page.fillApplicantDetails(dossier)`, `page.selectTalukaAndVillage('Tiswadi', 'Panaji')`).
+
+---
+
+### Q: How do you prevent flaky tests and race conditions in Playwright?
+**A:** Flakiness in web automation is almost always caused by improper wait conditions. In this project:
+1. **Never use static `sleep()` / `waitForTimeout()`:** Arbitrary delays make tests slow on fast machines and fail on slow machines.
+2. **Rely on Playwright's Auto-Waiting:** Playwright automatically waits for elements to be attached to DOM, visible, stable, enabled, and editable before clicking or typing.
+3. **Handle ASP.NET AJAX `__doPostBack`:** Legacy ASP.NET portals replace DOM subtrees during partial postbacks. We wait for `page.waitForLoadState('networkidle')` or wait for specific target options to appear in dependent dropdowns after selecting a parent.
+4. **Actionability checks & retry policies:** For critical form actions, verify element states (e.g., verifying `aria-busy` or checking that the loading spinner overlay is detached).
+
+---
+
+### Q: How do you choose your locators (ID vs CSS vs XPath vs Role)?
+**A:**
+1. **User-Facing / Accessibility-First (Best):** `getByRole('button', { name: 'Submit' })`, `getByLabel('Full Name')` — least likely to break during styling refactors.
+2. **Stable IDs:** When working with legacy ASP.NET WebForms, IDs often look like `ctl00_ContentPlaceHolder1_ddlTaluka`. We use regex/attribute-contains locators (e.g. `[id$='ddlTaluka']`) so prefix changes don't break our automation.
+3. **Avoid Fragile Absolute XPaths:** Never use `/html/body/div[2]/table/tr[3]/td[1]/input`. Any minor layout change completely breaks the test.
+
+---
+
+### Q: How do you test the IPC communication between the TypeScript orchestrator and Python daemon?
+**A:**
+- **Contract & Schema Testing:** Validated JSON-RPC 2.0 specs (`jsonrpc: "2.0"`, `method`, `params`, `id`, `result`, `error`).
+- **Timeout Handling:** If the GPU daemon hangs on a huge image, the client must trigger an RPC timeout after a defined deadline ($30\text{ s}$) rather than hanging the entire pipeline.
+- **Payload Fuzzing & Error Codes:** Sent malformed JSON, missing parameter blocks, and nonexistent file paths to verify the Python daemon returns standard JSON-RPC error objects (`-32600 Invalid Request`, `-32602 Invalid Params`) instead of unhandled fatal exceptions.
+
+---
+
+### Q: How do you test without corrupting production data or submitting false applications?
+**A:**
+1. **Safe Review Mode:** The bot executes the entire pipeline up to Screen 1 form entry and file attachment, but **never clicks the final `Submit` button**. It leaves the headed browser open for human inspection.
+2. **Synthetic Test Data Generation:** Used synthetic Aadhaar QR payloads with valid mathematical Verhoeff checksums but designated mock numbers for local testing.
+3. **API & DOM Mocking:** In CI/CD runs where the live government portal is unreachable or external network access is blocked, Playwright's `page.route()` intercepts network calls and serves recorded mock responses.
+
+---
+
+### Q: If an automated test fails on the live portal, what is your debugging & triaging process?
+**A:**
+1. **Analyze Failure Artifacts:**
+   - Inspect **Playwright Trace Viewer**: Step-by-step DOM snapshots, console logs, network requests, and action timings.
+   - Review automatically captured **screenshots** and **video recordings** at the exact millisecond of failure.
+2. **Root Cause Categorization:**
+   - **Type A: External/Environment Flake:** Portal down (503 Service Unavailable), CAPTCHA service failure, or network timeout.
+   - **Type B: Application/Portal Change:** Portal updated DOM structure, changed dropdown IDs, or introduced new mandatory fields.
+   - **Type C: Automation Script Defect:** Race condition or incorrect locator in the test script.
+   - **Type D: Data Issue:** Malformed input document or unparseable scanned PDF.
+3. **Bug Reporting:** Document reproduction steps, expected vs. actual behavior, trace file URL, and browser version.
+
+---
+
+### Q: How do you test for performance and memory leaks in the GPU daemon?
+**A:**
+1. **Baseline Measurement:** Benchmark single-document inference time ($<1.2\text{ s}$) and cold-start model load time ($\sim 4.5\text{ s}$).
+2. **Sustained Load / Soak Testing:** Feed a batch of 50 consecutive documents and monitor VRAM allocation using `torch.cuda.memory_allocated()`.
+3. **Leak Detection:** Ensure memory is properly freed between inference calls (calling `torch.cuda.empty_cache()` when thresholds exceed $90\%$).
+4. **Governor Threshold Testing:** Artificially throttle available system RAM below $3.0\text{ GB}$ to verify that the `SystemGovernor` successfully pauses job ingestion rather than throwing an unhandled `Out Of Memory (OOM)` crash.
 
 ---
 
