@@ -136,8 +136,7 @@ flowchart TD
     ```python
     torch.cuda.set_per_process_memory_fraction(0.90, 0)
     ```
-    Caps CUDA allocations to $90\%$ of physical VRAM (leaving headroom for Windows DWM and browser rendering).
-  * Line-buffered JSON-RPC over TCP processes batches of document crops sequentially through GPU tensors without unloading models.
+  * Line-buffered JSON-RPC over Windows Named Pipes (`\\.\pipe\goaonauto_ipc`) processes batches of document crops sequentially through GPU tensors without unloading models.
 
 ---
 

@@ -1,7 +1,7 @@
 # GoaOnAuto - System Architecture & Automation Context
 
 **Stack**: Bun, TypeScript, Playwright (Chromium/Brave), Python 3.12+ (PyTorch CUDA 12.4, EasyOCR, OpenCV, pyzbar), Raylib GUI (PyRay Static 6.0), XeLaTeX.  
-**Architecture**: TypeScript orchestration & Playwright browser automation communicating with Python GPU Worker (`gpu_worker_daemon.py`) via persistent JSON-RPC over TCP `127.0.0.1:50051`.
+**Architecture**: TypeScript orchestration & Playwright browser automation communicating with Python GPU Worker (`gpu_worker_daemon.py`) via persistent JSON-RPC over Windows Named Pipes (`\\.\pipe\goaonauto_ipc`).
 
 ---
 

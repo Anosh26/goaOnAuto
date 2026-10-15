@@ -103,8 +103,8 @@ GoaOnAuto eliminates manual friction in Goa government administrative filings th
 │  - Multi-Document Dossier Synthesis & Heuristic Reasoning                │
 │  - Playwright Browser Automation (Brave / GoaOnline ASP.NET WebForms)   │
 └────────────────────────────────────┬─────────────────────────────────────┘
-                                     │ JSON-RPC over TCP
-                                     │ (127.0.0.1:50051)
+                                     │ JSON-RPC over Named Pipes
+                                     │ (\\.\pipe\goaonauto_ipc)
 ┌────────────────────────────────────▼─────────────────────────────────────┐
 │                      Python GPU Worker Daemon (PyTorch)                  │
 │  - NVIDIA GeForce RTX 4060 CUDA Acceleration (90% VRAM cap)             │
@@ -115,7 +115,7 @@ GoaOnAuto eliminates manual friction in Goa government administrative filings th
 ```
 
 ### Communication Protocol
-* **Protocol**: Persistent line-delimited JSON-RPC over TCP socket `127.0.0.1:50051`.
+* **Protocol**: Persistent line-delimited JSON-RPC over Windows Named Pipe `\\.\pipe\goaonauto_ipc`.
 * **Request Format**:
   ```json
   { "id": "uuid-v4", "action": "batch_process" | "ocr" | "aadhaar_qr" | "ping" | "exit", ...params }
@@ -153,9 +153,8 @@ Exports the centralized singleton `config` object:
 * **Hardware Governors**:
   * `minFreeRamBytes`: `3 * 1024 * 1024 * 1024` (3.0 GB).
   * `maxCpuPercent`: `80` (Preserves 20% CPU for host responsiveness).
-* **Network & Daemon**:
-  * `daemonHost`: `'127.0.0.1'`
-  * `daemonPort`: `50051`
+* **IPC & Daemon**:
+  * `pipeName`: `'\\\\.\\pipe\\goaonauto_ipc'`
 
 ---
 
@@ -206,7 +205,7 @@ Persistent background server keeping PyTorch CUDA weights in VRAM.
 * **`GpuWorkerService.process_single_ocr(image_path: str) -> dict`**: Executes text detection and recognition.
 * **`GpuWorkerService.process_single_full(image_path: str) -> dict`**: Executes OCR; if text $< 35$ characters, triggers YuNet face detection and signature alpha extraction.
 * **`GpuWorkerService.process_batch(image_paths: list) -> list`**: Sequentially processes images without VRAM reloads.
-* **`run_daemon()`**: Listens on stdin/TCP for JSON-RPC commands.
+* **`run_daemon()`**: Listens on Windows Named Pipe (`\\.\pipe\goaonauto_ipc`) for JSON-RPC commands.
 
 ### Aadhaar QR Decoder (`python/vision/aadhaar_qr.py`)
 * **`detect_and_decode_qr(image_path: str) -> dict`**: Multi-engine scanner (`pyzbar` CLAHE $\rightarrow$ `zxingcpp` $\rightarrow$ OpenCV).
@@ -234,7 +233,7 @@ Persistent background server keeping PyTorch CUDA weights in VRAM.
 ## 5. Scanner & Client IPC (`src/scanner/`)
 
 ### `GpuDaemonClient` (`gpuDaemonClient.ts`)
-* **`ensureDaemonRunning(): Promise<void>`**: Asserts TCP connectivity on port 50051 or launches daemon.
+* **`ensureDaemonRunning(): Promise<void>`**: Asserts Windows Named Pipe connectivity (`\\.\pipe\goaonauto_ipc`) or launches daemon.
 * **`processBatch(imagePaths: string[]): Promise<GpuOcrResult[]>`**: Dispatches batch OCR inference request.
 * **`decodeAadhaarQr(imagePath: string): Promise<AadhaarQrResult>`**: Dispatches QR extraction request.
 * **`checkHealth(): Promise<boolean>`**: Sends `ping` and awaits `pong`.

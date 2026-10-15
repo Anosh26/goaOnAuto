@@ -33,7 +33,7 @@
 
 **It watches a folder for incoming applicant documents, uses a persistent GPU daemon running on an RTX 4060 to classify documents and extract information from Aadhaar QR codes, presents an interactive Raylib desktop GUI for human review and legal affidavit customization, compiles pixel-perfect LaTeX PDFs, and then auto-populates the GoaOnline web portal using Playwright browser automation.**
 
-**The tech stack is TypeScript with Bun for orchestration, Python with PyTorch CUDA for the GPU vision engine, Raylib for the desktop GUI, and Playwright for browser automation — all communicating over JSON-RPC on TCP."**
+**The tech stack is TypeScript with Bun for orchestration, Python with PyTorch CUDA for the GPU vision engine, Raylib for the desktop GUI, and Playwright for browser automation — all communicating over JSON-RPC on Windows Named Pipes."**
 
 ---
 
@@ -70,16 +70,16 @@ This is tedious, error-prone, and takes 30-45 minutes per application. GoaOnAuto
 | **Desktop GUI** | Python + Raylib (PyRay 6.0) | Immediate-mode interactive forms, OCR trainer, photo optimizer |
 | **Legal Document Gen** | LaTeX (MiKTeX pdflatex/XeLaTeX) | Pixel-perfect single-page A4 legal affidavits |
 | **Browser Automation** | Playwright + Brave (Chromium) | GoaOnline portal form filling, CAPTCHA solving |
-| **IPC** | JSON-RPC over TCP (127.0.0.1:50051) | TypeScript ↔ Python GPU daemon communication |
+| **IPC** | JSON-RPC over Named Pipes (`\\.\pipe\goaonauto_ipc`) | Low-latency, kernel-buffered TypeScript <-> Python GPU IPC |
 
 ---
 
 ### Q: Walk me through the end-to-end flow
 **A:** The system has 5 pipeline stages:
 
-1. **Ingestion (Directory Watcher)**: Monitors a folder (e.g., Google Drive sync). When documents are dropped, a Trie-based change buffer accumulates file events with 800ms debouncing. A System Governor checks hardware (≥3GB free RAM, ≤80% CPU) before processing.
+1. **Ingestion (Directory Watcher)**: Monitors a folder (e.g., Google Drive sync). When documents are dropped, a Trie-based change buffer accumulates file events with 800ms debouncing. A System Governor checks hardware (>=3GB free RAM, <=80% CPU) before processing.
 
-2. **AI Document Classification & QR Extraction**: Documents are sent to a persistent Python GPU daemon over TCP. EasyOCR (CRAFT + ResNet-BiLSTM on RTX 4060) extracts text. An Aadhaar QR decoder extracts golden-source demographic data. A weighted multi-rule classifier categorizes documents into 15+ types (Aadhaar, birth cert, residence cert, marksheet, etc.).
+2. **AI Document Classification & QR Extraction**: Documents are sent to a persistent Python GPU daemon over a low-latency Windows Named Pipe. EasyOCR (CRAFT + ResNet-BiLSTM on RTX 4060) extracts text. An Aadhaar QR decoder extracts golden-source demographic data. A weighted multi-rule classifier categorizes documents into 15+ types (Aadhaar, birth cert, residence cert, marksheet, etc.).
 
 3. **Dossier Synthesis & Human Review**: All extracted data is fused into a unified `applicant_dossier.json`. Aadhaar QR data (Tier 1, confidence 1.0) overrides OCR data (Tier 2). The dossier deduces age, years in Goa, and previous certificate details. A Raylib GUI lets the operator verify and correct data.
 
@@ -128,17 +128,18 @@ All use LaTeX templates compiled into print-ready single-page A4 PDFs.
 
 Building everything in Python would sacrifice Playwright's superior browser automation API and TypeScript's type safety. Building everything in TypeScript would mean wrapping every ML library through fragile C++ bindings.
 
-The JSON-RPC over TCP bridge is lightweight (~10 lines of socket code on each side) and adds <5ms latency per call — negligible compared to the 200-800ms GPU inference time.
+The JSON-RPC over Named Pipes bridge is lightweight and adds sub-millisecond (<1ms) latency per call — completely bypassing the TCP/IP network stack.
 
 ---
 
-### Q: Why JSON-RPC over TCP and not REST, gRPC, or HTTP?
+### Q: Why JSON-RPC over Named Pipes and not REST, gRPC, or TCP sockets?
 **A:**
 - **REST/HTTP**: Overkill for local IPC. HTTP headers add unnecessary overhead. No need for routing, middleware, or content negotiation.
 - **gRPC**: Would require Protocol Buffer compilation and schema management. Good for microservices, excessive for a 2-process system on localhost.
-- **TCP + JSON-RPC**: Minimal overhead, line-delimited JSON is human-readable for debugging, persistent TCP connection avoids reconnection latency, and both TypeScript and Python have trivial TCP socket APIs.
+- **TCP Sockets**: Incurs network stack overhead (loopback routing, TCP windowing, port binding conflicts).
+- **Named Pipes + JSON-RPC**: Bypasses the network stack entirely via OS kernel-buffered memory for sub-millisecond latency. Line-delimited JSON is human-readable for debugging, avoids port collision issues, and provides safe process isolation.
 
-The protocol is just `{"id": "uuid", "action": "batch_process", ...params}\n` → `{"id": "uuid", "success": true, ...results}\n`.
+The protocol is just `{"id": "uuid", "action": "batch_process", ...params}\n` -> `{"id": "uuid", "success": true, ...results}\n`.
 
 ---
 
@@ -146,10 +147,10 @@ The protocol is just `{"id": "uuid", "action": "batch_process", ...params}\n` �
 **A:** The System Governor is a hardware safety manager that prevents the automation system from freezing the operator's machine during heavy GPU inference.
 
 **How it works:**
-- Reads free RAM via `os.freemem()` and validates ≥ 3.0 GB
+- Reads free RAM via `os.freemem()` and validates >= 3.0 GB
 - Computes CPU utilization across all logical cores:
-  - `totalTick = Σ(user + nice + sys + idle + irq)` per core
-  - `idlePercent = (Σ idle / totalTick) × 100`
+  - `totalTick = sum(user + nice + sys + idle + irq)` per core
+  - `idlePercent = (sum(idle) / totalTick) * 100`
   - `CPU_usage = 100 - idlePercent`
 - If CPU > 80% or RAM < 3GB, it enters an async polling loop (1s intervals, max 15s timeout) until resources free up
 
@@ -181,7 +182,7 @@ The protocol is just `{"id": "uuid", "action": "batch_process", ...params}\n` �
 [Google Drive / Local Folder]
         │ fs.watch + 800ms debounce
         ▼
-[Trie Change Buffer] → [System Governor: ≥3GB RAM, ≤80% CPU]
+[Trie Change Buffer] → [System Governor: >=3GB RAM, <=80% CPU]
         │
         ▼
 [GPU Worker Daemon (Python, RTX 4060)]
@@ -189,7 +190,7 @@ The protocol is just `{"id": "uuid", "action": "batch_process", ...params}\n` �
    ├── Aadhaar QR Decoder (BigInt → Gzip → Fields)
    ├── Face Detection (YuNet ONNX)
    └── Signature Extraction (HSV ink isolation)
-        │ JSON-RPC over TCP :50051
+        │ JSON-RPC over Named Pipe (\\.\pipe\goaonauto_ipc)
         ▼
 [Document Classifier (15+ categories, weighted TF-IDF)]
         │
@@ -210,14 +211,16 @@ The protocol is just `{"id": "uuid", "action": "batch_process", ...params}\n` �
 ---
 
 ### Q: How do TypeScript and Python processes communicate?
-**A:** Through a persistent line-delimited JSON-RPC protocol over a TCP socket on `127.0.0.1:50051`.
+**A:** Through a persistent line-delimited JSON-RPC protocol over a Windows Named Pipe (`\\.\pipe\goaonauto_ipc`).
 
 **Flow:**
-1. TypeScript's `GpuDaemonClient` calls `ensureDaemonRunning()` — checks if the daemon is already listening on port 50051, otherwise spawns it as a child process
-2. Opens a persistent TCP connection (no reconnect per request)
+1. TypeScript's `GpuDaemonClient` calls `ensureDaemonRunning()` — checks if the named pipe server is active, otherwise spawns the Python daemon as a child process
+2. Connects to the named pipe (persistent stream avoiding reconnection overhead)
 3. Sends JSON requests: `{"id": "uuid", "action": "batch_process", "paths": [...]}\n`
 4. Python daemon processes the request using GPU, returns: `{"id": "uuid", "success": true, "results": [...]}\n`
 5. TypeScript parses the response and continues the pipeline
+
+The persistent connection avoids reconnection overhead. The daemon keeps PyTorch models resident in GPU VRAM (~2-4 seconds to load cold, but instant on warm calls).
 
 The persistent connection avoids reconnection overhead. The daemon keeps PyTorch models resident in GPU VRAM (~2-4 seconds to load cold, but instant on warm calls).
 
@@ -856,14 +859,14 @@ The human-in-the-loop design keeps the operator responsible for authentication.
 **A (STAR):**
 - **Situation**: Processing 20 documents took 90+ seconds because each one spawned a fresh Python process loading PyTorch models
 - **Task**: Reduce batch processing time to under 20 seconds
-- **Action**: Redesigned the system as a persistent daemon keeping models in GPU VRAM, with TCP-based batch dispatching and VRAM caps
+- **Action**: Redesigned the system as a persistent daemon keeping models in GPU VRAM, with Named Pipe-based batch dispatching and VRAM caps
 - **Result**: 20-document batches now complete in ~15 seconds — a 6× improvement
 
 ---
 
 ### Q: What would you do differently if you started over?
 **A:**
-1. **gRPC over JSON-RPC**: For a production system, Protocol Buffers would give type safety and schema evolution
+1. **Shared Memory (`mmap`)**: If streaming high-FPS video frames across processes, shared memory would achieve true zero-copy
 2. **Docker containerization**: Currently Windows-only. Docker would enable Linux deployment
 3. **SQLite instead of JSON files**: For corrections, dossier data, and training samples — better querying and ACID guarantees
 4. **React Native / Tauri for GUI**: If cross-platform were important, Raylib's Python bindings limit portability
@@ -913,7 +916,7 @@ The human-in-the-loop design keeps the operator responsible for authentication.
 | VRAM cap | **90%** |
 | Minimum free RAM threshold | **3.0 GB** |
 | Maximum CPU threshold | **80%** |
-| JSON-RPC port | **50051** |
+| IPC transport | **Windows Named Pipe (`\\.\pipe\goaonauto_ipc`)** |
 | File debounce interval | **800ms** |
 | File stability check interval | **300ms** |
 | Document categories | **15+** |
@@ -924,8 +927,8 @@ The human-in-the-loop design keeps the operator responsible for authentication.
 | Font atlas base size | **48pt** |
 | Signature scale range | **50% to 240%** |
 | Aadhaar digits | **12** |
-| Aadhaar validation | **Verhoeff checksum (D₅ group)** |
-| IPC protocol | **Line-delimited JSON-RPC over TCP** |
+| Aadhaar validation | **Verhoeff checksum (D5 group)** |
+| IPC protocol | **Line-delimited JSON-RPC over Named Pipes** |
 | GUI framework | **Raylib (Immediate Mode)** |
 | GUI theme | **Dracula** |
 | Browser | **Brave (Chromium engine)** |
