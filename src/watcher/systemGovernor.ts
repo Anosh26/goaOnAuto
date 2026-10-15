@@ -20,6 +20,11 @@ export class SystemGovernor {
 
   private constructor() {}
 
+  /**
+   * Retrieves the singleton instance of the SystemGovernor.
+   *
+   * @returns The active SystemGovernor singleton.
+   */
   public static getInstance(): SystemGovernor {
     if (!SystemGovernor.instance) {
       SystemGovernor.instance = new SystemGovernor();
@@ -28,7 +33,11 @@ export class SystemGovernor {
   }
 
   /**
-   * Get current RAM and CPU metrics.
+   * Samples real-time hardware telemetry including available RAM and CPU load.
+   * Calculates whether system resources satisfy thresholds (≥ 3GB free RAM, ≤ 80% CPU load).
+   *
+   * @returns A SystemResourceStatus object containing raw byte metrics, gigabyte conversions,
+   *          usage percentages, and threshold pass/fail booleans.
    */
   public getStatus(): SystemResourceStatus {
     const freeRamBytes = os.freemem();
@@ -65,7 +74,11 @@ export class SystemGovernor {
   }
 
   /**
-   * Pause/sleep until system RAM is >= 3GB and CPU usage <= 80%.
+   * Blocks asynchronously and polls system resources until both RAM and CPU thresholds
+   * are satisfied, or until the maximum timeout expires.
+   *
+   * @param maxWaitMs - Maximum time in milliseconds to wait before giving up (defaults to 15,000ms).
+   * @returns A promise resolving to `true` if resources became available within the timeout, or `false` otherwise.
    */
   public async ensureResourceAvailability(maxWaitMs = 15000): Promise<boolean> {
     const startTime = Date.now();

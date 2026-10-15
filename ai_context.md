@@ -41,6 +41,13 @@ The system includes an interactive, infinite-zoom vector architectural suite loc
 
 4. **Continuous Learning & OCR Trainer Loop**:
    - `tools/runOcrTrainer.ts` & `python/gui/ocr_trainer_gui.py`: Interactive review tool where operators rate extraction accuracy (1-5 stars) and correct recognized text tokens.
+   - **Persistent GUI Session**: Single Raylib window session (`OcrTrainerSession` in `src/gui/ocrTrainerBridge.ts`) stays open across batch document reviews, eliminating window recreation flickering and streaming document updates in-place over stdin/stdout IPC.
+   - **Window-in-Window (Modular 3-Pane Docked Architecture)**:
+     - Sub-Window 1: `🖼️ Document Inspector` with macOS colored window dots, titlebar zoom/pan controls (`[⟲ 100%]`, `[🔍-]`, `[🔍+]`, `[⛶ Fit]`), recessed viewport, and isolated drag handling.
+     - Sub-Window 2: `📜 Live OCR Stream` with line count badge, titlebar `[📋 Copy All]` action, monospace line numbering gutter (`01 │ `), hover highlighting, and click-to-populate spell teaching.
+     - Sub-Window 3: `🎯 Ground-Truth & Retraining` with titlebar category selector (`[🏷️ Category ▾]`), 1-5 star rating card, 7 verified demographic inputs, spell-correction teaching card, and action command bar.
+   - **Constraint-Protected Buttons**: Dedicated `draw_button` component with dynamic text width measurement, auto-centering, scissor clipping (guaranteeing zero text overflow), pointing hand cursor feedback (`MOUSE_CURSOR_POINTING_HAND`), and tactile pressed states.
+   - **Maximized Startup & High-DPI Typography**: Launches maximized with Windows native foreground activation (`ShowWindow(SW_MAXIMIZE)`), `F11` fullscreen toggle, 48pt font atlas, and +2 pt font size scaling across all UI elements.
    - `dataset/ocr_spell_corrections.json` & `dataset/ocr_corrections.jsonl`: Ground-truth feedback dictionaries auto-tuned into post-processing.
    - `tools/retrain_classifier.ts`: Dynamic TF-IDF rule and keyword weight optimizer.
 

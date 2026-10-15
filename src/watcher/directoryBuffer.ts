@@ -19,12 +19,23 @@ export class DirectoryNode {
   public changedFiles: Map<string, ChangedFileRecord> = new Map();
   public parent: DirectoryNode | null = null;
 
+  /**
+   * Initializes a DirectoryNode within the directory trie.
+   *
+   * @param name - The directory base folder name.
+   * @param fullPath - The absolute filesystem path of the directory.
+   * @param parent - The parent DirectoryNode in the trie, or null if root.
+   */
   constructor(name: string, fullPath: string, parent: DirectoryNode | null = null) {
     this.name = name;
     this.fullPath = fullPath;
     this.parent = parent;
   }
 
+  /**
+   * Sets the dirty state flag on this directory node and bubbles it up
+   * through all ancestor nodes up to the trie root.
+   */
   public setDirty(): void {
     let current: DirectoryNode | null = this;
     while (current) {
@@ -33,6 +44,10 @@ export class DirectoryNode {
     }
   }
 
+  /**
+   * Recursively resets the dirty state, clearing direct change indicators,
+   * recorded changed file maps, and resetting all child nodes.
+   */
   public clearDirty(): void {
     this.isDirty = false;
     this.hasDirectChanges = false;
@@ -43,15 +58,31 @@ export class DirectoryNode {
   }
 }
 
+/**
+ * Trie-based directory change accumulator that tracks file mutations
+ * across deeply nested applicant client folders.
+ */
 export class DirectoryChangeBuffer {
   public root: DirectoryNode;
   private rootPath: string;
 
+  /**
+   * Creates a new DirectoryChangeBuffer rooted at the specified filesystem path.
+   *
+   * @param rootDirectoryPath - The root directory monitored by the watcher.
+   */
   constructor(rootDirectoryPath: string) {
     this.rootPath = path.resolve(rootDirectoryPath);
     this.root = new DirectoryNode(path.basename(this.rootPath) || this.rootPath, this.rootPath);
   }
 
+  /**
+   * Records a filesystem change for a target file, creating intermediate trie nodes
+   * as needed, registering the file mutation, and propagating the dirty flag up to root.
+   *
+   * @param targetFilePath - Absolute or relative path to the modified file.
+   * @param eventType - Nature of the change: 'add', 'change', or 'unlink'. Defaults to 'add'.
+   */
   public markChange(targetFilePath: string, eventType: 'add' | 'change' | 'unlink' = 'add'): void {
     const absoluteFilePath = path.resolve(targetFilePath);
     
@@ -89,6 +120,13 @@ export class DirectoryChangeBuffer {
     currentNode.setDirty();
   }
 
+  /**
+   * Traverses the trie via Depth-First Search (DFS) and collects all dirty directory
+   * nodes that contain direct file changes ready for batch processing.
+   *
+   * @param node - The starting node for traversal (defaults to the trie root).
+   * @returns An array of DirectoryNode instances containing changed files.
+   */
   public getChangesDFS(node: DirectoryNode = this.root): DirectoryNode[] {
     if (!node.isDirty) {
       return [];
@@ -109,6 +147,9 @@ export class DirectoryChangeBuffer {
     return changedNodes;
   }
 
+  /**
+   * Resets the entire trie buffer by recursively clearing dirty flags and changed file maps.
+   */
   public resetBuffer(): void {
     this.root.clearDirty();
   }

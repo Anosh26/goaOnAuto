@@ -12,10 +12,12 @@ import * as path from 'path';
 import { spawn } from 'child_process';
 import { config } from '../src/config';
 import { processDocumentImagesBatch } from '../src/scanner/documentScanner';
+import { GpuDaemonClient } from '../src/scanner/gpuDaemonClient';
 import { classifyDocumentText } from '../src/classifier/documentClassifier';
+import { ClassificationResult } from '../src/classifier/types';
 import { synthesizeDossier, ExtractedDocument } from '../src/classifier/dossierExtractor';
 import { applyOcrPostProcessing, recordSpellCorrection } from '../src/scanner/ocrPostProcessor';
-import { requestOcrTrainingReview, OcrTrainerResult } from '../src/gui/ocrTrainerBridge';
+import { OcrTrainerSession, requestOcrTrainingReview, OcrTrainerResult } from '../src/gui/ocrTrainerBridge';
 
 const SUPPORTED_EXTS = new Set(['.jpg', '.jpeg', '.png', '.pdf', '.bmp', '.webp']);
 const OCR_CORRECTIONS_FILE = path.resolve('./dataset/ocr_corrections.jsonl');
@@ -128,7 +130,7 @@ export async function runOcrTrainerCli(): Promise<void> {
 
   console.log(`📂 Target Location:    ${singleFile || targetDir}`);
   console.log(`📄 Discovered Scans:   ${filesToReview.length} documents ready for evaluation`);
-  console.log(`🖥️ Review Mode:        Raylib Split Desktop GUI`);
+  console.log(`🖥️ Review Mode:        Persistent Fullscreen Raylib Desktop GUI (Single Window)`);
   console.log('------------------------------------------------------------------------\n');
 
   const stats: TrainerSessionStats = {
@@ -140,77 +142,113 @@ export async function runOcrTrainerCli(): Promise<void> {
     spellCorrectionsTaught: 0
   };
 
-  for (let idx = 0; idx < filesToReview.length; idx++) {
-    const filePath = filesToReview[idx]!;
-    const fileName = path.basename(filePath);
-    stats.scanned++;
+  const session = new OcrTrainerSession();
+  await session.start();
 
-    console.log(`\n[${idx + 1}/${filesToReview.length}] 🔍 Running OCR on: ${fileName}...`);
+  try {
+    for (let idx = 0; idx < filesToReview.length; idx++) {
+      const filePath = filesToReview[idx]!;
+      const fileName = path.basename(filePath);
+      stats.scanned++;
 
-    // 1. Run GPU OCR
-    let rawOcrText = '';
-    let rawOcrLines: string[] = [];
+      console.log(`\n[${idx + 1}/${filesToReview.length}] 🔍 Running OCR on: ${fileName}...`);
 
-    try {
-      const batchResult: Record<string, any> = await processDocumentImagesBatch([filePath]);
-      const res = batchResult[filePath];
-      if (res && res.text) {
-        rawOcrText = res.text;
-        rawOcrLines = res.text.split(/\r?\n/).map((l: string) => l.trim()).filter(Boolean);
+      // 1. Run GPU OCR
+      let rawOcrText = '';
+      let rawOcrLines: string[] = [];
+      let detectedClassification: ClassificationResult | null = null;
+
+      try {
+        const batchResults = await processDocumentImagesBatch([filePath]);
+        const res = batchResults && batchResults.length > 0 ? batchResults[0] : null;
+        if (res) {
+          rawOcrText = res.rawText || '';
+          rawOcrLines = rawOcrText.split(/\r?\n/).map((l: string) => l.trim()).filter(Boolean);
+          detectedClassification = res.classification;
+        }
+      } catch (e: any) {
+        console.warn(`   ⚠️ OCR processing warning for ${fileName}:`, e.message);
       }
-    } catch (e: any) {
-      console.warn(`   ⚠️ OCR processing warning for ${fileName}:`, e.message);
-    }
 
-    // 2. Apply Learned Spell-Corrections
-    const postProcessedText = applyOcrPostProcessing(rawOcrText);
+      // 2. Apply Learned Spell-Corrections
+      const postProcessedText = applyOcrPostProcessing(rawOcrText);
 
-    // 3. Classify Document
-    const classification = classifyDocumentText(postProcessedText, fileName, path.dirname(filePath));
+      // 3. Classify Document
+      const classification = (detectedClassification && detectedClassification.docType !== 'document')
+        ? detectedClassification
+        : classifyDocumentText(postProcessedText, fileName, path.dirname(filePath));
 
-    // 4. Extract Candidate Demographic Fields
-    const mockDoc: ExtractedDocument = {
-      docType: classification.docType,
-      docTypeName: classification.docTypeName,
-      rawText: postProcessedText,
-      filePath: filePath,
-      extractedName: classification.extractedName
-    };
-    const dossier = synthesizeDossier([mockDoc], null);
+      // Optional: Check for Aadhaar QR if it's an Aadhaar document
+      let qrResult: any = null;
+      if (classification.docType === 'aadhaar' || fileName.toLowerCase().includes('aadhaar')) {
+        try {
+          const daemon = GpuDaemonClient.getInstance();
+          qrResult = await daemon.aadhaarQrScan(filePath);
+        } catch {}
+      }
 
-    const initialFields: Record<string, string | number> = {
-      name: dossier.name?.value || classification.extractedName || '',
-      dob: dossier.dob?.value || '',
-      age: dossier.age?.value || '',
-      aadhaar: dossier.aadhaar?.value || '',
-      address: dossier.address?.value?.full || '',
-      prev_cert_no: dossier.previousResidenceCert?.number || '',
-      years_in_goa: dossier.yearsInGoa?.value || 15
-    };
+      // 4. Extract Candidate Demographic Fields
+      const mockDoc: ExtractedDocument = {
+        docType: classification.docType,
+        docTypeName: classification.docTypeName,
+        rawText: postProcessedText,
+        filePath: filePath,
+        extractedName: classification.extractedName
+      };
+      const dossier = synthesizeDossier([mockDoc], qrResult);
 
-    console.log(`   🏷️  AI Classification: ${classification.docTypeName} (${classification.docType})`);
-    console.log(`   ⭐ Opening Interactive Raylib Trainer GUI...`);
+      // Address extraction fallback if dossier has no address
+      let extractedAddress = dossier.address?.value?.full || '';
+      if (!extractedAddress && rawOcrLines.length > 0) {
+        const addrCandidates = rawOcrLines.filter(l => 
+          /(?:H\.?\s*No|House|Ward|Village|Goa|Margao|Panaji|Panjim|Mapusa|Ponda|Vasco|Tiswadi|Salcete|Bardez|403\d{3})/i.test(l)
+        );
+        if (addrCandidates.length > 0) {
+          extractedAddress = addrCandidates.slice(0, 3).join(', ');
+        }
+      }
 
-    // 5. Open Raylib Trainer GUI
-    const userResult: OcrTrainerResult = await requestOcrTrainingReview({
-      filePath,
-      docType: classification.docType,
-      docTypeName: classification.docTypeName,
-      confidence: 0.9,
-      extractedFields: initialFields,
-      rawOcrLines
-    });
+      const initialFields: Record<string, string | number> = {
+        name: dossier.name?.value || classification.extractedName || '',
+        dob: dossier.dob?.value || '',
+        age: dossier.age?.value || '',
+        aadhaar: dossier.aadhaar?.value || '',
+        address: extractedAddress,
+        prev_cert_no: dossier.previousResidenceCert?.number || '',
+        years_in_goa: dossier.yearsInGoa?.value || 15
+      };
 
-    if (userResult.action === 'skipped') {
-      console.log(`   ⏭️ Skipped by user.`);
-      stats.skipped++;
-      continue;
-    }
+      console.log(`   🏷️  AI Classification: ${classification.docTypeName} (${classification.docType})`);
+      console.log(`   📜 Extracted OCR Lines: ${rawOcrLines.length} lines detected`);
+      console.log(`   ⭐ Updating Raylib Trainer GUI [${idx + 1}/${filesToReview.length}]...`);
 
-    if (userResult.action === 'confirmed') {
-      stats.confirmed++;
-      const userRating = userResult.rating || 5;
-      stats.ratings.push(userRating);
+      // 5. Update Persistent Raylib Trainer GUI (no window re-creation)
+      const userResult: OcrTrainerResult = await session.reviewDocument({
+        filePath,
+        docType: classification.docType,
+        docTypeName: classification.docTypeName,
+        confidence: 0.9,
+        extractedFields: initialFields,
+        rawOcrLines,
+        docIndex: idx + 1,
+        totalDocs: filesToReview.length
+      });
+
+      if (userResult.action === 'exit_session') {
+        console.log(`\n🛑 Session closed by user. Exiting review loop.`);
+        break;
+      }
+
+      if (userResult.action === 'skipped') {
+        console.log(`   ⏭️ Skipped by user.`);
+        stats.skipped++;
+        continue;
+      }
+
+      if (userResult.action === 'confirmed') {
+        stats.confirmed++;
+        const userRating = userResult.rating || 5;
+        stats.ratings.push(userRating);
 
       console.log(`   ★ User Rating: ${userRating}/5 Stars`);
 
@@ -283,6 +321,9 @@ export async function runOcrTrainerCli(): Promise<void> {
         // non-fatal
       }
     }
+  }
+  } finally {
+    await session.close();
   }
 
   // -------------------------------------------------------------

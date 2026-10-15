@@ -26,7 +26,11 @@ const GOA_ONLINE_LOGIN_URL = 'https://goaonline.gov.in/Public/Login';
 const RESIDENCE_SERVICE_URL = 'https://goaonline.gov.in/Appln/UIL/deptServices?__DocId=REV&__ServiceId=REV05';
 
 /**
- * Resolves the path to the Brave Browser executable on Windows.
+ * Resolves the path to the Brave Browser executable on Windows by testing
+ * the environment variable `BRAVE_PATH` and checking common installation directories.
+ *
+ * @returns The verified absolute filesystem path to `brave.exe`.
+ * @throws {Error} If Brave Browser is not detected in any standard path or `BRAVE_PATH`.
  */
 export function resolveBravePath(): string {
   if (process.env.BRAVE_PATH && fs.existsSync(process.env.BRAVE_PATH)) {
@@ -50,7 +54,11 @@ export function resolveBravePath(): string {
 }
 
 /**
- * Resolves the dedicated persistent browser profile directory.
+ * Resolves and ensures existence of the dedicated persistent browser profile directory.
+ * Preserves operator login cookies, session tokens, and local cache between runs.
+ *
+ * @param customProfileDir - Optional user-specified profile folder path.
+ * @returns The resolved absolute path to the profile directory.
  */
 export function resolveProfileDir(customProfileDir?: string): string {
   const profileDir = customProfileDir || path.join(config.projectRoot, '.brave_automation_profile');
@@ -61,7 +69,12 @@ export function resolveProfileDir(customProfileDir?: string): string {
 }
 
 /**
- * Launches Brave with a persistent context to retain session and prevent profile lock conflicts.
+ * Launches Brave Browser with a persistent Playwright browser context, cleaning up
+ * stale lockfiles (SingletonLock/SingletonCookie) to avoid startup crashes,
+ * and initializing dialog auto-accept handlers.
+ *
+ * @param sessionConfig - Optional configuration overrides (executable path, profile directory, headless mode).
+ * @returns A promise resolving to an object containing the active `BrowserContext` and initial `Page`.
  */
 export async function launchBravePortalContext(sessionConfig: PortalSessionConfig = {}): Promise<{ context: BrowserContext; page: Page }> {
   const bravePath = sessionConfig.braveExecutablePath || resolveBravePath();
@@ -119,9 +132,12 @@ export async function launchBravePortalContext(sessionConfig: PortalSessionConfi
 }
 
 /**
- * Checks if the current page indicates an active logged-in session.
- * Strictly checks for positive citizen session indicators (e.g. Logout button, user profile).
- * NEVER assumes a user is logged in just because a URL is on goaonline.gov.in.
+ * Checks if the specified page indicates an active authenticated citizen session.
+ * Evaluates exclusion patterns (login/register pages), password inputs, DOM logout buttons,
+ * and authenticated `.ASPXAUTH` cookie presence.
+ *
+ * @param page - The Playwright `Page` instance to evaluate.
+ * @returns A promise resolving to `true` if verified as logged in, or `false` otherwise.
  */
 export async function isUserLoggedIn(page: Page): Promise<boolean> {
   const url = page.url().toLowerCase();
@@ -193,6 +209,15 @@ export async function isUserLoggedIn(page: Page): Promise<boolean> {
  * Styled in GoaOnAuto Dracula theme, pointer-events: none, positioned top-right.
  * NEVER modifies form elements, inputs, or scripts, preserving portal integrity.
  */
+/**
+ * Injects or updates a lightweight, non-intrusive status pill overlay in the browser.
+ * Styled in GoaOnAuto Dracula theme, pointer-events: none, positioned top-right.
+ * NEVER modifies form elements, inputs, or scripts, preserving portal integrity.
+ *
+ * @param page - Playwright page on which to display the overlay.
+ * @param message - Status text to display inside the pill.
+ * @param type - Theme indicator: 'info', 'waiting', 'working', or 'success'. Defaults to 'info'.
+ */
 export async function updatePortalStatusOverlay(
   page: Page,
   message: string,
@@ -243,8 +268,12 @@ export async function updatePortalStatusOverlay(
 
 /**
  * Navigates to GoaOnline Login page and pauses for manual human login.
- * Actively monitors all tabs for successful authentication.
- * Returns the active authenticated Page.
+ * Actively monitors all tabs for successful authentication and cookie issuance.
+ *
+ * @param page - Initial browser page.
+ * @param configOrTimeout - Session configuration object or maximum timeout in milliseconds.
+ * @returns The active authenticated `Page` once login succeeds.
+ * @throws {Error} If login fails or times out without successful authentication.
  */
 export async function waitForManualLogin(page: Page, configOrTimeout: PortalSessionConfig | number = {}): Promise<Page> {
   const sessionConfig: PortalSessionConfig = typeof configOrTimeout === 'number'
@@ -315,8 +344,12 @@ export async function waitForManualLogin(page: Page, configOrTimeout: PortalSess
 }
 
 /**
- * Navigates to the Residence Certificate service page (REV05) and clicks 'Proceed to Apply'
- * to enter Screen 1 of the application form.
+ * Navigates to the Residence Certificate service page (REV05), handles dialogs,
+ * triggers ASP.NET `__doPostBack` on 'Proceed to Apply', and waits for arrival on Screen 1.
+ *
+ * @param page - Active authenticated browser page.
+ * @returns Object with the active application form page and verified target URL.
+ * @throws {Error} If navigation fails to leave the service overview page within the timeout.
  */
 export async function navigateToResidenceService(page: Page): Promise<{ formPage: Page; currentUrl: string }> {
   console.log(`\n🚗 [PortalSession] Navigating to Residence Certificate Service (REV05)...`);
@@ -480,11 +513,13 @@ export async function navigateToResidenceService(page: Page): Promise<{ formPage
 }
 
 /**
- * Complete Phase 1 orchestrator:
- * 1. Launches Brave with persistent profile
- * 2. Waits for manual login
- * 3. Navigates to REV05
- * 4. Clicks Proceed to Apply and reaches Screen 1
+ * Complete Phase 1 orchestrator that launches Brave with a persistent profile,
+ * supervises the operator manual login handshake, handles navigation to the REV05
+ * Residence Certificate overview, executes the ASP.NET postback, and validates Screen 1 arrival.
+ *
+ * @param sessionConfig - Optional configuration overrides (paths, timeout, fresh session).
+ * @returns A promise resolving to a `PortalSession` with browser context, active form page, and final URL.
+ * @throws {Error} If manual login times out or navigation to Screen 1 fails.
  */
 export async function startPortalPhase1(sessionConfig: PortalSessionConfig = {}): Promise<PortalSession> {
   const { context, page } = await launchBravePortalContext(sessionConfig);

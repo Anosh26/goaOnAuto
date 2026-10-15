@@ -10,7 +10,13 @@ export interface ExtractedDocument {
 }
 
 /**
- * Deduces the number of years lived in Goa/Address from document text.
+ * Deduces the number of years lived in Goa/Address from document text by evaluating
+ * residence certificates, bonafide school certificates, and marksheet date spans.
+ *
+ * @param text - Raw OCR text extracted from the document.
+ * @param docType - Classification category of the document (e.g. 'residence_cert', 'bonafide_cert', 'marksheet').
+ * @param filePath - Filesystem path to the source document for evidence auditing.
+ * @returns A `DossierField<number>` with value, confidence score, and evidence text, or `undefined` if undetermined.
  */
 function deduceYearsInGoa(text: string, docType: string, filePath: string): DossierField<number> | undefined {
   const normalized = text.toLowerCase().replace(/\s+/g, ' ');
@@ -60,7 +66,11 @@ function deduceYearsInGoa(text: string, docType: string, filePath: string): Doss
 }
 
 /**
- * Calculates person's age from various DOB formats (DD/MM/YYYY, DD-MM-YYYY, YYYY-MM-DD, YYYY).
+ * Calculates a person's exact chronological age in completed years from various
+ * Date-of-Birth formats (DD/MM/YYYY, DD-MM-YYYY, YYYY-MM-DD, or 4-digit YOB).
+ *
+ * @param dobStr - Raw date of birth string.
+ * @returns The age in completed years (between 0 and 130), or `undefined` if parsing fails.
  */
 export function calculateAgeFromDob(dobStr: string): number | undefined {
   if (!dobStr) return undefined;
@@ -110,8 +120,14 @@ export function calculateAgeFromDob(dobStr: string): number | undefined {
 }
 
 /**
- * Deduces DOB and Age from text with high precision.
- * Prioritizes explicit DOB labels and birth certificates over random document dates.
+ * Deduces Date-of-Birth and age from OCR text with multi-tier heuristic prioritization.
+ * Prioritizes multilingual labels (English, Hindi, Marathi) before falling back to
+ * document-specific date searches on Aadhaar and Birth certificates.
+ *
+ * @param text - Raw OCR text of the document.
+ * @param filePath - Filesystem path to the source document for auditing.
+ * @param docType - Classification category of the document.
+ * @returns An object containing deduced `dob` and `age` fields wrapped with confidence metadata.
  */
 function deduceDOB(text: string, filePath: string, docType?: string): { dob?: DossierField<string>; age?: DossierField<number> } {
   if (!text) return {};
@@ -162,7 +178,12 @@ function deduceDOB(text: string, filePath: string, docType?: string): { dob?: Do
 }
 
 /**
- * Extracts 12-digit Aadhaar Number from Golden Source QR or document OCR.
+ * Extracts the 12-digit UIDAI Aadhaar Number from Golden Source QR payload or document OCR text.
+ * Enforces Verhoeff-compliant constraints (cannot start with 0 or 1).
+ *
+ * @param documents - Array of extracted client documents with OCR text and classification.
+ * @param qrResult - Decoded Aadhaar QR result if available.
+ * @returns A `DossierField<string>` containing the clean 12-digit Aadhaar number, or `undefined`.
  */
 function deduceAadhaarNumber(
   documents: ExtractedDocument[],
@@ -231,7 +252,11 @@ function deduceAadhaarNumber(
 }
 
 /**
- * Extracts Previous Residence Certificate records (number, issue date, authority).
+ * Extracts previously issued Residence Certificate records (certificate number,
+ * issue date, and issuing authority such as 'Mamlatdar of Bardez') from historical certificates.
+ *
+ * @param documents - Array of extracted client documents.
+ * @returns Record indicating presence of previous certificate along with parsed details.
  */
 function deducePreviousResidenceCert(documents: ExtractedDocument[]): {
   hasPreviousResidenceCert: boolean;
@@ -278,8 +303,12 @@ function deducePreviousResidenceCert(documents: ExtractedDocument[]): {
 }
 
 /**
- * Synthesizes final ApplicantDossier using Aadhaar QR as Golden source (if available),
- * falling back to OCR text extraction for missing fields (like Years in Goa, Aadhaar No, and Previous Cert).
+ * Synthesizes a unified `ApplicantDossier` combining Golden Source Aadhaar QR data
+ * with OCR multi-document deduction fallbacks (years in Goa, parent relations, previous certs, and photos).
+ *
+ * @param documents - Array of extracted client documents with raw OCR and classification categories.
+ * @param qrResult - Decoded Aadhaar QR payload (V2/V3 or legacy XML), if present.
+ * @returns The synthesized `ApplicantDossier` containing demographic and residency ground truth.
  */
 export function synthesizeDossier(
   documents: ExtractedDocument[],

@@ -20,6 +20,12 @@ const SPELL_CORRECTIONS_FILE = path.resolve(path.join(__dirname, '../../dataset/
 
 let _cachedCorrections: SpellCorrectionsData | null = null;
 
+/**
+ * Loads the spell-correction and regex replacement dictionary from `dataset/ocr_spell_corrections.json`.
+ * Caches the parsed data in-memory for subsequent calls during batch OCR processing.
+ *
+ * @returns The active `SpellCorrectionsData` object containing words, regex patterns, and timestamps.
+ */
 export function loadSpellCorrections(): SpellCorrectionsData {
   if (_cachedCorrections) return _cachedCorrections;
 
@@ -38,7 +44,11 @@ export function loadSpellCorrections(): SpellCorrectionsData {
 }
 
 /**
- * Applies learned dictionary replacements and regex repairs to raw OCR text.
+ * Applies learned dictionary replacements, regex repairs, and optical disambiguation
+ * rules (e.g. `O1/01/2000` -> `01/01/2000`) to raw OCR text.
+ *
+ * @param rawText - The uncorrected raw OCR string produced by the vision models.
+ * @returns The corrected and normalized string.
  */
 export function applyOcrPostProcessing(rawText: string): string {
   if (!rawText) return rawText;
@@ -71,7 +81,12 @@ export function applyOcrPostProcessing(rawText: string): string {
 }
 
 /**
- * Teaches the engine a new word replacement learned from user review.
+ * Teaches the engine a new word replacement learned from user review, saving it
+ * persistently into `dataset/ocr_spell_corrections.json` and refreshing the cache.
+ *
+ * @param original - The misspelled or erroneously recognized OCR token.
+ * @param corrected - The verified ground-truth word.
+ * @returns `true` if the correction was successfully persisted, or `false` if invalid or failed.
  */
 export function recordSpellCorrection(original: string, corrected: string): boolean {
   const origClean = original.trim().toLowerCase();
@@ -99,6 +114,12 @@ export function recordSpellCorrection(original: string, corrected: string): bool
   }
 }
 
+/**
+ * Escapes special characters in a string to safely compile it into a dynamic RegExp.
+ *
+ * @param str - The raw substring to escape.
+ * @returns The escaped regular expression string.
+ */
 function escapeRegExp(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }

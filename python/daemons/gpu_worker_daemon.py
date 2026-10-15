@@ -30,11 +30,23 @@ except Exception:
     pass
 
 class GpuWorkerService:
+    """Encapsulates the persistent GPU OCR and vision inference pipeline.
+
+    Maintains deep learning model weights resident in NVIDIA GPU VRAM, tracks
+    hardware memory telemetry, and runs batched OCR and visual heuristic checks.
+    """
     def __init__(self):
+        """Initializes device mode (CUDA vs. CPU fallback) and sets engine labels."""
         self.is_gpu, self.device_desc = detect_device_mode()
         self.engine_name = "EasyOCR (GPU CUDA)" if self.is_gpu else "EasyOCR (CPU)"
 
     def get_system_metrics(self) -> dict:
+        """Collects real-time hardware telemetry for system governance.
+
+        Returns:
+            dict: Telemetry object containing free_ram_gb, total_ram_gb, cpu_usage_percent,
+                  cpu_free_percent, gpu_vram_used_mb, and gpu_vram_limit_percent.
+        """
         mem = psutil.virtual_memory()
         cpu_pct = psutil.cpu_percent(interval=None)
         free_ram_gb = round(mem.available / (1024 ** 3), 2)
@@ -57,11 +69,31 @@ class GpuWorkerService:
         }
 
     def process_single_ocr(self, image_path: str) -> dict:
+        """Executes raw text OCR on a single image or PDF document.
 
+        Args:
+            image_path: Absolute filesystem path to the target image or PDF.
+
+        Returns:
+            dict: Raw OCR payload including recognized text tokens, confidence, and engine name.
+        """
         return run_ocr(image_path)
 
     def process_single_full(self, image_path: str) -> dict:
-        """Runs OCR + visual fallbacks (passport photo & signature detection)."""
+        """Executes full document intelligence: OCR + visual detectors.
+
+        When document text is sparse (<35 characters), automatically invokes
+        OpenCV YuNet face detection for passport photos and alpha contour analysis
+        for applicant signatures.
+
+        Args:
+            image_path: Absolute path to the candidate file.
+
+        Returns:
+            dict: Comprehensive result dictionary with keys for OCR text, engine,
+                  photo detection (is_photo, photo_confidence, photo_reason),
+                  and signature detection (is_signature, signature_confidence, signature_ink).
+        """
         ocr_res = self.process_single_ocr(image_path)
         text = ocr_res.get("text", "")
 
@@ -106,6 +138,14 @@ class GpuWorkerService:
         }
 
     def process_batch(self, image_paths: list) -> list:
+        """Processes a list of documents sequentially without reloading GPU models.
+
+        Args:
+            image_paths: List of absolute image/PDF filesystem paths.
+
+        Returns:
+            list: List of full document intelligence dictionaries.
+        """
         results = []
         for img_path in image_paths:
             results.append(self.process_single_full(img_path))

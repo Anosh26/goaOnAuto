@@ -3,8 +3,18 @@ import zlib
 import re
 import numpy as np
 
-def _extract_legacy_xml(xml_string: str) -> dict:
-    """Parses legacy Aadhaar XML QR code"""
+def _extract_legacy_xml(xml_string: str) -> dict | None:
+    """Parses legacy Aadhaar XML QR code string and extracts demographic attributes.
+
+    Args:
+        xml_string: Decoded UTF-8 string containing `<PrintLetterBarcodeData ...>` XML.
+
+    Returns:
+        dict: Standardized dictionary containing demographic attributes:
+              uid, name, dob, gender, co (care of), house, street, lm, loc,
+              vtc (village/town), po, dist, subdist, state, pc (pincode).
+              Returns None if XML pattern does not match.
+    """
     data = {}
     
     match = re.search(r'<PrintLetterBarcodeData\s+(.*?)/?>', xml_string, re.IGNORECASE)
@@ -38,8 +48,21 @@ def _extract_legacy_xml(xml_string: str) -> dict:
         "pc": data.get("pc", "")
     }
 
-def _extract_secure_qr(raw_bytes: bytes) -> dict:
-    """Parses Secure e-Aadhaar V2/V3 compressed QR code"""
+def _extract_secure_qr(raw_bytes: bytes) -> dict | None:
+    """Parses Secure e-Aadhaar V2/V3 compressed QR code payload.
+
+    Handles BigInt Base10 string decoding, locates gzip magic bytes (`1f 8b 08`),
+    decompresses payloads using zlib with sliding window bits, and splits
+    the 255-delimited (`\xff`) byte array into demographic fields.
+
+    Args:
+        raw_bytes: Raw binary bytes or Base10 string bytes extracted from QR scanner.
+
+    Returns:
+        dict: Standardized dictionary containing format 'secure_v2' and demographic
+              fields (name, dob, gender, co, dist, lm, house, loc, pc, po, state, subdist, vtc).
+              Returns None if parsing or decompression fails.
+    """
     try:
         qr_bytes = raw_bytes
         # Check if it's encoded as a Base10 BigInt string (typical for Aadhaar Secure QR)
@@ -102,9 +125,20 @@ def _extract_secure_qr(raw_bytes: bytes) -> dict:
         print(f"Error parsing secure QR: {e}")
         return None
 
-def detect_and_decode_qr(image_path: str):
-    """
-    Attempts to read Aadhaar QR from the image and extract demographic data.
+def detect_and_decode_qr(image_path: str) -> dict:
+    """Attempts to scan and decode Aadhaar QR codes (legacy XML or Secure V2/V3) from an image.
+
+    Utilizes a prioritized scanning fallback chain:
+    1. pyzbar with grayscale and CLAHE contrast enhancement
+    2. zxingcpp barcode engine
+    3. OpenCV QRCodeDetector fallback
+
+    Args:
+        image_path: Absolute filesystem path to the Aadhaar card image or PDF page crop.
+
+    Returns:
+        dict: A dictionary containing `success: True` along with extracted demographic
+              keys (name, dob, gender, address components), or `success: False` with an `error` message.
     """
     img = cv2.imread(image_path)
     if img is None:
