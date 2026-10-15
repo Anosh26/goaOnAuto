@@ -742,13 +742,13 @@ The human-in-the-loop design keeps the operator responsible for authentication.
 **A:**
 - **Example 1: Residence Certificate Eligibility (Goa 15-Year Rule):**
   - **Equivalence Classes:**
-    - Valid Class: Residency $\ge 15$ years (Eligible).
-    - Invalid Class: Residency $< 15$ years (Ineligible / Rejected).
+    - Valid Class: Residency >= 15 years (Eligible).
+    - Invalid Class: Residency < 15 years (Ineligible / Rejected).
   - **Boundary Values (BVA):**
-    - $14$ years (Boundary: Just below threshold $\rightarrow$ Must trigger rejection or manual review flag).
-    - $15$ years (Boundary: Exact threshold $\rightarrow$ Valid, passes check).
-    - $16$ years (Boundary: Just above threshold $\rightarrow$ Valid, passes check).
-    - Extreme/Negative inputs: $0$, $-1$, $>100$, non-numeric values.
+    - 14 years (Boundary: Just below threshold -> Must trigger rejection or manual review flag).
+    - 15 years (Boundary: Exact threshold -> Valid, passes check).
+    - 16 years (Boundary: Just above threshold -> Valid, passes check).
+    - Extreme/Negative inputs: 0, -1, >100, non-numeric values.
 - **Example 2: Aadhaar 12-Digit Input:**
   - **Equivalence Classes:** Exactly 12 numeric digits with valid Verhoeff checksum vs non-12 digits vs invalid checksum.
   - **Boundaries:** 11 digits (fail), 12 digits (pass), 13 digits (fail), empty string.
@@ -757,11 +757,11 @@ The human-in-the-loop design keeps the operator responsible for authentication.
 
 ### Q: What negative test cases and edge cases did you consider?
 **A:**
-1. **Corrupted or Partial File Writes:** A user uploads a multi-megabyte PDF over a slow disk write $\rightarrow$ Debounce ($800\text{ ms}$) and stability check ($300\text{ ms}$) ensure incomplete files aren't picked up before they finish writing.
-2. **Unreadable / Degraded Documents:** Low-DPI scans, extreme rotations, blurred signatures $\rightarrow$ System flags confidence scores $<0.7$ for manual operator review instead of failing silently.
-3. **Tampered / Fake Aadhaar:** Aadhaar number with one flipped digit or swapped adjacent digits $\rightarrow$ Caught instantly by the Verhoeff dihedral group $D_5$ algorithm before hitting the portal.
-4. **Cascading Dropdown Failures in ASP.NET:** Selecting "Taluka" triggers an async PostBack to populate "Village". If the village dropdown is clicked before the AJAX call resolves, tests fail $\rightarrow$ Handled using explicit DOM response checks rather than hardcoded timers.
-5. **Daemon Crash / IPC Disconnect:** If Python daemon runs out of VRAM or crashes mid-batch $\rightarrow$ TypeScript orchestrator detects EOF/socket reset, emits a health alert, and triggers an automatic restart.
+1. **Corrupted or Partial File Writes:** A user uploads a multi-megabyte PDF over a slow disk write -> Debounce (800ms) and stability check (300ms) ensure incomplete files aren't picked up before they finish writing.
+2. **Unreadable / Degraded Documents:** Low-DPI scans, extreme rotations, blurred signatures -> System flags confidence scores < 0.7 for manual operator review instead of failing silently.
+3. **Tampered / Fake Aadhaar:** Aadhaar number with one flipped digit or swapped adjacent digits -> Caught instantly by the Verhoeff dihedral group D5 algorithm before hitting the portal.
+4. **Cascading Dropdown Failures in ASP.NET:** Selecting "Taluka" triggers an async PostBack to populate "Village". If the village dropdown is clicked before the AJAX call resolves, tests fail -> Handled using explicit DOM response checks rather than hardcoded timers.
+5. **Daemon Crash / IPC Disconnect:** If Python daemon runs out of VRAM or crashes mid-batch -> TypeScript orchestrator detects EOF/socket reset, emits a health alert, and triggers an automatic restart.
 
 ---
 
@@ -796,7 +796,7 @@ The human-in-the-loop design keeps the operator responsible for authentication.
 ### Q: How do you test the IPC communication between the TypeScript orchestrator and Python daemon?
 **A:**
 - **Contract & Schema Testing:** Validated JSON-RPC 2.0 specs (`jsonrpc: "2.0"`, `method`, `params`, `id`, `result`, `error`).
-- **Timeout Handling:** If the GPU daemon hangs on a huge image, the client must trigger an RPC timeout after a defined deadline ($30\text{ s}$) rather than hanging the entire pipeline.
+- **Timeout Handling:** If the GPU daemon hangs on a huge image, the client must trigger an RPC timeout after a defined deadline (30 seconds) rather than hanging the entire pipeline.
 - **Payload Fuzzing & Error Codes:** Sent malformed JSON, missing parameter blocks, and nonexistent file paths to verify the Python daemon returns standard JSON-RPC error objects (`-32600 Invalid Request`, `-32602 Invalid Params`) instead of unhandled fatal exceptions.
 
 ---
@@ -825,10 +825,10 @@ The human-in-the-loop design keeps the operator responsible for authentication.
 
 ### Q: How do you test for performance and memory leaks in the GPU daemon?
 **A:**
-1. **Baseline Measurement:** Benchmark single-document inference time ($<1.2\text{ s}$) and cold-start model load time ($\sim 4.5\text{ s}$).
+1. **Baseline Measurement:** Benchmark single-document inference time (< 1.2s) and cold-start model load time (~4.5s).
 2. **Sustained Load / Soak Testing:** Feed a batch of 50 consecutive documents and monitor VRAM allocation using `torch.cuda.memory_allocated()`.
-3. **Leak Detection:** Ensure memory is properly freed between inference calls (calling `torch.cuda.empty_cache()` when thresholds exceed $90\%$).
-4. **Governor Threshold Testing:** Artificially throttle available system RAM below $3.0\text{ GB}$ to verify that the `SystemGovernor` successfully pauses job ingestion rather than throwing an unhandled `Out Of Memory (OOM)` crash.
+3. **Leak Detection:** Ensure memory is properly freed between inference calls (calling `torch.cuda.empty_cache()` when thresholds exceed 90%).
+4. **Governor Threshold Testing:** Artificially throttle available system RAM below 3.0 GB to verify that the `SystemGovernor` successfully pauses job ingestion rather than throwing an unhandled `Out Of Memory (OOM)` crash.
 
 ---
 
