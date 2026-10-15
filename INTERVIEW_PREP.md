@@ -47,11 +47,11 @@
 ### Q: What problem does it solve?
 **A:** Filing a Residence Certificate on GoaOnline requires:
 1. Manually reading ~8-12 different documents per applicant (Aadhaar, birth certificates, school records, etc.)
-2. Manually typing ~59 form fields across complex ASP.NET web forms with cascading AJAX dropdowns
+2. Manually typing 25+ form fields across complex web forms with cascading AJAX dropdowns and modals
 3. Manually creating legal affidavits as PDFs
 4. Manually uploading documents with strict size/format constraints
 
-This is tedious, error-prone, and takes 30-45 minutes per application. GoaOnAuto reduces this to under 5 minutes with near-zero data entry errors, because demographic data is extracted directly from cryptographic Aadhaar QR codes rather than manual typing.
+This is tedious, error-prone, and takes 20-30 minutes per application manually. GoaOnAuto reduces this to 5-10 minutes (including human review) with near-zero data entry errors, because demographic data is extracted directly from cryptographic Aadhaar QR codes rather than manual typing.
 
 ---
 
@@ -205,7 +205,7 @@ The protocol is just `{"id": "uuid", "action": "batch_process", ...params}\n` ->
 [residence_form_data.json + residence_declaration.pdf]
         │
         ▼
-[Playwright → Brave → GoaOnline Portal (59 form controls)]
+[Playwright → Brave → GoaOnline Portal (25+ form fields)]
 ```
 
 ---
@@ -770,10 +770,10 @@ The human-in-the-loop design keeps the operator responsible for authentication.
 
 ### Q: Why did you use the Page Object Model (POM) for browser automation?
 **A:**
-- The GoaOnline portal contains **59 distinct controls** across applicant details, address blocks, parentage, and declarations.
+- The GoaOnline portal contains **25+ distinct fields** across applicant details, address modal dialogs, parentage, and declarations.
 - Without POM, locator strings like `input#ctl00_ContentPlaceHolder1_txtApplicantName` would be duplicated across dozens of scripts. If the portal developers change an ID or structure, every script breaks.
 - With POM:
-  - **Centralized Locators:** All 59 controls are mapped in a dedicated `GoaOnlineFormPage` class.
+  - **Centralized Locators:** All fields and selectors are mapped in a dedicated `GoaOnlineFormPage` class.
   - **Maintainability:** A portal markup change requires updating exactly one line in the POM.
   - **Readability & Reusability:** Test scripts read like high-level actions (`page.fillApplicantDetails(dossier)`, `page.selectTalukaAndVillage('Tiswadi', 'Panaji')`).
 
@@ -920,7 +920,7 @@ The human-in-the-loop design keeps the operator responsible for authentication.
 | File debounce interval | **800ms** |
 | File stability check interval | **300ms** |
 | Document categories | **15+** |
-| Screen 1 form controls | **59** |
+| Active form fields | **25+** |
 | System Governor max wait | **15 seconds** |
 | LaTeX compile time | **<2 seconds** |
 | GPU inference target | **<1.2s per document** |
