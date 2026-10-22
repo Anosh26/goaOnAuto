@@ -1,6 +1,6 @@
 """
-EasyOCR CUDA GPU OCR Engine with PDF & Image Support.
-Single Responsibility: Performs optical character recognition on document images & PDFs using GPU CUDA.
+DocTR Modern Deep Learning GPU OCR Engine with PDF & Image Support.
+Single Responsibility: Performs optical character recognition on document images & PDFs using DocTR (PyTorch CUDA).
 """
 import os
 import sys
@@ -34,16 +34,38 @@ def detect_device_mode():
 
     return False, "CPU Fallback"
 
-_cached_reader = None
+_cached_predictor = None
+
+def get_doctr_predictor(is_gpu: bool):
+    """Initializes and returns cached DocTR OCR predictor on GPU/CPU."""
+    global _cached_predictor
+    if _cached_predictor is None:
+        from doctr.models import ocr_predictor
+        det_arch = os.environ.get("DOCTR_DET_ARCH", "db_mobilenet_v3_large")
+        reco_arch = os.environ.get("DOCTR_RECO_ARCH", "crnn_vgg16_bn")
+        predictor = ocr_predictor(det_arch=det_arch, reco_arch=reco_arch, pretrained=True)
+        if is_gpu:
+            predictor = predictor.cuda()
+        _cached_predictor = predictor
+    return _cached_predictor
 
 def get_easyocr_reader(is_gpu: bool):
-    global _cached_reader
-    if _cached_reader is None:
-        import easyocr
-        _cached_reader = easyocr.Reader(['en'], gpu=is_gpu)
-    return _cached_reader
+    """Backwards-compatibility alias pointing to modern DocTR predictor."""
+    return get_doctr_predictor(is_gpu)
+
+def extract_text_from_doctr_result(doc_result) -> str:
+    """Extracts structured text lines preserving horizontal word spacing and line breaks."""
+    lines = []
+    for page in doc_result.pages:
+        for block in page.blocks:
+            for line in block.lines:
+                line_words = [w.value for w in line.words if w.value]
+                if line_words:
+                    lines.append(" ".join(line_words))
+    return "\n".join(lines)
 
 def extract_from_pdf(pdf_path: str, is_gpu: bool, device_desc: str):
+    """Extracts text from PDF via native digital text stream or DocTR OCR on rasterized pages."""
     # 1. Native text extraction (Fast ~2ms)
     try:
         from pypdf import PdfReader
@@ -59,18 +81,19 @@ def extract_from_pdf(pdf_path: str, is_gpu: bool, device_desc: str):
     except Exception:
         pass
 
-    # 2. Render first page to bitmap image
+    # 2. Render and OCR scanned PDF pages with DocTR
     try:
-        import pypdfium2 as pdfium
-        pdf = pdfium.PdfDocument(pdf_path)
-        if len(pdf) > 0:
-            pil_image = pdf[0].render(scale=2).to_pil()
-            img_np = np.array(pil_image)
-            reader = get_easyocr_reader(is_gpu)
-            results = reader.readtext(img_np, detail=0)
+        from doctr.io import DocumentFile
+        predictor = get_doctr_predictor(is_gpu)
+        doc = DocumentFile.from_pdf(pdf_path)
+        if doc and len(doc) > 0:
+            # Process up to first 2 pages for document classification
+            pages_to_process = doc[:2]
+            res = predictor(pages_to_process)
+            extracted_text = extract_text_from_doctr_result(res)
             return {
-                "text": "\n".join(results),
-                "engine": "EasyOCR-PDF",
+                "text": extracted_text,
+                "engine": "DocTR-PDF",
                 "is_gpu": is_gpu,
                 "device": device_desc
             }
@@ -80,6 +103,7 @@ def extract_from_pdf(pdf_path: str, is_gpu: bool, device_desc: str):
     return None
 
 def run_ocr(image_path: str):
+    """Performs optical character recognition on an image or PDF file using DocTR GPU CUDA."""
     if not os.path.exists(image_path):
         return {"error": f"File not found: {image_path}", "text": "", "device": "N/A"}
 
@@ -90,21 +114,23 @@ def run_ocr(image_path: str):
         if pdf_res:
             return pdf_res
 
-    # Strategy 1: Try EasyOCR (Supports GPU CUDA natively)
+    # Strategy 1: Try DocTR (PyTorch GPU CUDA native)
     try:
-        reader = get_easyocr_reader(is_gpu)
-        results = reader.readtext(image_path, detail=0)
-        extracted_text = "\n".join(results)
+        from doctr.io import DocumentFile
+        predictor = get_doctr_predictor(is_gpu)
+        doc = DocumentFile.from_images(image_path)
+        res = predictor(doc)
+        extracted_text = extract_text_from_doctr_result(res)
         return {
             "text": extracted_text,
-            "engine": "EasyOCR",
+            "engine": "DocTR",
             "is_gpu": is_gpu,
             "device": device_desc
         }
     except Exception:
         pass
 
-    # Strategy 2: Try PyTesseract
+    # Strategy 2: Try PyTesseract fallback
     try:
         import pytesseract
         from PIL import Image
@@ -130,7 +156,7 @@ def run_ocr(image_path: str):
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         is_gpu, desc = detect_device_mode()
-        print(json.dumps({"is_gpu": is_gpu, "device": desc}))
+        print(json.dumps({"is_gpu": is_gpu, "device": desc, "engine": "DocTR"}))
         sys.exit(0)
 
     if sys.argv[1] == "--batch":

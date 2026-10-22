@@ -108,7 +108,7 @@ GoaOnAuto eliminates manual friction in Goa government administrative filings th
 ┌────────────────────────────────────▼─────────────────────────────────────┐
 │                      Python GPU Worker Daemon (PyTorch)                  │
 │  - NVIDIA GeForce RTX 4060 CUDA Acceleration (90% VRAM cap)             │
-│  - EasyOCR Engine (CRAFT Text Detection + ResNet-BiLSTM Recognition)     │
+│  - DocTR Engine (DBNet Text Detection + CRNN/ParSeq Recognition)         │
 │  - Dual-Format Aadhaar QR Decoder (V2/V3 BigInt + Legacy XML)           │
 │  - OpenCV YuNet Face Detection & Alpha Channel Signature Extraction      │
 └──────────────────────────────────────────────────────────────────────────┘
@@ -214,7 +214,7 @@ Persistent background server keeping PyTorch CUDA weights in VRAM.
 
 ### GPU OCR Engine (`python/ocr/gpu_ocr_engine.py`)
 * **`detect_device_mode() -> tuple[bool, str]`**: Detects NVIDIA CUDA availability and device name.
-* **`run_ocr(image_path: str) -> dict`**: Runs EasyOCR reader on candidate crops with confidence scoring.
+* **`run_ocr(image_path: str) -> dict`**: Runs DocTR deep learning reader on candidate crops with confidence scoring.
 
 ### Face & Passport Photo Detector (`python/vision/photo_detector.py`)
 * **`detect_passport_photo(image_path: str) -> dict`**: Runs OpenCV YuNet face detection, validates face proportions, aspect ratio ($3.5\times 4.5\text{ cm}$), and returns crop coordinates.

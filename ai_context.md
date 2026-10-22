@@ -1,6 +1,6 @@
 # GoaOnAuto - System Architecture & Automation Context
 
-**Stack**: Bun, TypeScript, Playwright (Chromium/Brave), Python 3.12+ (PyTorch CUDA 12.4, EasyOCR, OpenCV, pyzbar), Raylib GUI (PyRay Static 6.0), XeLaTeX.  
+**Stack**: Bun, TypeScript, Playwright (Chromium/Brave), Python 3.12+ (PyTorch CUDA 12.4, DocTR DBNet+CRNN, OpenCV, pyzbar), Raylib GUI (PyRay Static 6.0), XeLaTeX.  
 **Architecture**: TypeScript orchestration & Playwright browser automation communicating with Python GPU Worker (`gpu_worker_daemon.py`) via persistent JSON-RPC over Windows Named Pipes (`\\.\pipe\goaonauto_ipc`).
 
 ---
@@ -20,7 +20,7 @@ The system includes an interactive, infinite-zoom vector architectural suite loc
 
 1. **OCR & Vision Engine**:
    - `src/scanner/gpuDaemonClient.ts`: Persistent JSON-RPC client communicating with Python GPU daemon.
-   - `python/ocr/gpu_ocr_engine.py`: EasyOCR (CRAFT + ResNet-BiLSTM CUDA RTX 4060) + Tesseract fallback.
+   - `python/ocr/gpu_ocr_engine.py`: DocTR (Mindee DBNet + CRNN/ParSeq CUDA RTX 4060) + Tesseract fallback.
    - `python/vision/aadhaar_qr.py`: Secure V2/V3 compressed & legacy XML Aadhaar QR decoder (BigInt bit-unpacking via zlib + Verhoeff Modulo-10 checksum validation).
    - `python/vision/photo_detector.py` & `signature_detector.py`: OpenCV face detection & transparent signature alpha isolation.
    - `python/vision/ai_remove_bg.py`: U2-Net / BiRefNet solid white background matting (<50KB portal compliant).

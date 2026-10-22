@@ -31,6 +31,8 @@ GoaOnAuto is an end-to-end intelligent automation system designed to eliminate m
 
 ## 🏗️ Architecture & Documentation
 
+> 🎯 **Interview Cheat Sheet & Technical Defense**: Open [`INTERVIEW_CHEATSHEET.md`](file:///c:/Users/Anosh/Documents/Notes/Projects/goaOnAuto/INTERVIEW_CHEATSHEET.md) for quick-recall elevator pitches, architectural defenses, simple and tricky interview Q&A, and debugging war stories.
+> 
 > 📖 **Complete API Reference & Function Catalog**: Open [`docs/API_REFERENCE.md`](file:///c:/Users/Anosh/Documents/Notes/Projects/goaOnAuto/docs/API_REFERENCE.md) for full function signatures, parameters (`@param`), return types (`@returns`), and module breakdowns.
 > 
 > 🧠 **Deep Code Logic & Algorithmic Blueprint**: Open [`docs/CODE_LOGIC.md`](file:///c:/Users/Anosh/Documents/Notes/Projects/goaOnAuto/docs/CODE_LOGIC.md) for step-by-step mathematical and algorithmic explanations (Trie change buffer, BigInt Gzip QR decoding, Verhoeff checksums, and ASP.NET postback handling).

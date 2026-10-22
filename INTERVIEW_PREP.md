@@ -66,7 +66,7 @@ This is tedious, error-prone, and takes 20-30 minutes per application manually. 
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
 | **Orchestration** | TypeScript + Bun | File watching, classification, dossier synthesis, CLI tools |
-| **GPU Vision Engine** | Python 3.13 + PyTorch CUDA 12.4 | EasyOCR, Aadhaar QR decoding, face/signature detection |
+| **GPU Vision Engine** | Python 3.13 + PyTorch CUDA 12.4 | DocTR (DBNet + CRNN), Aadhaar QR decoding, face/signature detection |
 | **Desktop GUI** | Python + Raylib (PyRay 6.0) | Immediate-mode interactive forms, OCR trainer, photo optimizer |
 | **Legal Document Gen** | LaTeX (MiKTeX pdflatex/XeLaTeX) | Pixel-perfect single-page A4 legal affidavits |
 | **Browser Automation** | Playwright + Brave (Chromium) | GoaOnline portal form filling, CAPTCHA solving |
@@ -79,7 +79,7 @@ This is tedious, error-prone, and takes 20-30 minutes per application manually. 
 
 1. **Ingestion (Directory Watcher)**: Monitors a folder (e.g., Google Drive sync). When documents are dropped, a Trie-based change buffer accumulates file events with 800ms debouncing. A System Governor checks hardware (>=3GB free RAM, <=80% CPU) before processing.
 
-2. **AI Document Classification & QR Extraction**: Documents are sent to a persistent Python GPU daemon over a low-latency Windows Named Pipe. EasyOCR (CRAFT + ResNet-BiLSTM on RTX 4060) extracts text. An Aadhaar QR decoder extracts golden-source demographic data. A weighted multi-rule classifier categorizes documents into 15+ types (Aadhaar, birth cert, residence cert, marksheet, etc.).
+2. **AI Document Classification & QR Extraction**: Documents are sent to a persistent Python GPU daemon over a low-latency Windows Named Pipe. DocTR (DBNet + CRNN on RTX 4060) extracts structured text. An Aadhaar QR decoder extracts golden-source demographic data. A weighted multi-rule classifier categorizes documents into 15+ types (Aadhaar, birth cert, residence cert, marksheet, etc.).
 
 3. **Dossier Synthesis & Human Review**: All extracted data is fused into a unified `applicant_dossier.json`. Aadhaar QR data (Tier 1, confidence 1.0) overrides OCR data (Tier 2). The dossier deduces age, years in Goa, and previous certificate details. A Raylib GUI lets the operator verify and correct data.
 
@@ -502,15 +502,16 @@ Two consecutive reads must match and be non-zero. The file is held in the buffer
 ## 7. Computer Vision & AI/ML Questions
 
 ### Q: What OCR engine do you use and why?
-**A:** **EasyOCR** (CRAFT text detection + ResNet-BiLSTM recognition), running on CUDA (RTX 4060).
+**A:** **DocTR** by Mindee (DBNet text detection + CRNN / ParSeq recognition), running on CUDA (RTX 4060).
 
-**Why EasyOCR over Tesseract:**
-- CRAFT detector is superior for multi-script, multi-orientation text on scanned documents
-- BiLSTM recognizer handles connected cursive and degraded text better
-- GPU acceleration makes it 5-10× faster than Tesseract on CPU
-- Better accuracy on Indian documents (Hindi, Marathi, Konkani mixed scripts)
+**Why DocTR over EasyOCR & Tesseract:**
+- Modern DBNet architecture produces tighter polygon and bounding box localization for complex document layouts.
+- Preserves natural horizontal word spacing, punctuation, and multi-column block flow.
+- Ultra-lightweight memory footprint (~160MB VRAM on RTX 4060 vs ~600MB+ in EasyOCR).
+- Over 2× faster inference (~80-110ms per page vs ~200ms+ in EasyOCR).
+- Native PyTorch CUDA 12.4 integration on Windows Python 3.13 without heavy framework bloat.
 
-**Tesseract fallback:** Used as a secondary option when EasyOCR confidence is low.
+**Tesseract fallback:** Used as a secondary option if deep learning inference encounters unhandled exceptions.
 
 ---
 
@@ -933,7 +934,7 @@ The human-in-the-loop design keeps the operator responsible for authentication.
 | GUI theme | **Dracula** |
 | Browser | **Brave (Chromium engine)** |
 | Automation library | **Playwright** |
-| OCR engine | **EasyOCR (CRAFT + ResNet-BiLSTM)** |
+| OCR engine | **DocTR (DBNet + CRNN/ParSeq)** |
 | LaTeX engine | **MiKTeX pdflatex / XeLaTeX** |
 | Font | **JetBrains Mono** |
 | Runtime | **Bun 1.2+ (TypeScript), Python 3.13** |

@@ -616,7 +616,7 @@ def run_ocr_trainer(
 
             dots = "." * (int(cursor_timer * 3.5) % 4)
             draw_text_clean(font, f"⚡ Processing Next Document{dots}", card_x + 36, card_y + 36, int(22 * scale), DRACULA_YELLOW)
-            draw_text_clean(font, "Local GPU Daemon (RTX 4060 CUDA) is running EasyOCR extraction", card_x + 36, card_y + 80, int(15 * scale), DRACULA_FG)
+            draw_text_clean(font, "Local GPU Daemon (RTX 4060 CUDA) is running DocTR extraction", card_x + 36, card_y + 80, int(15 * scale), DRACULA_FG)
             draw_text_clean(font, "Extracting text lines, verifying entities, and preparing live preview...", card_x + 36, card_y + 110, int(15 * scale), DRACULA_MUTED)
 
             rl.draw_line(card_x + 36, card_y + 155, card_x + card_w - 36, card_y + 155, DRACULA_BORDER)
@@ -1274,7 +1274,7 @@ def run_ocr_trainer(
         hints_text = "⌨️  Tab: Next Field  •  Mouse Wheel: Scroll & Zoom  •  F11: Fullscreen  •  Ctrl+Enter: Save & Retrain  •  Esc: Skip"
         draw_text_clean(font, hints_text, 20, h - footer_h + 12, int(14 * scale), DRACULA_MUTED)
 
-        gpu_status_txt = "🟢 Local GPU Worker: RTX 4060 CUDA (EasyOCR)"
+        gpu_status_txt = "🟢 Local GPU Worker: RTX 4060 CUDA (DocTR)"
         gpu_txt_w = measure_text_clean(font, gpu_status_txt, int(13 * scale))
         draw_text_clean(font, gpu_status_txt, w - gpu_txt_w - 20, h - footer_h + 12, int(13 * scale), DRACULA_GREEN)
 

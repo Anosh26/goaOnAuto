@@ -318,7 +318,7 @@ def generate_visual_svg() -> str:
       <!-- Left Visual: CRAFT OCR Text Detection Mesh -->
       <g transform="translate(10, 40)">
         <rect width="135" height="140" rx="10" fill="#0f172a" stroke="#475569" stroke-width="1.2"/>
-        <text x="12" y="24" font-size="11" font-weight="700" fill="#c084fc">EasyOCR CRAFT</text>
+        <text x="12" y="24" font-size="11" font-weight="700" fill="#c084fc">DocTR DBNet</text>
         
         <!-- Bounding Box Annotations over text -->
         <rect x="12" y="38" width="65" height="18" rx="2" fill="#a855f7" fill-opacity="0.15" stroke="#a855f7" stroke-width="1.2"/>

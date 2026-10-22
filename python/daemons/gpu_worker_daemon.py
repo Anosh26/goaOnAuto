@@ -38,7 +38,7 @@ class GpuWorkerService:
     def __init__(self):
         """Initializes device mode (CUDA vs. CPU fallback) and sets engine labels."""
         self.is_gpu, self.device_desc = detect_device_mode()
-        self.engine_name = "EasyOCR (GPU CUDA)" if self.is_gpu else "EasyOCR (CPU)"
+        self.engine_name = "DocTR (GPU CUDA)" if self.is_gpu else "DocTR (CPU)"
 
     def get_system_metrics(self) -> dict:
         """Collects real-time hardware telemetry for system governance.
@@ -125,7 +125,7 @@ class GpuWorkerService:
         return {
             "path": image_path,
             "text": text,
-            "engine": ocr_res.get("engine", "EasyOCR"),
+            "engine": ocr_res.get("engine", "DocTR"),
             "is_gpu": ocr_res.get("is_gpu", self.is_gpu),
             "device": ocr_res.get("device", self.device_desc),
             "is_photo": is_photo,

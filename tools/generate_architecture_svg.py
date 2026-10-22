@@ -135,9 +135,9 @@ def build_architecture_svg() -> str:
       <rect x="750" y="0" width="170" height="38" rx="8" fill="#1e293b" stroke="#10b981" stroke-width="1.2"/>
       <text x="835" y="24" font-size="13" font-weight="700" fill="#34d399" text-anchor="middle">📄 XeLaTeX Compiler</text>
 
-      <!-- Badge 6: EasyOCR -->
+      <!-- Badge 6: DocTR -->
       <rect x="935" y="0" width="100" height="38" rx="8" fill="#1e293b" stroke="#64748b" stroke-width="1.2"/>
-      <text x="985" y="24" font-size="13" font-weight="700" fill="#94a3b8" text-anchor="middle">EasyOCR</text>
+      <text x="985" y="24" font-size="13" font-weight="700" fill="#94a3b8" text-anchor="middle">DocTR</text>
     </g>
   </g>
 ''')
@@ -323,7 +323,7 @@ def build_architecture_svg() -> str:
         subtitle="CUDA Neural Model Host & Server Loop",
         file_path="python/daemons/gpu_worker_daemon.py",
         points=[
-            "Preloads PyTorch, EasyOCR & OpenCV models into VRAM once",
+            "Preloads PyTorch, DocTR & OpenCV models into VRAM once",
             "Eliminates 6-8s Python cold-start latency per document",
             "Multi-threaded request dispatcher handling image batches",
             "NVIDIA RTX 4060 hardware acceleration via CUDA 12.4 FP16",
@@ -336,10 +336,10 @@ def build_architecture_svg() -> str:
     svg.append(draw_card(
         x=605, y=700, w=480, h=225,
         title="GPU OCR Inference Engine",
-        subtitle="EasyOCR Deep Learning & Tesseract Hybrid",
+        subtitle="DocTR Deep Learning & Tesseract Hybrid",
         file_path="python/ocr/gpu_ocr_engine.py",
         points=[
-            "CRAFT Text Detection + ResNet-BiLSTM-CTC Recognition",
+            "DBNet Text Detection + CRNN / ParSeq Recognition",
             "Batch tensor inference across arbitrary resolutions and rotations",
             "Automatic contrast enhancement, deskewing & unsharp masking",
             "Fallback to Tesseract OCR with PSM-6/11 for dense tabular pages",
